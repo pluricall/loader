@@ -1,0 +1,9 @@
+services:
+  api-galp:
+    image: bitnami/postgresql
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRESQL_USERNAME=loader
+      - POSTGRESQL_PASSWORD=loader
+      - POSTGRESQL_DATABASE=loaderdb

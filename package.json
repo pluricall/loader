@@ -1,0 +1,45 @@
+{
+  "name": "fastify",
+  "version": "1.0.0",
+  "main": "./src/server.ts",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsup src --out-dir build",
+    "start": "node ./build/server.js",
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx --fix"
+  },
+  "dependencies": {
+    "@fastify/cors": "^11.0.0",
+    "@prisma/client": "^6.4.1",
+    "@rocketseat/eslint-config": "^2.2.2",
+    "axios": "^1.8.2",
+    "basic-ftp": "^5.0.5",
+    "dotenv": "^16.5.0",
+    "eslint": "^8.57.1",
+    "fastify": "^5.2.1",
+    "mssql": "^11.0.1",
+    "node-cron": "^3.0.3",
+    "nodemailer": "^7.0.3",
+    "ssh2-sftp-client": "^12.0.0",
+    "tsup": "^8.4.0",
+    "uuid": "^11.1.0",
+    "xlsx": "^0.18.5",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/mssql": "^9.1.7",
+    "@types/node": "^22.13.1",
+    "@types/node-cron": "^3.0.11",
+    "@types/nodemailer": "^6.4.17",
+    "@types/ssh2-sftp-client": "^9.0.4",
+    "@types/uuid": "^10.0.0",
+    "prisma": "^6.4.1",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.19.3",
+    "typescript": "^5.7.3"
+  }
+}

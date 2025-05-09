@@ -1,0 +1,110 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum TypeBbEnum {
+  BLENDED
+  OUTBOUND
+  INBOUND
+}
+
+enum EntityNameEnum {
+  ACTIVITY
+  CONTACT_PROFILE
+  CONSENT
+  DNCL_ENTRY
+  TABLE_SCHEMA_ENUM_VALUE
+  WF_PROCESS_INSTANCE
+}
+
+enum LoadingModeEnum {
+  APPEND
+  UPDATE
+  APPEND_OR_UPDATE
+  REPLACE
+}
+
+model Campaign {
+  id            String     @id @default(uuid())
+  name          String     @unique
+  expiration    DateTime
+  dataload      DateTime   @default(now())
+  campaign_type TypeBbEnum
+  description   String
+  created_by    String?
+  updated_by    String?
+  created_at    DateTime   @default(now())
+  updated_at    DateTime   @default(now())
+
+  sources SourceBD[]
+}
+
+model SourceBD {
+  id           String   @id @default(uuid())
+  origin       String
+  name         String
+  local_path   String?
+  host         String?
+  password     String?
+  username     String?
+  port         Int?
+  full_url     String?
+  frequency    String
+  start_time   String
+  end_time     String
+  interval     Int
+  day_of_week  Int[]
+  day_of_month Int[]
+  created_by   String?
+  updated_by   String?
+  created_at   DateTime @default(now())
+  updated_at   DateTime @default(now())
+
+  campaign_id String
+  campaign    Campaign @relation(fields: [campaign_id], references: [id], onDelete: Cascade)
+
+  typ_id String?
+  typ    TypBD?  @relation(fields: [typ_id], references: [id])
+}
+
+model TypBD {
+  id           String          @id @default(uuid())
+  name         String          @unique
+  separator    String
+  entityName   EntityNameEnum
+  loadingMode  LoadingModeEnum
+  parserMode   String
+  fields       String[]
+  fixed_fields Json
+  created_by   String?
+  updated_by   String?
+  created_at   DateTime        @default(now())
+  updated_at   DateTime        @default(now())
+
+  sources SourceBD[]
+}
+
+model LoadersTask {
+  id                 String   @id @default(uuid())
+  task_id            Int
+  status             String
+  status_description String
+  percentage_done    Int
+  creation_moment    DateTime
+  start_moment       DateTime
+  end_moment         DateTime
+  internal           String?
+
+  @@map("loaders_task") 
+}
