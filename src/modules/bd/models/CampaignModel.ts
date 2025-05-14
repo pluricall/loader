@@ -87,8 +87,8 @@ export class CampaignModel {
     if (existingCampaign.expiration.getTime() !== expirationDate.getTime()) {
       updatedData.expiration = expirationDate
     }
-    if (existingCampaign.campaign_type !== data.campaignType) {
-      updatedData.campaign_type = data.campaignType
+    if (existingCampaign.campaign_type !== data.campaign_type) {
+      updatedData.campaign_type = data.campaign_type
     }
     if (existingCampaign.description !== data.description) {
       updatedData.description = data.description || ''

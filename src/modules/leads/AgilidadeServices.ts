@@ -56,7 +56,7 @@ export async function processLeadsAgilidade(fastify: FastifyInstance) {
     const updateResult = await pool
       .request()
       .query(
-        `UPDATE agilidade_leads_repository SET lead_status = '${lockFlag}' WHERE lead_status= 'TESTE'`,
+        `UPDATE agilidade_leads_repository SET lead_status = '${lockFlag}' WHERE lead_status= 'NEWX'`,
       )
 
     logger.info(

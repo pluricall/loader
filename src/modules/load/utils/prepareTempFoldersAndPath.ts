@@ -13,8 +13,8 @@ export async function prepareTempFolderAndPaths(
     .replace(/[-:T.]/g, '')
     .slice(0, 15)
   const uniqueId = `${dateStr}_${campaignName}`
-
-  const tempFolder = path.resolve(__dirname, `../../../../loads/${uniqueId}`)
+  
+  const tempFolder = path.resolve(process.cwd(), 'loads', uniqueId)
 
   const fileService = new FileService()
   fileService.createDirectoryIfNotExists(tempFolder)

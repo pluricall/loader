@@ -41,7 +41,7 @@ model Campaign {
   expiration    DateTime
   dataload      DateTime   @default(now())
   campaign_type TypeBbEnum
-  description   String
+  description   String?
   created_by    String?
   updated_by    String?
   created_at    DateTime   @default(now())
