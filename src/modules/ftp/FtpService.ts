@@ -8,7 +8,7 @@ export class FtpService {
     return createFtpClient(origin)
   }
 
-  async download(source: SourceBD, destinationPath: string) {
+  async getFile(source: SourceBD, destinationPath: string) {
     const client = this.getClient(source.origin)
     try {
       console.log(

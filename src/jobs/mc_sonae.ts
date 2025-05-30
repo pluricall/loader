@@ -6,20 +6,19 @@ import { AltitudeService } from '../modules/altitude/AltitudeService'
 const loadService = new LoadService()
 const altitudeService = new AltitudeService()
 
-const CAMPAIGN_ID = '98a197d8-6315-48e5-9c66-19616f567330'
+const CAMPAIGN_ID = 'ae1b5da9-c0b6-48b1-a91d-a458fe893001'
+let jobFinalizado = false
 
 export async function McSonaeJobs(fastify: FastifyInstance) {
-  fastify.log.info('🔁 Execução manual do cron job UCI iniciada...')
-  
-  cron.schedule('30 11 * * *', async () => {
-    fastify.log.info('⏰ Cron job disparado para processar carga UCI...')
-    const today = new Date().toISOString().split('T')[0]
+  if (jobFinalizado) return
 
+  cron.schedule('30-59/5 11 * * 1-5', async () => {
+    fastify.log.info('⏰ Cron job disparado para processar carga UCI...')
 
     try {
       await altitudeService.resubmitContacts({
         campaignName: 'MC_Sonae_Cob',
-        sql: "WHERE ContactListName = '2025' AND InteractionStatus = 'Started' ",
+        sql: "WHERE ContactListName = '2025_TESTE' AND InteractionStatus = 'Started'",
         request: {
           ContactStatus: {
             RequestType: 'Set',
@@ -54,11 +53,14 @@ export async function McSonaeJobs(fastify: FastifyInstance) {
       })
       fastify.log.info('✅ Resubmit de contatos finalizado com sucesso.')
     } catch (err: any) {
-      fastify.log.error(`Erro ao executar o resubmit de contatos: ${err.message}`)
+      fastify.log.error(
+        `Erro ao executar o resubmit de contatos: ${err.message}`,
+      )
     }
 
     try {
       await loadService.uciLoaderCampaignById(CAMPAIGN_ID)
+      jobFinalizado = true
       fastify.log.info('✅ Carga UCI finalizada com sucesso.')
     } catch (err: any) {
       fastify.log.error(`Erro ao rodar a carga UCI: ${err}`)

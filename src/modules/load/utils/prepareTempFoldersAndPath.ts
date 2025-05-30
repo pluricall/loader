@@ -1,10 +1,10 @@
 import path from 'path'
 import { FileService } from '../../file/FileService'
-import { Campaign } from '@prisma/client'
+import { Campaign, SourceBD } from '@prisma/client'
 
 export async function prepareTempFolderAndPaths(
   campaign: Campaign,
-  source: any,
+  source: SourceBD,
 ) {
   const campaignName = campaign.name
   const now = new Date()
@@ -13,7 +13,7 @@ export async function prepareTempFolderAndPaths(
     .replace(/[-:T.]/g, '')
     .slice(0, 15)
   const uniqueId = `${dateStr}_${campaignName}`
-  
+
   const tempFolder = path.resolve(process.cwd(), 'loads', uniqueId)
 
   const fileService = new FileService()

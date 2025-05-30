@@ -1,5 +1,6 @@
 import { FastifyInstance } from 'fastify'
 import { AltitudeService } from '../altitude/AltitudeService'
+import { sendEmail } from '../../config/send-email'
 
 const fieldMapping = {
   ACTIVITY_HOME_PHONE_VALUE: 'HomePhone',
@@ -26,50 +27,38 @@ export async function processLeadsAgilidade(fastify: FastifyInstance) {
   const logger = fastify.log
   const pool = fastify.mssql
 
-  async function updateLeadStatus(id: number, status: string) {
+  async function updateLeadStatus(
+    databaseName: string,
+    id: number,
+    status: string,
+  ) {
     await pool
       .request()
-      .query(
-        `UPDATE agilidade_leads_repository SET lead_status = '${status}' WHERE id = ${id}`,
-      )
+      .input('status', status)
+      .input('id', id)
+      .query(`UPDATE ${databaseName} SET lead_status = @status WHERE id = @id`)
   }
 
-  async function sendTelegramAlert(message: string) {
-    const url = 'https://www.tejo.cc/skynet/send_alert.php'
-    try {
-      await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({ message }).toString(),
-      })
-    } catch (e) {
-      logger.warn('⚠️ Falha ao enviar alerta Telegram:', e)
-    }
-  }
+  async function getLeadsWithStatus(databaseName: string, status: string) {
+    const lockFlag = `LOCKED_${new Date().toISOString()}_${Math.random()}`
 
-  logger.info('🚀 Iniciando processamento dos leads agilidade...')
-
-  try {
-    const lockFlag = `LOCKED_${new Date().toISOString()}}_${Math.random()}`
-    logger.info(`🔒 Aplicando lock nos leads com o flag: ${lockFlag}`)
-
-    const updateResult = await pool
-      .request()
-      .query(
-        `UPDATE agilidade_leads_repository SET lead_status = '${lockFlag}' WHERE lead_status= 'NEWX'`,
-      )
-
-    logger.info(
-      `✅ Leads marcados como LOCKED: ${updateResult.rowsAffected?.[0] ?? 0}`,
-    )
+    await pool.request().input('status', status).input('lockFlag', lockFlag)
+      .query(`
+    UPDATE ${databaseName} 
+    SET lead_status = @lockFlag
+    WHERE lead_status = @status
+  `)
 
     const result = await pool
       .request()
-      .query(
-        `SELECT * FROM agilidade_leads_repository WHERE lead_status = '${lockFlag}'`,
-      )
+      .input('lockFlag', lockFlag)
+      .query(`SELECT * FROM  ${databaseName} WHERE lead_status = @lockFlag`)
 
-    const leads = result.recordset
+    return result.recordset
+  }
+
+  try {
+    const leads = await getLeadsWithStatus('agilidade_leads_repository', 'NEWX')
 
     if (leads.length === 0) {
       logger.info('ℹ️ Nenhum lead novo encontrado. Encerrando processo.')
@@ -77,8 +66,6 @@ export async function processLeadsAgilidade(fastify: FastifyInstance) {
     }
 
     for (const lead of leads) {
-      logger.info(`➡️ Processando lead ID ${lead.id} (gen_id: ${lead.gen_id})`)
-
       const {
         id: table_id,
         timestamp,
@@ -101,9 +88,6 @@ export async function processLeadsAgilidade(fastify: FastifyInstance) {
       } = lead
 
       if (!phone_number) {
-        logger.warn(
-          `⚠️ Telefone ausente para gen_id: ${gen_id}, marcando como ERRO.`,
-        )
         await pool
           .request()
           .query(
@@ -180,40 +164,49 @@ export async function processLeadsAgilidade(fastify: FastifyInstance) {
         },
       )
 
-      const payload = {
-        discriminator: '',
-        campaignName: campanha_easy,
-        contactCreateRequest: {
-          Status: 'Created',
-          discriminator: '',
-          DirectoryName: { Value: 'agilidade_leads' },
-          Attributes: attributes,
-          ContactListName: { Value: contact_list_easy },
-          TimeZoneName: { Value: 'GMT' },
-        },
-      }
-
       try {
         const altitudeService = new AltitudeService()
-        const response = await altitudeService.createContact(payload)
+        const creatingContactResponse = await altitudeService.createContact({
+          discriminator: '',
+          campaignName: campanha_easy,
+          contactCreateRequest: {
+            Status: 'Created',
+            discriminator: '',
+            DirectoryName: { Value: 'agilidade_leads_2025' },
+            Attributes: attributes,
+            ContactListName: { Value: contact_list_easy },
+            TimeZoneName: { Value: 'GMT' },
+          },
+        })
 
-        if (response.status === 200 && response.data) {
-          logger.info(`✅ Lead criado com sucesso. ID: ${response.data}`)
-          await updateLeadStatus(table_id, 'EASYLOAD')
+        if (
+          creatingContactResponse.status === 200 &&
+          creatingContactResponse.data
+        ) {
+          logger.info(
+            `✅ Lead criado com sucesso. ID: ${creatingContactResponse.data}`,
+          )
+          await updateLeadStatus(
+            'agilidade_leads_repository',
+            table_id,
+            'EASYLOAD',
+          )
         } else {
-          throw new Error(`Falha ao criar contato. Status: ${response.status}`)
+          throw new Error(
+            `Falha ao criar contato. Status: ${creatingContactResponse.status}`,
+          )
         }
       } catch (error: any) {
-        logger.error(
-          `❌ Erro ao processar lead ID ${table_id}: ${error.message}`,
-        )
-        await updateLeadStatus(table_id, 'ERRO')
-        await sendTelegramAlert(`Erro no lead ${gen_id}: ${error.message}`)
+        await updateLeadStatus('agilidade_leads_repository', table_id, 'ERRO')
+        await sendEmail({
+          campaignName: 'agilidade_leads',
+          title: '❌ Erro ao processar lead',
+          errors: `Erro no lead ${gen_id}: ${error.message}`,
+        })
       }
     }
     return {
-      status: 'success',
-      totalProcessed: leads.length,
+      loadedContacts: leads.length,
     }
   } catch (err: any) {
     logger.error(`💥 Erro geral durante o processamento: ${err.message}`)

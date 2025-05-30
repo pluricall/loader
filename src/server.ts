@@ -42,7 +42,7 @@ app.register(
   },
   { prefix: 'api' },
 )
-    const today = new Date().toISOString().split('T')[0]
+const today = new Date().toISOString().split('T')[0]
 const server = async () => {
   try {
     await app.register(mssqlPlugin)

@@ -2,9 +2,13 @@ import fs from 'fs/promises'
 import path from 'path'
 import { spawn } from 'child_process'
 import { IUciLoaderBody } from './@types'
+import { LoaderTaskModel } from './models/UciLoaderModel'
+import { BackgroundTaskResult } from './methods/BackgroundTask'
 
 export class UciLoaderService {
-  async generateTypFile({
+  constructor(private readonly loaderTaskModel: LoaderTaskModel) {}
+
+  async createTyp({
     entityName,
     fields,
     fixedFields,
@@ -42,7 +46,7 @@ export class UciLoaderService {
     return finalOutputPath
   }
 
-  async runUciLoader(typPath: string, datPath: string) {
+  async runningUciLoader(typPath: string, datPath: string) {
     return new Promise<string>((resolve, reject) => {
       const command = `"C:\\Users\\rgsm\\OneDrive - Pluricall\\Informática\\05 - Projectos\\Insight360\\uciloader\\uciLoader.exe" -m 172.30.226.5:1500 -l rgsm:Neiajonas123? -f "${typPath}" -i "${datPath}"`
 
@@ -76,6 +80,19 @@ export class UciLoaderService {
       process.stdin.write('y\n')
 
       process.stdin.end()
+    })
+  }
+
+  async saveLoaderTask(resultOfTask: BackgroundTaskResult) {
+    await this.loaderTaskModel.create({
+      task_id: resultOfTask.Id,
+      status: resultOfTask.Status,
+      status_description: resultOfTask.StatusDescription || '',
+      percentage_done: resultOfTask.PercentageDone,
+      creation_moment: new Date(resultOfTask.CreationMoment),
+      start_moment: new Date(resultOfTask.StartMoment),
+      end_moment: new Date(resultOfTask.EndMoment),
+      internal: resultOfTask.Internal,
     })
   }
 }

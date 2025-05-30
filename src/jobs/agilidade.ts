@@ -10,7 +10,11 @@ export async function agilidadeLeadsJob(fastify: FastifyInstance) {
       await processLeadsAgilidade(fastify)
     } catch (err: any) {
       fastify.log.error(`Erro ao rodar o cron job: ${err.message}`)
-      await sendEmail([], 'Leads – Agilidade')
+      await sendEmail({
+        campaignName: 'Agilidade-Leads',
+        title: ' Erro no carregamento dos leads',
+        errors: err.message,
+      })
     }
   })
   fastify.log.info('🚀 Cron job agendado para rodar a cada minuto.')
