@@ -1,9 +1,8 @@
-import 'dotenv/config'
-import z from 'zod'
-import { CustomError } from '../errors/error'
+import "dotenv/config";
+import z from "zod";
 
 const envSchema = z.object({
-  NODE_ENV: z.enum(['development', 'test', 'production']),
+  NODE_ENV: z.enum(["development", "test", "production"]),
   PORT: z.coerce.number().default(3333),
   DATABASE_URL: z.string(),
   BASE_URL: z.string(),
@@ -14,13 +13,23 @@ const envSchema = z.object({
   SMTP_PASS: z.string(),
   SMTP_FROM_NAME: z.string(),
   SMTP_FROM_EMAIL: z.string(),
-})
+  PUMA_USER: z.string(),
+  PUMA_PASSWORD: z.string(),
+  PUMA_SERVER: z.string(),
+  PUMA_NAME: z.string(),
+  PUMA_PORT: z.coerce.number(),
+  LEOPARD_USER: z.string(),
+  LEOPARD_PASSWORD: z.string(),
+  LEOPARD_SERVER: z.string(),
+  LEOPARD_NAME: z.string(),
+  LEOPARD_PORT: z.coerce.number(),
+});
 
-const _env = envSchema.safeParse(process.env)
+const _env = envSchema.safeParse(process.env);
 
 if (_env.success === false) {
-  console.error('Invalid environment variables!', _env.error)
-  throw new CustomError('Invalid environment variables!', 400)
+  console.error("❌ Invalid environment variables!", _env.error);
+  throw new Error("❌ Invalid environment variables!");
 }
 
-export const env = _env.data
+export const env = _env.data;

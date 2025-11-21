@@ -1,6 +1,6 @@
-import { FastifyReply, FastifyRequest } from 'fastify'
-import { altitudeServiceInstance } from './instances/AltitudeServiceInstance'
-import { IContactsResubmitBody, ICreateContact } from './@types'
+import { FastifyReply, FastifyRequest } from "fastify";
+import { altitudeServiceInstance } from "./instances/AltitudeServiceInstance";
+import { IContactsResubmitBody, ICreateContact } from "./@types";
 
 export class AltitudeController {
   async createContact(
@@ -8,10 +8,10 @@ export class AltitudeController {
     reply: FastifyReply,
   ) {
     try {
-      const result = await altitudeServiceInstance.createContact(req.body)
-      reply.send(result)
+      const result = await altitudeServiceInstance.createContact(req.body);
+      reply.send(result);
     } catch (error) {
-      reply.status(500).send({ error: 'Erro ao criar contato' })
+      reply.status(500).send({ error: "Erro ao criar contato" });
     }
   }
 
@@ -22,10 +22,10 @@ export class AltitudeController {
     try {
       const result = await altitudeServiceInstance.getDirectoryId({
         campaignName: req.params.campaignName,
-      })
-      reply.send(result)
+      });
+      reply.send(result);
     } catch (error) {
-      reply.status(500).send({ error: 'Erro ao obter ID do diretório' })
+      reply.status(500).send({ error: "Erro ao obter ID do diretório" });
     }
   }
 
@@ -34,10 +34,10 @@ export class AltitudeController {
     reply: FastifyReply,
   ) {
     try {
-      const result = await altitudeServiceInstance.resubmitContacts(req.body)
-      reply.send(result)
+      const result = await altitudeServiceInstance.resubmitContacts(req.body);
+      reply.send(result);
     } catch (error) {
-      reply.status(500).send({ error: 'Erro ao ressubmeter contatos' })
+      reply.status(500).send({ error: "Erro ao ressubmeter contatos" });
     }
   }
 
@@ -48,14 +48,14 @@ export class AltitudeController {
     try {
       const result = await altitudeServiceInstance.getBackgroundTaskData(
         req.params.taskId,
-      )
-      reply.send(result)
+      );
+      reply.send(result);
     } catch (error) {
-      console.error('Erro ao obter dados da tarefa em segundo plano:', error)
+      console.error("Erro ao obter dados da tarefa em segundo plano:", error);
       reply.status(500).send({
-        error: 'Erro ao obter dados da tarefa em segundo plano',
+        error: "Erro ao obter dados da tarefa em segundo plano",
         details: error,
-      })
+      });
     }
   }
 }

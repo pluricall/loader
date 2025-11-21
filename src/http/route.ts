@@ -1,0 +1,56 @@
+import type { FastifyInstance } from "fastify";
+import { createClient } from "./controllers/clients/create";
+import { createBd } from "./controllers/bds/create";
+import { createTyp } from "./controllers/typs/create";
+import { searchClients } from "./controllers/clients/search";
+import { searchBds } from "./controllers/bds/search";
+import { searchTyps } from "./controllers/typs/search";
+import { clientDetails } from "./controllers/clients/details";
+import { bdDetails } from "./controllers/bds/details";
+import { typDetails } from "./controllers/typs/details";
+import { updateClient } from "./controllers/clients/update";
+import { updateBd } from "./controllers/bds/update";
+import { updateTyp } from "./controllers/typs/update";
+import { removeClient } from "./controllers/clients/remove";
+import { removeBd } from "./controllers/bds/remove";
+import { removeTyp } from "./controllers/typs/remove";
+import { getSharepointSites } from "./controllers/sharepoint/get-sites";
+import { getSharepointDrives } from "./controllers/sharepoint/get-drives";
+import { getSharepointFolders } from "./controllers/sharepoint/get-folders";
+import { createClientRecordings } from "./controllers/records/create-client";
+import { getClientsRecordings } from "./controllers/records/get-clients";
+import { updateClientRecordings } from "./controllers/records/update-client";
+
+export function appRoutes(app: FastifyInstance) {
+  /* Clients */
+  app.post("/clients", createClient);
+  app.get("/clients", searchClients);
+  app.put("/clients/:id", updateClient);
+  app.get("/clients/:id", clientDetails);
+  app.delete("/clients/:id", removeClient);
+
+  /* Bds */
+  app.post("/clients/:clientId/bds", createBd);
+  app.get("/clients/:clientId/bds", searchBds);
+  app.get("/clients/:clientId/bds/:bdId", bdDetails);
+  app.put("/clients/:clientId/bds/:bdId", updateBd);
+  app.delete("/clients/:clientId/bds/:bdId", removeBd);
+
+  /* Typ */
+  app.post("/typ", createTyp);
+  app.get("/typ", searchTyps);
+  app.get("/typ/:id", typDetails);
+  app.put("/typ/:id", updateTyp);
+  app.delete("/typ/:id", removeTyp);
+
+  /* Records */
+  app.post("/records", () => {});
+  app.get("/clients/records", getClientsRecordings);
+  app.post("/clients/records", createClientRecordings);
+  app.patch("/clients/records/:clientName", updateClientRecordings);
+
+  /* Sharepoint */
+  app.get("/sharepoint/sites", getSharepointSites);
+  app.get("/sharepoint/drives", getSharepointDrives);
+  app.get("/sharepoint/folders", getSharepointFolders);
+}

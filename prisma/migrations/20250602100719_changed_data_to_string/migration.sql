@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "bds" ALTER COLUMN "dt_entrada" SET DATA TYPE TEXT,
+ALTER COLUMN "dt_saida" SET DATA TYPE TEXT;

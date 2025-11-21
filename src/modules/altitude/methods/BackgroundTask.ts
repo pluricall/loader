@@ -1,14 +1,14 @@
-import { uAgentWeb } from '../../../config/axios'
+import { uAgentWeb } from "../../../config/axios";
 
 export interface BackgroundTaskResult {
-  Id: number
-  Status: string
-  StatusDescription: string
-  PercentageDone: number
-  CreationMoment: string
-  StartMoment: string
-  EndMoment: string
-  Internal: any
+  Id: number;
+  Status: string;
+  StatusDescription: string;
+  PercentageDone: number;
+  CreationMoment: string;
+  StartMoment: string;
+  EndMoment: string;
+  Internal: any;
 }
 
 export async function getBackgroundTask(
@@ -23,7 +23,7 @@ export async function getBackgroundTask(
         Authorization: `Bearer ${token}`,
       },
     },
-  )
+  );
 
-  return response.data as BackgroundTaskResult
+  return response.data as BackgroundTaskResult;
 }
