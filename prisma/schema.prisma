@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,12 +5,6 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-}
-
-enum TypeBbEnum {
-  BLENDED
-  OUTBOUND
-  INBOUND
 }
 
 enum EntityNameEnum {
@@ -35,23 +23,61 @@ enum LoadingModeEnum {
   REPLACE
 }
 
-model Campaign {
-  id            String     @id @default(uuid())
-  name          String     @unique
-  expiration    DateTime
-  dataload      DateTime   @default(now())
-  campaign_type TypeBbEnum
-  description   String?
-  created_by    String?
-  updated_by    String?
-  created_at    DateTime   @default(now())
-  updated_at    DateTime   @default(now())
-
-  sources SourceBD[]
+enum BdType {
+  EXTERNAL
+  INTERNAL
 }
 
-model SourceBD {
-  id           String   @id @default(uuid())
+enum Status {
+  ACTIVE
+  INACTIVE
+}
+
+enum Frequency {
+  DAILY
+  WEEKLY
+  MONTHLY
+}
+
+model Clients {
+  id                   String     @id @default(uuid())
+  client               String
+  status               Status
+  contact_dpo          String?
+  contact_ex_dto       String?
+  info_ex_dto          String?
+  owner                String
+  ftp_path             String
+  recording_devolution Frequency?
+  created_at           DateTime   @default(now())
+  updated_at           DateTime?
+  bds                  Bds[]
+
+  @@map("clients")
+}
+
+model Bds {
+  id                 String  @id @default(uuid())
+  client_id          String
+  client_id_from_plc String?
+  type               BdType
+  user               String?
+  status             Status
+  bd_name            String
+  code               String  @unique
+  origin             String
+
+  created_at DateTime  @default(now())
+  updated_at DateTime?
+
+  client Clients @relation(fields: [client_id], references: [id], onDelete: Cascade)
+  source Source?
+
+  @@map("bds")
+}
+
+model Source {
+  id           String  @id @default(uuid())
   origin       String
   name         String
   local_path   String?
@@ -66,33 +92,28 @@ model SourceBD {
   interval     Int
   day_of_week  Int[]
   day_of_month Int[]
-  created_by   String?
-  updated_by   String?
-  created_at   DateTime @default(now())
-  updated_at   DateTime @default(now())
 
-  campaign_id String
-  campaign    Campaign @relation(fields: [campaign_id], references: [id], onDelete: Cascade)
+  created_at DateTime  @default(now())
+  updated_at DateTime?
 
-  typ_id String?
-  typ    TypBD?  @relation(fields: [typ_id], references: [id])
+  bd_id String @unique
+  bd    Bds    @relation(fields: [bd_id], references: [id])
+
+  @@map("sources")
 }
 
-model TypBD {
+model Typ {
   id           String          @id @default(uuid())
   name         String          @unique
   separator    String
-  entityName   EntityNameEnum
-  loadingMode  LoadingModeEnum
-  parserMode   String
+  entity_name  EntityNameEnum
+  loading_mode LoadingModeEnum
   fields       String[]
   fixed_fields Json
-  created_by   String?
-  updated_by   String?
   created_at   DateTime        @default(now())
-  updated_at   DateTime        @default(now())
+  updated_at   DateTime?
 
-  sources SourceBD[]
+  @@map("typs")
 }
 
 model LoadersTask {
@@ -106,5 +127,5 @@ model LoadersTask {
   end_moment         DateTime
   internal           String?
 
-  @@map("loaders_task") 
+  @@map("loaders_task")
 }

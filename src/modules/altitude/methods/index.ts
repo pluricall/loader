@@ -1,3 +1,3 @@
-export * from './CreateContact'
-export * from './GetDirectoryId'
-export * from './ResubmitContacts'
+export * from "./CreateContact";
+export * from "./GetDirectoryId";
+export * from "./ResubmitContacts";

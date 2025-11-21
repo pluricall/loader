@@ -1,5 +1,5 @@
-import { uAgentWeb } from '../../../config/axios'
-import { IDirectoryIdByCampaignName } from '../@types'
+import { uAgentWeb } from "../../../config/axios";
+import { IDirectoryIdByCampaignName } from "../@types";
 
 export async function getDirectoryIdByCampaignName(
   { campaignName }: IDirectoryIdByCampaignName,
@@ -13,7 +13,7 @@ export async function getDirectoryIdByCampaignName(
         Authorization: `Bearer ${token}`,
       },
     },
-  )
+  );
 
-  return response.data.Id
+  return response.data.Id;
 }

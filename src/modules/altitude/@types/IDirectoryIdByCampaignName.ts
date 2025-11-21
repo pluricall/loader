@@ -1,3 +1,3 @@
 export interface IDirectoryIdByCampaignName {
-  campaignName: string
+  campaignName: string;
 }

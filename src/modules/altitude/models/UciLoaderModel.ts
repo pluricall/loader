@@ -1,4 +1,4 @@
-import { Prisma, PrismaClient } from '@prisma/client'
+import { Prisma, PrismaClient } from "@prisma/client";
 
 export class LoaderTaskModel {
   constructor(private prisma: PrismaClient) {}
@@ -6,6 +6,6 @@ export class LoaderTaskModel {
   async create(data: Prisma.LoadersTaskCreateInput) {
     return this.prisma.loadersTask.create({
       data,
-    })
+    });
   }
 }

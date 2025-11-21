@@ -1,5 +1,5 @@
-import { uAgentWeb } from '../../../config/axios'
-import { IContactsResubmitBody } from '../@types'
+import { uAgentWeb } from "../../../config/axios";
+import { IContactsResubmitBody } from "../@types";
 
 export async function resubmitContacts(
   body: IContactsResubmitBody,
@@ -14,10 +14,10 @@ export async function resubmitContacts(
         Authorization: `Bearer ${token}`,
       },
       params: {
-        'api-version': apiVersion,
+        "api-version": apiVersion,
       },
     },
-  )
+  );
 
-  return response.data
+  return response.data;
 }

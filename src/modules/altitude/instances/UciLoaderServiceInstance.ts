@@ -1,3 +1,3 @@
-import { UciLoaderService } from '../UciLoaderService'
+import { UciLoaderService } from "../UciLoaderService";
 
-export const uciLoaderServiceInstance = new UciLoaderService()
+export const uciLoaderServiceInstance = new UciLoaderService();

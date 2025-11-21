@@ -1,15 +1,15 @@
-import { uAgentWeb } from '../../../config/axios'
-import { ICreateContact } from '../@types'
+import { uAgentWeb } from "../../../config/axios";
+import { ICreateContact } from "../@types";
 
 export async function createContact(
-  { campaignName, contactCreateRequest, discriminator = '' }: ICreateContact,
+  { campaignName, contactCreateRequest, discriminator = "" }: ICreateContact,
   token: string,
   apiVersion: string,
 ) {
   const attributesData = contactCreateRequest.Attributes.map((attr) => ({
     Name: attr.Name,
     Value: attr.Value,
-  }))
+  }));
 
   const payload = {
     discriminator,
@@ -18,7 +18,7 @@ export async function createContact(
       ...contactCreateRequest,
       Attributes: attributesData,
     },
-  }
+  };
 
   const response = await uAgentWeb.post(
     `/api/instance/campaignManager/createContact?api-version=${apiVersion}`,
@@ -28,7 +28,7 @@ export async function createContact(
         Authorization: `Bearer ${token}`,
       },
     },
-  )
+  );
 
-  return response
+  return response;
 }

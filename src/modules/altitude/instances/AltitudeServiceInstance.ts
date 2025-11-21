@@ -1,3 +1,3 @@
-import { AltitudeService } from '../AltitudeService'
+import { AltitudeService } from "../AltitudeService";
 
-export const altitudeServiceInstance = new AltitudeService()
+export const altitudeServiceInstance = new AltitudeService();
