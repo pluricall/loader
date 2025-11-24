@@ -1,5 +1,5 @@
 import { PrismaTypsRepository } from "../../repositories/prisma/prisma-typs-repository";
-import { RemoveTypUseCase } from "../remove-typ";
+import { RemoveTypUseCase } from "../typs/remove-typ";
 
 export function makeRemoveTypUseCase() {
   const typRepository = new PrismaTypsRepository();

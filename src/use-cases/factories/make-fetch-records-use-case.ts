@@ -1,7 +1,6 @@
 import { LeopardRepository } from "../../repositories/mssql/leopard-repository";
 import { PumaRepositoryImpl } from "../../repositories/mssql/puma-repository-impl";
-
-import { FetchRecordingsUseCase } from "../fetch-recordings";
+import { FetchRecordingsUseCase } from "../recordings/fetch-recordings";
 
 export function makeFetchRecordingsUseCase() {
   const pumaRepositoryImpl = new PumaRepositoryImpl();

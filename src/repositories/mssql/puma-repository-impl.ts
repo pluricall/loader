@@ -4,15 +4,20 @@ import {
   RecordingKeyResult,
   ClientRecordingsParams,
   GetClientRecordings,
+  RecordingFilters,
+  RecordingMetadata,
+  RecordingDownloadInfo,
 } from "../puma-repository";
 import { connectPumaDb } from "../../db/connect-puma";
+import bcrypt from "bcryptjs";
+import { IResult } from "mssql";
 
 export class PumaRepositoryImpl implements PumaRepository {
   async update(clientName: string) {
     const pool = await connectPumaDb("easy8");
 
     const result = await pool.request().input("clientName", clientName).query(`
-      UPDATE insight_clients_recordings SET status = 'INACTIVO'
+      UPDATE insight_clients SET status = 'INACTIVO'
       WHERE client_name = @clientName
     `);
 
@@ -25,7 +30,7 @@ export class PumaRepositoryImpl implements PumaRepository {
     const result = await pool.request().input("clientName", clientName).query(`
       SELECT 
         client_name AS name
-      FROM insight_clients_recordings
+      FROM insight_clients
       WHERE client_name = @clientName AND status = 'ACTIVO'
     `);
 
@@ -38,15 +43,55 @@ export class PumaRepositoryImpl implements PumaRepository {
 
   async findByCampaign(
     campaignName: string,
-  ): Promise<{ campaign: string } | null> {
+  ): Promise<{ id: number; campaign: string } | null> {
     const pool = await connectPumaDb("easy8");
 
     const result = await pool.request().input("campaignName", campaignName)
       .query(`
       SELECT 
+        id,
         campaign_name AS campaign
-      FROM insight_clients_recordings
+      FROM insight_clients
       WHERE campaign_name = @campaignName AND status = 'ACTIVO'
+    `);
+
+    if (result.recordset.length === 0) {
+      return null;
+    }
+
+    return result.recordset[0];
+  }
+
+  async findClientByCampaignClient(
+    campaignName: string,
+  ): Promise<{ id: number; name: string } | null> {
+    const pool = await connectPumaDb("easy8");
+    const result = await pool.request().input("campaignName", campaignName)
+      .query(`
+      SELECT c.id, c.client_name
+      FROM insight_clients_login c
+      INNER JOIN insight_clients r
+        ON r.client_id = c.id
+      WHERE r.campaign_name = @campaignName AND r.status = 'ACTIVO'
+    `);
+
+    if (result.recordset.length === 0) return null;
+
+    // Mapeia client_name -> name
+    return {
+      id: result.recordset[0].id,
+      name: result.recordset[0].client_name,
+    };
+  }
+
+  async findByEmail(email: string): Promise<{ email: string } | null> {
+    const pool = await connectPumaDb("easy8");
+
+    const result = await pool.request().input("email", email).query(`
+      SELECT 
+        email
+      FROM insight_clients_login
+      WHERE email = @email AND status = 'ACTIVO'
     `);
 
     if (result.recordset.length === 0) {
@@ -71,7 +116,7 @@ export class PumaRepositoryImpl implements PumaRepository {
   drive_id,
   site_id,
   results_not_in_five_percent
-  FROM insight_clients_recordings WHERE status = 'ACTIVO';
+  FROM insight_clients WHERE status = 'ACTIVO';
   `);
 
     return result.recordset.map((row: any) => ({
@@ -89,28 +134,63 @@ export class PumaRepositoryImpl implements PumaRepository {
     }));
   }
 
-  async create(data: ClientRecordingsParams) {
+  async create(
+    data: ClientRecordingsParams & { password?: string; email: string },
+  ) {
     const pool = await connectPumaDb("easy8");
+    const transaction = pool.transaction();
+    await transaction.begin();
 
-    await pool
-      .request()
-      .input("clientName", data.clientName)
-      .input("campaignName", data.campaignName)
-      .input("percentDifferentsResult", data.percentDifferentsResult)
-      .input("startTime", data.startTime)
-      .input("siteId", data.siteId)
-      .input("driveId", data.driveId)
-      .input("folderPath", data.folderPath ?? "")
-      .input("status", data.status)
-      .input("isBd", data.isBd ? 1 : 0)
-      .input("isHistorical", data.isHistorical ? 1 : 0)
-      .input("resultsNotInFivePercent", data.resultsNotInFivePercent).query(`
-      INSERT INTO insight_clients_recordings
-      (client_name, campaign_name, percent_differents_result, start_time, site_id, drive_id, folder_path, status, is_bd, is_historical, results_not_in_five_percent)
-      VALUES (@clientName, @campaignName, @percentDifferentsResult, @startTime, @siteId, @driveId, @folderPath, @status, @isBd, @isHistorical, @resultsNotInFivePercent)
-    `);
+    try {
+      // Gera senha e hash
+      const plainPassword =
+        data.password ?? Math.random().toString(36).slice(-8);
+      const passwordHash = await bcrypt.hash(plainPassword, 10);
 
-    return data;
+      // Inserção na tabela de clientes
+      const insertClientResult = await transaction
+        .request()
+        .input("clientName", data.clientName)
+        .input("email", data.email)
+        .input("passwordHash", passwordHash).query(`
+        INSERT INTO insight_clients_login (client_name, email, password_hash)
+        OUTPUT INSERTED.id
+        VALUES (@clientName, @email, @passwordHash)
+      `);
+
+      const clientId = insertClientResult.recordset[0]?.id;
+      if (!clientId) throw new Error("Erro ao criar o cliente");
+
+      await transaction
+        .request()
+        .input("clientId", clientId)
+        .input("clientName", data.clientName)
+        .input("campaignName", data.campaignName)
+        .input("percentDifferentsResult", data.percentDifferentsResult)
+        .input("startTime", data.startTime)
+        .input("siteId", data.siteId)
+        .input("driveId", data.driveId)
+        .input("folderPath", data.folderPath ?? "")
+        .input("status", data.status)
+        .input("isBd", data.isBd ? 1 : 0)
+        .input("isHistorical", data.isHistorical ? 1 : 0)
+        .input("resultsNotInFivePercent", data.resultsNotInFivePercent).query(`
+        INSERT INTO insight_clients
+        (client_id, client_name, campaign_name, percent_differents_result, start_time, site_id, drive_id, folder_path, status, is_bd, is_historical, results_not_in_five_percent)
+        VALUES (@clientId, @clientName, @campaignName, @percentDifferentsResult, @startTime, @siteId, @driveId, @folderPath, @status, @isBd, @isHistorical, @resultsNotInFivePercent)
+      `);
+
+      await transaction.commit();
+
+      return {
+        ...data,
+        clientId,
+        password: plainPassword,
+      };
+    } catch (err) {
+      await transaction.rollback();
+      throw err;
+    }
   }
 
   async fetchRecordings({
@@ -543,6 +623,121 @@ END
       bd: result.bd,
       campaign: result.campanha,
       resultado: result.resultado,
+      duration: result.duration,
+      loginContacto: result.logincontacto,
     }));
+  }
+
+  async saveSentRecordings(recording: RecordingMetadata) {
+    const pool = await connectPumaDb("easy8");
+
+    await pool
+      .request()
+      .input("clientId", recording.clientId)
+      .input("clientName", recording.clientName)
+      .input("easycode", recording.easycode)
+      .input("campaign", recording.campaign)
+      .input("moment", recording.moment)
+      .input("language", recording.language)
+      .input("sharepointLocation", recording.sharepointLocation)
+      .input("status", recording.status)
+      .input("errorMessage", recording.errorMessage ?? null)
+      .input("origem", recording.origem)
+      .input("duration", recording.duration)
+      .input("loginContacto", recording.loginContacto)
+      .input("fileName", recording.fileName).query(`
+        INSERT INTO insight_clients_recordings
+          (client_id, client_name, easycode, campaign, moment,
+           language, sharepoint_location, status, error_message, origem, file_name, duration, login_contacto)
+        VALUES
+          (@clientId, @clientName, @easycode, @campaign, @moment,
+           @language, @sharepointLocation, @status, @errorMessage, @origem, @fileName, @duration, @loginContacto)
+      `);
+  }
+
+  async searchRecordingsByFilters(
+    filters: RecordingFilters,
+  ): Promise<RecordingMetadata[]> {
+    const pool = await connectPumaDb("easy8");
+    const request = pool.request();
+
+    let sql = `
+    SELECT 
+      easycode,
+      moment,
+      language,
+      login_contacto,
+      duration,
+      sharepoint_location AS sharepointLocation,
+      file_name
+    FROM insight_clients_recordings
+    WHERE client_id = @clientId
+  `;
+    request.input("clientId", filters.clientId);
+
+    if (filters.easycode) {
+      sql += " AND easycode = @easycode";
+      request.input("easycode", filters.easycode);
+    }
+
+    if (filters.language) {
+      sql += " AND language = @language";
+      request.input("language", filters.language);
+    }
+
+    if (filters.startDate && filters.endDate) {
+      sql += " AND CAST(moment AS DATE) BETWEEN @startDate AND @endDate";
+      request.input("startDate", filters.startDate);
+      request.input("endDate", filters.endDate);
+    } else if (filters.startDate) {
+      sql += " AND CAST(moment AS DATE) >= @startDate";
+      request.input("startDate", filters.startDate);
+    } else if (filters.endDate) {
+      sql += " AND CAST(moment AS DATE) <= @endDate";
+      request.input("endDate", filters.endDate);
+    }
+
+    sql += " ORDER BY moment ASC";
+
+    const result = await request.query(sql);
+
+    return result.recordset;
+  }
+
+  async getInfoToDownloadRecordings(
+    easycode: string,
+    clientId: string,
+  ): Promise<IResult<RecordingDownloadInfo>> {
+    const pool = await connectPumaDb("easy8");
+
+    const result = await pool
+      .request()
+      .input("easycode", easycode)
+      .input("clientId", clientId).query<RecordingDownloadInfo>(`
+      SELECT
+        cra.easycode,
+        cra.client_name,
+        cra.language,
+        cra.moment,
+        cra.duration,
+        cra.file_name,
+        cra.sharepoint_location,
+        icr.site_id,
+        icr.drive_id,
+        icr.folder_path,
+        icl.client_name AS clientNameLogin
+      FROM insight_clients_recordings cra
+      INNER JOIN insight_clients icr 
+          ON cra.client_id = icr.client_id
+          AND icr.status = 'ACTIVO'
+      INNER JOIN insight_clients_login icl
+          ON cra.client_id = icl.id
+          AND icl.status = 'ACTIVO'
+      WHERE cra.easycode = @easycode
+        AND cra.client_id = @clientId
+        AND cra.status = 'SUCCESS';
+    `);
+
+    return result;
   }
 }

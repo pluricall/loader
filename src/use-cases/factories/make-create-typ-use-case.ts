@@ -1,5 +1,5 @@
 import { PrismaTypsRepository } from "../../repositories/prisma/prisma-typs-repository";
-import { CreateTypUseCase } from "../create-typ";
+import { CreateTypUseCase } from "../typs/create-typ";
 
 export function makeCreateTypUseCase() {
   const typRepository = new PrismaTypsRepository();

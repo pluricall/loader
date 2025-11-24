@@ -1,10 +1,10 @@
 import cron from "node-cron";
-import { GetClientRecordingsUseCase } from "../use-cases/get-client-recordings";
-import { DownloadRecordingsUseCase } from "../use-cases/download-recordings";
 import { sendEmail } from "../utils/send-email";
+import { GetClientRecordingsUseCase } from "../use-cases/recordings/get-client-recordings";
+import { UploadRecordingsUseCase } from "../use-cases/recordings/upload-recordings";
 
 const getClientRecordingsUseCase = new GetClientRecordingsUseCase();
-const downloadRecordingsUseCase = new DownloadRecordingsUseCase();
+const downloadRecordingsUseCase = new UploadRecordingsUseCase();
 
 async function recordingCronJob() {
   try {

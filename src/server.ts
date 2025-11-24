@@ -1,12 +1,3 @@
-// import cors from "@fastify/cors";
-// import { loadRoutes } from "./http/routes";
-// import { errorHandler } from "./middlewares/ErrorHandler";
-// import { altitudeRoutes } from "./http/routes/altitude";
-// import { leadsRoutes } from "./http/routes/leads";
-// import { agilidadeLeadsJob } from './jobs/agilidade'
-// import { McSonaeJobs } from './jobs/mc_sonae'
-// import { typRoutes } from "./modules/bd/typ/route";
-// import { sourceRoutes } from "./modules/bd/source/routes";
 import fastify, { FastifyReply } from "fastify";
 import { env } from "./env";
 import { appRoutes } from "./http/route";
@@ -24,25 +15,9 @@ app.register(fastifyCors, {
   allowedHeaders: ["Content-Type"],
 });
 
-// app.register(async () => {
-// agilidadeLeadsJob(app)
-// McSonaeJobs(app)
-// });
 app.register(async () => {
-  RecordingsJob(app);
+  RecordingsJob();
 });
-
-/* app.register(
-  function (app, _, done) {
-    app.register(sourceRoutes, { prefix: "bd" });
-    // app.register(typRoutes, { prefix: "bd" });
-    app.register(altitudeRoutes, { prefix: "altitude" });
-    app.register(loadRoutes, { prefix: "load" });
-    app.register(leadsRoutes, { prefix: "leads" });
-    done();
-    },
-    { prefix: "api" },
-    ); */
 
 app.setErrorHandler((error, _request, reply: FastifyReply) => {
   if (error instanceof ZodError) {
