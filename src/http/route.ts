@@ -17,9 +17,11 @@ import { removeTyp } from "./controllers/typs/remove";
 import { getSharepointSites } from "./controllers/sharepoint/get-sites";
 import { getSharepointDrives } from "./controllers/sharepoint/get-drives";
 import { getSharepointFolders } from "./controllers/sharepoint/get-folders";
-import { createClientRecordings } from "./controllers/records/create-client";
-import { getClientsRecordings } from "./controllers/records/get-clients";
-import { updateClientRecordings } from "./controllers/records/update-client";
+import { createClientRecordings } from "./controllers/recordings/create-client";
+import { getClientsRecordings } from "./controllers/recordings/get-clients";
+import { updateClientRecordings } from "./controllers/recordings/update-client";
+import { getRecordingsMetadatas } from "./controllers/recordings/get-metadatas";
+import { downloadRecording } from "./controllers/recordings/download-from-sharepoint";
 
 export function appRoutes(app: FastifyInstance) {
   /* Clients */
@@ -48,6 +50,8 @@ export function appRoutes(app: FastifyInstance) {
   app.get("/clients/records", getClientsRecordings);
   app.post("/clients/records", createClientRecordings);
   app.patch("/clients/records/:clientName", updateClientRecordings);
+  app.get("/recordings/search", getRecordingsMetadatas);
+  app.get("/recording/download", downloadRecording);
 
   /* Sharepoint */
   app.get("/sharepoint/sites", getSharepointSites);

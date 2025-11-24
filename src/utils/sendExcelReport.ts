@@ -1,12 +1,12 @@
-import {
-  DownloadRecordingsRequest,
-  RecordingWithFolderInfo,
-} from "../use-cases/download-recordings";
 import ExcelJS from "exceljs";
 import { sanitizeForSharePoint } from "./sanitize-for-sharepoint";
 import { sendRecordingsToSharepoint } from "./send-file";
 import path from "path";
 import fs from "fs/promises";
+import {
+  DownloadRecordingsRequest,
+  RecordingWithFolderInfo,
+} from "../use-cases/recordings/upload-recordings";
 
 export async function generateAndSendExcelReport(
   recordings: RecordingWithFolderInfo[],
@@ -84,7 +84,6 @@ export async function generateAndSendExcelReport(
   }
 
   const safeCampaignName = data.campaignName.replace(/[^a-zA-Z0-9]/g, "_");
-  const excelFileName = `Relatorio_Chamadas_${safeCampaignName}_${data.date}.xlsx`;
 
   const excelBuffer = await workbook.xlsx.writeBuffer();
 
@@ -92,6 +91,8 @@ export async function generateAndSendExcelReport(
   const ano = startDateObj.getFullYear();
   const mes = String(startDateObj.getMonth() + 1).padStart(2, "0");
   const dia = String(startDateObj.getDate()).padStart(2, "0");
+
+  const excelFileName = `Relatorio_Chamadas_${safeCampaignName}_${startDateObj}.xlsx`;
 
   const campanha = sanitizeForSharePoint(data.campaignName);
   const folderParts = [data.folderPath, campanha];

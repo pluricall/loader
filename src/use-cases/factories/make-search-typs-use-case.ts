@@ -1,5 +1,5 @@
 import { PrismaTypsRepository } from "../../repositories/prisma/prisma-typs-repository";
-import { SearchTypsUseCase } from "../search-typs";
+import { SearchTypsUseCase } from "../typs/search-typs";
 
 export function makeSearchTypsUseCase() {
   const prismaTypsRepository = new PrismaTypsRepository();
