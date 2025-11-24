@@ -25,7 +25,7 @@ export class DownloadSharepointRecordingUseCase {
     );
 
     if (!result || !result.recordset?.length) {
-      throw new Error("Gravação não encontrada ou não pertence a este cliente");
+      throw new Error("Gravação não encontrada.");
     }
 
     const downloads: DownloadedRecording[] = [];
