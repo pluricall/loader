@@ -46,7 +46,6 @@ export async function downloadRecording(
       return reply.status(401).send({ error: "Senha incorreta" });
     }
 
-    // --- Busca gravações ---
     const { easycode } = req.query;
     const useCase = new DownloadSharepointRecordingUseCase();
     const recordings = await useCase.execute("2", easycode);
@@ -55,7 +54,6 @@ export async function downloadRecording(
       return reply.status(404).send({ error: "Nenhuma gravação encontrada" });
     }
 
-    // --- Cenário 1: apenas 1 gravação ---
     if (recordings.length === 1) {
       const r = recordings[0];
       return reply
@@ -64,10 +62,8 @@ export async function downloadRecording(
         .send(r.buffer);
     }
 
-    // --- Cenário 2: mais de uma gravação, ZIP ---
     const zip = new JSZip();
     recordings.forEach((r) => {
-      // garante que cada arquivo dentro do ZIP seja .wav
       const fileName = r.fileName.endsWith(".wav")
         ? r.fileName
         : `${r.fileName}.wav`;

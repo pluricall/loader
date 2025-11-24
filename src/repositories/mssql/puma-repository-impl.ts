@@ -666,6 +666,8 @@ END
       easycode,
       moment,
       language,
+      login_contacto,
+      duration,
       sharepoint_location AS sharepointLocation,
       file_name
     FROM insight_clients_recordings
