@@ -8,7 +8,7 @@ import { RecordingResult } from "./fetch-recordings";
 import { PumaRepositoryImpl } from "../../repositories/mssql/puma-repository-impl";
 
 export interface DownloadRecordingsRequest {
-  campaignName: string;
+  ctName: string;
   day: string;
   percentDifferentsResult: number;
   folderPath: string;
@@ -34,7 +34,7 @@ export class UploadRecordingsUseCase {
     const pumaRepositoryImpl = new PumaRepositoryImpl();
 
     const client = await pumaRepositoryImpl.findClientByCampaignClient(
-      data.campaignName,
+      data.ctName,
     );
 
     const cleanResultsNotInFivePercent = data.resultsNotInFivePercent
@@ -156,8 +156,9 @@ export class UploadRecordingsUseCase {
           errorMessage: recordingInfo.errorMessage ?? null,
           origem: recordingInfo.origem,
           fileName: recordingInfo.fileName,
-          loginContacto: recordingInfo.record.loginContacto,
+          loginContacto: recordingInfo.record.loginContacto.trim(),
           duration: recordingInfo.record.duration,
+          resultado: recordingInfo.record.resultado,
         });
         console.log("Salvo com sucesso!");
       } catch (err) {
@@ -176,7 +177,7 @@ export class UploadRecordingsUseCase {
     if (errors.length > 0) {
       const html = `
         <h2>⚠️ Erros ao enviar gravações</h2>
-        <p>Campanha: <strong>${data.campaignName}</strong></p>
+        <p>Campanha: <strong>${data.ctName}</strong></p>
         <p>Data: <strong>${data.day}</strong></p>
         <p>Total de gravações processadas: <strong>${recordingsWithFolderInfo.length}</strong></p>
         <p>Erros: <strong>${errors.length}</strong></p>
@@ -199,13 +200,13 @@ export class UploadRecordingsUseCase {
         <p>O relatório Excel está anexado.</p>
       `;
 
-      const safeCampaignName = data.campaignName.replace(/[^a-zA-Z0-9]/g, "_");
-      const excelFileName = `Gravações_${safeCampaignName}_${data.day}.xlsx`;
+      const safeCtName = data.ctName.replace(/[^a-zA-Z0-9]/g, "_");
+      const excelFileName = `Gravações_${safeCtName}_${data.day}.xlsx`;
       const excelLocalPath = `./reports/${excelFileName}`;
 
       await sendEmail({
         to: ["ryan.martins@pluricall.pt"],
-        subject: `⚠️ Erros ao enviar gravações — ${data.campaignName}`,
+        subject: `⚠️ Erros ao enviar gravações — ${data.ctName}`,
         html,
         files: [excelLocalPath],
       });

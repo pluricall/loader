@@ -1,7 +1,7 @@
 import { IResult } from "mssql";
 
 export interface FetchRecordingKeyParams {
-  campaignName: string;
+  ctName: string;
   day: string;
   percentDifferentsResult: number;
   isHistorical: boolean;
@@ -22,7 +22,7 @@ export interface RecordingKeyResult {
 
 export interface ClientRecordingsParams {
   clientName: string;
-  campaignName: string;
+  ctName: string;
   percentDifferentsResult: number;
   startTime: string;
   siteId: string;
@@ -38,7 +38,7 @@ export interface ClientRecordingsParams {
 
 export interface GetClientRecordings {
   clientName: string;
-  campaignName: string;
+  ct_: string;
   percentDifferentsResult: number;
   startTime: string;
   status: "ACTIVO" | "INACTIVO";
@@ -59,6 +59,7 @@ export interface RecordingMetadata {
   language: string;
   sharepointLocation: string;
   loginContacto: string;
+  resultado: string;
   duration: number;
 
   status: "SUCCESS" | "ERROR";

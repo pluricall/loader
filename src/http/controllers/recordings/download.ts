@@ -7,7 +7,7 @@ export async function uploadRecordingsController(
   reply: FastifyReply,
 ) {
   const getRecordsSchema = z.object({
-    campaignName: z.string(),
+    ctName: z.string(),
     day: z.string(),
     percentDifferentsResult: z.number(),
     driveId: z.string(),

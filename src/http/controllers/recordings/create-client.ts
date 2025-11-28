@@ -9,7 +9,7 @@ export async function createClientRecordings(
 ) {
   const schema = z.object({
     clientName: z.string().min(3),
-    campaignName: z.string().min(3),
+    ctName: z.string().min(3),
     percentDifferentsResult: z.number().min(0).max(100),
     startTime: z.string().min(1),
     siteId: z.string().nonempty(),

@@ -21,7 +21,7 @@ export class CreateClientRecordingUseCase {
         : "";
 
     const campaignExists = await this.pumaRepository.findByCampaign(
-      data.campaignName,
+      data.ctName,
     );
 
     if (campaignExists)

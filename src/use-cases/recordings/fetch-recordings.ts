@@ -30,14 +30,14 @@ export class FetchRecordingsUseCase {
   ) {}
 
   async execute({
-    campaignName,
+    ctName,
     day,
     percentDifferentsResult,
     resultsNotInFivePercent,
     isHistorical,
   }: FetchRecordingKeyParams): Promise<RecordingResult[]> {
     const recordingKeys = await this.pumaRepository.fetchRecordings({
-      campaignName,
+      ctName,
       day,
       percentDifferentsResult,
       resultsNotInFivePercent,
