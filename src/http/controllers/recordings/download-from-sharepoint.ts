@@ -47,8 +47,12 @@ export async function downloadRecording(
     }
 
     const { easycode } = req.query;
-    const useCase = new DownloadSharepointRecordingUseCase();
-    const recordings = await useCase.execute("2", easycode);
+    const downloadSharepointRecordingUseCase =
+      new DownloadSharepointRecordingUseCase();
+    const recordings = await downloadSharepointRecordingUseCase.execute(
+      "2",
+      easycode,
+    );
 
     if (!recordings.length) {
       return reply.status(404).send({ error: "Nenhuma gravação encontrada" });
