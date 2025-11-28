@@ -1,5 +1,3 @@
-import { sendEmail } from "../../../config/send-email";
-import { CustomError } from "../../../errors/error";
 import { altitudeServiceInstance } from "../../altitude/instances/AltitudeServiceInstance";
 import { BackgroundTaskResult } from "../../altitude/methods/BackgroundTask";
 
@@ -18,7 +16,6 @@ export async function waitForTaskCompletion(
     interval = 2000,
     maxAttempts = 60,
     bdTitle,
-    files = [],
     onWarning,
     onSuccess,
   }: WaitForTaskOptions = {},
@@ -48,14 +45,6 @@ export async function waitForTaskCompletion(
         try {
           if (onWarning) {
             await onWarning(result);
-          } else {
-            await sendEmail({
-              bdTitle,
-              files,
-              title: "Linhas rejeitadas no loader",
-              errors:
-                result.StatusDescription || "Linhas rejeitadas no loader.",
-            });
           }
         } catch (err) {
           console.warn("⚠️ Falha ao enviar e-mail de aviso:", err);
@@ -70,18 +59,14 @@ export async function waitForTaskCompletion(
     }
 
     if (result.Status === "Error" || result.Status === "Failed") {
-      throw new CustomError(
-        `Task ${taskId} falhou: ${JSON.stringify(result)}`,
-        500,
-      );
+      throw new Error(`Task ${taskId} falhou: ${JSON.stringify(result)}`);
     }
 
     await new Promise((resolve) => setTimeout(resolve, interval));
     attempts++;
   }
 
-  throw new CustomError(
+  throw new Error(
     `Task ${taskId} não terminou após ${maxAttempts} tentativas.`,
-    500,
   );
 }

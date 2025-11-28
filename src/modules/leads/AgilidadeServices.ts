@@ -1,4 +1,4 @@
-import { FastifyInstance } from "fastify";
+/* import { FastifyInstance } from "fastify";
 import { AltitudeService } from "../altitude/AltitudeService";
 import { sendEmail } from "../../config/send-email";
 
@@ -216,3 +216,4 @@ export async function processLeadsAgilidade(fastify: FastifyInstance) {
     throw err;
   }
 }
+*/
