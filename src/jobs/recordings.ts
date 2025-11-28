@@ -38,7 +38,7 @@ async function recordingCronJob() {
       ${clientsToRun
         .map(
           (c) =>
-            `<li><strong>${c.clientName}</strong> — campanha ${c.campaignName}</li>`,
+            `<li><strong>${c.clientName}</strong> — campanha ${c.ct_}</li>`,
         )
         .join("")}
     </ul>
@@ -57,7 +57,7 @@ async function recordingCronJob() {
 
       try {
         await downloadRecordingsUseCase.execute({
-          campaignName: client.campaignName,
+          ctName: client.ct_,
           day: dateStr,
           percentDifferentsResult: client.percentDifferentsResult,
           driveId: client.driveId,

@@ -42,17 +42,16 @@ export class PumaRepositoryImpl implements PumaRepository {
   }
 
   async findByCampaign(
-    campaignName: string,
+    ctName: string,
   ): Promise<{ id: number; campaign: string } | null> {
     const pool = await connectPumaDb("easy8");
 
-    const result = await pool.request().input("campaignName", campaignName)
-      .query(`
+    const result = await pool.request().input("ct_", ctName).query(`
       SELECT 
         id,
-        campaign_name AS campaign
+        ct_ AS campaign
       FROM insight_clients
-      WHERE campaign_name = @campaignName AND status = 'ACTIVO'
+      WHERE ct_ = @ct_ AND status = 'ACTIVO'
     `);
 
     if (result.recordset.length === 0) {
@@ -63,16 +62,15 @@ export class PumaRepositoryImpl implements PumaRepository {
   }
 
   async findClientByCampaignClient(
-    campaignName: string,
+    ctName: string,
   ): Promise<{ id: number; name: string } | null> {
     const pool = await connectPumaDb("easy8");
-    const result = await pool.request().input("campaignName", campaignName)
-      .query(`
+    const result = await pool.request().input("ct_", ctName).query(`
       SELECT c.id, c.client_name
       FROM insight_clients_login c
       INNER JOIN insight_clients r
         ON r.client_id = c.id
-      WHERE r.campaign_name = @campaignName AND r.status = 'ACTIVO'
+      WHERE r.ct_ = @ct_ AND r.status = 'ACTIVO'
     `);
 
     if (result.recordset.length === 0) return null;
@@ -106,7 +104,7 @@ export class PumaRepositoryImpl implements PumaRepository {
     const result = await pool.query(`
     SELECT 
   client_name, 
-  campaign_name, 
+  ct_, 
   percent_differents_result, 
   CONVERT(varchar(8), start_time, 108) AS startTime,
   status,
@@ -121,7 +119,7 @@ export class PumaRepositoryImpl implements PumaRepository {
 
     return result.recordset.map((row: any) => ({
       clientName: row.client_name,
-      campaignName: row.campaign_name,
+      ct_: row.ct_,
       percentDifferentsResult: row.percent_differents_result,
       startTime: row.startTime,
       folderPath: row.folder_path,
@@ -165,7 +163,7 @@ export class PumaRepositoryImpl implements PumaRepository {
         .request()
         .input("clientId", clientId)
         .input("clientName", data.clientName)
-        .input("campaignName", data.campaignName)
+        .input("ct_", data.ctName)
         .input("percentDifferentsResult", data.percentDifferentsResult)
         .input("startTime", data.startTime)
         .input("siteId", data.siteId)
@@ -176,8 +174,8 @@ export class PumaRepositoryImpl implements PumaRepository {
         .input("isHistorical", data.isHistorical ? 1 : 0)
         .input("resultsNotInFivePercent", data.resultsNotInFivePercent).query(`
         INSERT INTO insight_clients
-        (client_id, client_name, campaign_name, percent_differents_result, start_time, site_id, drive_id, folder_path, status, is_bd, is_historical, results_not_in_five_percent)
-        VALUES (@clientId, @clientName, @campaignName, @percentDifferentsResult, @startTime, @siteId, @driveId, @folderPath, @status, @isBd, @isHistorical, @resultsNotInFivePercent)
+        (client_id, client_name, ct_, percent_differents_result, start_time, site_id, drive_id, folder_path, status, is_bd, is_historical, results_not_in_five_percent)
+        VALUES (@clientId, @clientName, @ct_, @percentDifferentsResult, @startTime, @siteId, @driveId, @folderPath, @status, @isBd, @isHistorical, @resultsNotInFivePercent)
       `);
 
       await transaction.commit();
@@ -194,7 +192,7 @@ export class PumaRepositoryImpl implements PumaRepository {
   }
 
   async fetchRecordings({
-    campaignName,
+    ctName,
     day,
     percentDifferentsResult,
     isHistorical = false,
@@ -204,7 +202,7 @@ export class PumaRepositoryImpl implements PumaRepository {
     const result = await puma.query(`
     BEGIN
     SET NOCOUNT ON;
-    DECLARE @table_name   VARCHAR(50) = '${campaignName}';
+    DECLARE @table_name   VARCHAR(50) = '${ctName}';
     DECLARE @dataini      DATETIME = '${day} 00:00:00';
     DECLARE @datafim      DATETIME = '${day} 23:59:59';
     DECLARE @percent_others INT = ${percentDifferentsResult};
@@ -645,13 +643,14 @@ END
       .input("origem", recording.origem)
       .input("duration", recording.duration)
       .input("loginContacto", recording.loginContacto)
-      .input("fileName", recording.fileName).query(`
+      .input("fileName", recording.fileName)
+      .input("resultado", recording.resultado).query(`
         INSERT INTO insight_clients_recordings
           (client_id, client_name, easycode, campaign, moment,
-           language, sharepoint_location, status, error_message, origem, file_name, duration, login_contacto)
+           language, sharepoint_location, status, error_message, origem, file_name, duration, login_contacto, resultado)
         VALUES
           (@clientId, @clientName, @easycode, @campaign, @moment,
-           @language, @sharepointLocation, @status, @errorMessage, @origem, @fileName, @duration, @loginContacto)
+           @language, @sharepointLocation, @status, @errorMessage, @origem, @fileName, @duration, @loginContacto, @resultado)
       `);
   }
 
@@ -667,6 +666,7 @@ END
       moment,
       language,
       login_contacto,
+      resultado,
       duration,
       sharepoint_location AS sharepointLocation,
       file_name
