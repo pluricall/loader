@@ -1,7 +1,7 @@
-import cron from "node-cron";
-import { LoadService } from "../modules/load/LoadService";
+/* import cron from "node-cron";
 import { FastifyInstance } from "fastify";
 import { AltitudeService } from "../modules/altitude/AltitudeService";
+import { LoadService } from "../modules/load/LoadService";
 
 const loadService = new LoadService();
 const altitudeService = new AltitudeService();
@@ -71,3 +71,4 @@ export async function McSonaeJobs(fastify: FastifyInstance) {
     "🚀 Cron job de carga UCI agendado para rodar todos os dias às 11h30.",
   );
 }
+*/

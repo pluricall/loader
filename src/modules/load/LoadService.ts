@@ -1,4 +1,4 @@
-import path from "path";
+/* import path from "path";
 import { UciLoaderService } from "../altitude/UciLoaderService";
 import { uciLoaderServiceInstance } from "../altitude/instances/UciLoaderServiceInstance";
 import { FtpService } from "../ftp/FtpService";
@@ -140,3 +140,4 @@ export class LoadService {
     }
   }
 }
+*/
