@@ -83,7 +83,7 @@ export async function generateAndSendExcelReport(
     errorRow.font = { bold: true, color: { argb: "BF8F00" } };
   }
 
-  const safeCampaignName = data.campaignName.replace(/[^a-zA-Z0-9]/g, "_");
+  const safeCampaignName = data.ctName.replace(/[^a-zA-Z0-9]/g, "_");
 
   const excelBuffer = await workbook.xlsx.writeBuffer();
 
@@ -94,7 +94,7 @@ export async function generateAndSendExcelReport(
 
   const excelFileName = `Relatorio_Chamadas_${safeCampaignName}_${startDateObj}.xlsx`;
 
-  const campanha = sanitizeForSharePoint(data.campaignName);
+  const campanha = sanitizeForSharePoint(data.ctName);
   const folderParts = [data.folderPath, campanha];
 
   if (data.isBd) {

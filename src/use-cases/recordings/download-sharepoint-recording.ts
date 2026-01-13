@@ -25,6 +25,12 @@ export class DownloadSharepointRecordingUseCase {
     );
 
     if (!result || !result.recordset?.length) {
+      console.log("Resultado da query:", {
+        easycode,
+        clientId,
+        rows: result?.recordset?.length,
+        data: result?.recordset,
+      });
       throw new Error("Gravação não encontrada.");
     }
 

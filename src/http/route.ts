@@ -50,8 +50,8 @@ export function appRoutes(app: FastifyInstance) {
   app.get("/clients/records", getClientsRecordings);
   app.post("/clients/records", createClientRecordings);
   app.patch("/clients/records/:clientName", updateClientRecordings);
-  app.get("/api/recordings/search", getRecordingsMetadatas);
-  app.get("/api/recordings/download", downloadRecording);
+  app.get("/Insight360api/recordings/search", getRecordingsMetadatas);
+  app.get("/Insight360api/recording/download", downloadRecording);
 
   /* Sharepoint */
   app.get("/sharepoint/sites", getSharepointSites);
