@@ -50,7 +50,7 @@ export async function downloadRecording(
     const downloadSharepointRecordingUseCase =
       new DownloadSharepointRecordingUseCase();
     const recordings = await downloadSharepointRecordingUseCase.execute(
-      "2",
+      client.id,
       easycode,
     );
 
