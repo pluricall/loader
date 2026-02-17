@@ -2,7 +2,6 @@ import fs from "fs/promises";
 import { makeFetchRecordingsUseCase } from "../factories/make-fetch-records-use-case";
 import { sanitizeForSharePoint } from "../../utils/sanitize-for-sharepoint";
 import { sendRecordingsToSharepoint } from "../../utils/send-file";
-import { generateAndSendExcelReport } from "../../utils/sendExcelReport";
 import { sendEmail } from "../../utils/send-email";
 import { RecordingResult } from "./fetch-recordings";
 import { PumaRepositoryImpl } from "../../repositories/mssql/puma-repository-impl";
@@ -169,8 +168,6 @@ export class UploadRecordingsUseCase {
         );
       }
     }
-
-    await generateAndSendExcelReport(recordingsWithFolderInfo, data);
 
     const errors = recordingsWithFolderInfo.filter((r) => r.status === "ERROR");
 
