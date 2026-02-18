@@ -9,7 +9,7 @@ export async function createLeadClient(
 ) {
   const createBodySchema = z.object({
     clientName: z.string(),
-    environment: z.enum(["cloud", "onprem"]),
+    environment: z.enum(["cloud", "onprem", "pre"]),
   });
 
   const data = createBodySchema.parse(request.body);

@@ -1,6 +1,6 @@
 import { env } from "../env";
 
-export type AltitudeEnvironment = "cloud" | "onprem";
+export type AltitudeEnvironment = "cloud" | "onprem" | "pre";
 
 export interface AltitudeResolvedConfig {
   baseUrl: string;

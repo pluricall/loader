@@ -29,7 +29,9 @@ export class AltitudeAuthService {
     return this.login(environment);
   }
 
-  private async login(environment: "cloud" | "onprem"): Promise<string> {
+  private async login(
+    environment: "cloud" | "onprem" | "pre",
+  ): Promise<string> {
     try {
       const config = resolveAltitudeConfig(environment);
       const payload = new URLSearchParams({
