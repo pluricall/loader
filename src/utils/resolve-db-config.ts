@@ -1,6 +1,6 @@
 import { env } from "../env";
 
-export type ClientEnvironment = "cloud" | "onprem";
+export type ClientEnvironment = "cloud" | "onprem" | "pre";
 
 export interface DbResolvedConfig {
   user: string;
@@ -22,7 +22,6 @@ export function resolveDbConfig(
       database: env.PLURICALL_PRE_DB_DATABASE,
     };
   }
-
   // 🌩 Cloud
   if (environment === "cloud") {
     return {
@@ -31,6 +30,16 @@ export function resolveDbConfig(
       server: env.PLURICALL_CLOUD_DB_SERVER,
       port: env.PLURICALL_CLOUD_DB_PORT,
       database: env.PLURICALL_CLOUD_DB_DATABASE,
+    };
+  }
+
+  if (environment === "pre") {
+    return {
+      user: env.PLURICALL_PRE_DB_USER,
+      password: env.PLURICALL_PRE_DB_PASSWORD,
+      server: env.PLURICALL_PRE_DB_SERVER,
+      port: env.PLURICALL_PRE_DB_PORT,
+      database: env.PLURICALL_PRE_DB_DATABASE,
     };
   }
 

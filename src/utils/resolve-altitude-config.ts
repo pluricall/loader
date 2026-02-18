@@ -31,7 +31,15 @@ export function resolveAltitudeConfig(
     };
   }
 
-  // 🏢 OnPrem
+  if (environment === "pre") {
+    return {
+      baseUrl: env.ALTITUDE_PRE_API_URL,
+      username: env.ALTITUDE_PRE_USER,
+      password: env.ALTITUDE_PRE_PASS,
+      instance: env.ALTITUDE_PRE_INSTANCE,
+    };
+  }
+
   return {
     baseUrl: env.ALTITUDE_API_URL,
     username: env.ALTITUDE_USER,
