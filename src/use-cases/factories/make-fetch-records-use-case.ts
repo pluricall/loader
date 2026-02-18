@@ -1,12 +1,12 @@
-import { LeopardRepository } from "../../repositories/mssql/leopard-repository";
-import { PumaRepositoryImpl } from "../../repositories/mssql/puma-repository-impl";
+import { LeopardRepository } from "../../repositories/mssql/mssql-leopard-repository";
+import { MssqlRepository } from "../../repositories/mssql/mssql-pluricall-repository";
 import { FetchRecordingsUseCase } from "../recordings/fetch-recordings";
 
 export function makeFetchRecordingsUseCase() {
-  const pumaRepositoryImpl = new PumaRepositoryImpl();
+  const mssqlRepository = new MssqlRepository();
   const leopardRepository = new LeopardRepository();
   const fetchRecordingsUseCase = new FetchRecordingsUseCase(
-    pumaRepositoryImpl,
+    mssqlRepository,
     leopardRepository,
   );
 

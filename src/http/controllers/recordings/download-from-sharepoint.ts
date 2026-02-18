@@ -1,5 +1,5 @@
 import { DownloadSharepointRecordingUseCase } from "../../../use-cases/recordings/download-sharepoint-recording";
-import { connectPumaDb } from "../../../db/connect-puma";
+import { connectPluricallDb } from "../../../db/pluricall-db";
 import { FastifyReply, FastifyRequest } from "fastify";
 import JSZip from "jszip";
 
@@ -26,7 +26,7 @@ export async function downloadRecording(
       return reply.status(401).send({ error: "Invalid Authorization format" });
     }
 
-    const pool = await connectPumaDb("easy8");
+    const pool = await connectPluricallDb();
     const result = await pool.request().input("email", email).query(`
       SELECT id, password_hash, status
       FROM insight_clients_login

@@ -22,17 +22,15 @@ app.register(async () => {
 });
 
 app.setErrorHandler((error, _request, reply: FastifyReply) => {
-  // ✅ ERRO ALTITUDE (vem antes de Zod)
   if (error instanceof AltitudeApiError) {
     return reply.status(error.statusCode).send({
       source: "altitude",
       code: error.details?.code,
-      message: error.details?.message,
+      message: error.details?.message ?? error.message,
       details: error.details?.args ?? null,
     });
   }
 
-  // ✅ ZOD
   if (error instanceof ZodError) {
     const issues = error.errors.map((err) => ({
       field: err.path.join(".") || "body",
@@ -45,7 +43,6 @@ app.setErrorHandler((error, _request, reply: FastifyReply) => {
     });
   }
 
-  // ✅ Fastify validation (schema)
   if ((error as any).validation) {
     return reply.status(400).send({
       error: "validation_error",
@@ -61,7 +58,6 @@ app.setErrorHandler((error, _request, reply: FastifyReply) => {
     });
   }
 
-  // 🔥 fallback
   if (env.NODE_ENV !== "production") {
     console.error(error);
   }

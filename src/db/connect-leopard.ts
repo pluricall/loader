@@ -1,4 +1,5 @@
 import sql from "mssql";
+import { env } from "../env";
 
 const leopardPools: Map<string, sql.ConnectionPool> = new Map();
 
@@ -9,10 +10,10 @@ export async function connectLeopardDb(
   if (existing && existing.connected) return existing;
 
   const sqlConfig = {
-    user: process.env.LEOPARD_USER!,
-    password: process.env.LEOPARD_PASSWORD!,
-    server: process.env.LEOPARD_SERVER!,
-    port: parseInt(process.env.LEOPARD_PORT ?? "1433"),
+    user: env.LEOPARD_USER!,
+    password: env.LEOPARD_PASSWORD!,
+    server: env.LEOPARD_SERVER!,
+    port: env.LEOPARD_PORT ?? 1433,
     database: databaseName,
     options: {
       encrypt: false,

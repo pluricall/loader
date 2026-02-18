@@ -1,5 +1,6 @@
 import { downloadFromSharepoint } from "../../http/controllers/sharepoint/download";
-import { PumaRepositoryImpl } from "../../repositories/mssql/puma-repository-impl";
+import { MssqlRepository } from "../../repositories/mssql/mssql-pluricall-repository";
+import { PluricallRepository } from "../../repositories/pluricall-repository";
 
 export interface DownloadedRecording {
   buffer: Buffer;
@@ -9,7 +10,7 @@ export interface DownloadedRecording {
 
 export class DownloadSharepointRecordingUseCase {
   constructor(
-    private pumaRepositoryImpl: PumaRepositoryImpl = new PumaRepositoryImpl(),
+    private mssqlRepository: PluricallRepository = new MssqlRepository(),
   ) {}
 
   async execute(
@@ -19,7 +20,7 @@ export class DownloadSharepointRecordingUseCase {
     if (!easycode) throw new Error("easycode é obrigatório");
     if (!clientId) throw new Error("clientId é obrigatório");
 
-    const result = await this.pumaRepositoryImpl.getInfoToDownloadRecordings(
+    const result = await this.mssqlRepository.getInfoToDownloadRecordings(
       easycode,
       clientId,
     );

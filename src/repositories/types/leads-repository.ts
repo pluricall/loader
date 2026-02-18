@@ -1,7 +1,10 @@
+import { AltitudeEnvironment } from "../../utils/resolve-altitude-config";
+
 export interface ClientLead {
   client_name: string;
   api_key: string;
   is_active: boolean;
+  environment: AltitudeEnvironment;
 }
 
 export interface AltitudeConfig {
@@ -24,6 +27,7 @@ export interface CreateClientDTO {
   client_name: string;
   api_key: string;
   is_active?: boolean;
+  environment: AltitudeEnvironment;
 }
 
 export interface FieldMappingDTO extends FieldMapping {

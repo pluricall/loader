@@ -2,10 +2,11 @@ import "dotenv/config";
 import "isomorphic-fetch";
 import { Client } from "@microsoft/microsoft-graph-client";
 import { ClientSecretCredential } from "@azure/identity";
+import { env } from "../env";
 
-const tenantId = process.env.TENANT_ID!;
-const clientId = process.env.CLIENT_ID!;
-const clientSecret = process.env.CLIENT_SECRET!;
+const tenantId = env.TENANT_ID!;
+const clientId = env.CLIENT_ID!;
+const clientSecret = env.CLIENT_SECRET!;
 
 const credential = new ClientSecretCredential(tenantId, clientId, clientSecret);
 

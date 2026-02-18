@@ -1,6 +1,6 @@
 import { FastifyRequest, FastifyReply } from "fastify";
 import bcrypt from "bcryptjs";
-import { connectPumaDb } from "../../../db/connect-puma";
+import { connectPluricallDb } from "../../../db/pluricall-db";
 import { ValidationError } from "../../../use-cases/errors/validation-error";
 import { GetRecordingMetadatasUseCase } from "../../../use-cases/recordings/get-recording-metadatas";
 
@@ -34,7 +34,7 @@ export async function getRecordingsMetadatas(
       return reply.status(401).send({ error: "Invalid Authorization format" });
     }
 
-    const pool = await connectPumaDb("easy8");
+    const pool = await connectPluricallDb();
     const result = await pool.request().input("email", email).query(`
       SELECT id, password_hash, status
       FROM insight_clients_login

@@ -1,14 +1,15 @@
-import { PumaRepositoryImpl } from "../../repositories/mssql/puma-repository-impl";
-import { ClientRecordingsParams } from "../../repositories/puma-repository";
+import { MssqlRepository } from "../../repositories/mssql/mssql-pluricall-repository";
+import { PluricallRepository } from "../../repositories/pluricall-repository";
+import { ClientRecordingsParams } from "../../repositories/types/pluricall-repository-types";
 import { AlreadyExistsError } from "../errors/name-already-exists-error";
 
 export class CreateClientRecordingUseCase {
   constructor(
-    private pumaRepository: PumaRepositoryImpl = new PumaRepositoryImpl(),
+    private mssqlRepository: PluricallRepository = new MssqlRepository(),
   ) {}
 
   async execute(data: ClientRecordingsParams) {
-    const nameExists = await this.pumaRepository.findByName(data.clientName);
+    const nameExists = await this.mssqlRepository.findByName(data.clientName);
     if (nameExists) throw new AlreadyExistsError("Client name already exists.");
     const cleanResultsNotInFivePercent =
       data.resultsNotInFivePercent && data.resultsNotInFivePercent.trim()
@@ -20,18 +21,18 @@ export class CreateClientRecordingUseCase {
             .join(",")
         : "";
 
-    const campaignExists = await this.pumaRepository.findByCampaign(
+    const campaignExists = await this.mssqlRepository.findByCampaign(
       data.ctName,
     );
 
     if (campaignExists)
       throw new AlreadyExistsError("Campaign name already exists.");
 
-    const emailExists = await this.pumaRepository.findByEmail(data.email);
+    const emailExists = await this.mssqlRepository.findByEmail(data.email);
 
     if (emailExists) throw new AlreadyExistsError("Email already exists.");
 
-    const created = await this.pumaRepository.create({
+    const created = await this.mssqlRepository.create({
       ...data,
       resultsNotInFivePercent: cleanResultsNotInFivePercent,
     });

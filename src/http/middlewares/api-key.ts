@@ -1,5 +1,5 @@
 import { FastifyReply, FastifyRequest } from "fastify";
-import { LeadsRepositoryImpl } from "../../../repositories/mssql/leads-repository";
+import { MssqlLeadsRepository } from "../../repositories/mssql/mssql-leads-repository";
 
 export async function apiKeyAuth(request: FastifyRequest, reply: FastifyReply) {
   const authHeader = request.headers.authorization;
@@ -10,7 +10,7 @@ export async function apiKeyAuth(request: FastifyRequest, reply: FastifyReply) {
 
   const apiKey = authHeader.replace("Bearer ", "");
 
-  const repo = new LeadsRepositoryImpl();
+  const repo = new MssqlLeadsRepository();
   const client = await repo.findClientByApiKey(apiKey);
 
   if (!client) {

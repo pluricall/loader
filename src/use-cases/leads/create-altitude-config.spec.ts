@@ -18,6 +18,7 @@ describe("Create Altitude Config Use Case", () => {
   it("should to create an altitude config", async () => {
     await sutHelper.execute({
       clientName: "Test",
+      environment: "cloud",
     });
 
     const { success } = await sut.execute({

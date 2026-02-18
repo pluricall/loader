@@ -1,8 +1,8 @@
-import { LeadsRepositoryImpl } from "../../repositories/mssql/leads-repository";
+import { MssqlLeadsRepository } from "../../repositories/mssql/mssql-leads-repository";
 import { SearchLeadClientsUseCase } from "../leads/search-lead-clients";
 
 export function makeSearchLeadClientsUseCase() {
-  const leadsRepositoryImpl = new LeadsRepositoryImpl();
+  const leadsRepositoryImpl = new MssqlLeadsRepository();
   const searchLeadClientsUseCase = new SearchLeadClientsUseCase(
     leadsRepositoryImpl,
   );

@@ -1,8 +1,6 @@
-import { LeopardRepository } from "../../repositories/mssql/leopard-repository";
-import {
-  PumaRepository,
-  FetchRecordingKeyParams,
-} from "../../repositories/puma-repository";
+import { LeopardRepository } from "../../repositories/mssql/mssql-leopard-repository";
+import { PluricallRepository } from "../../repositories/pluricall-repository";
+import { FetchRecordingKeyParams } from "../../repositories/types/pluricall-repository-types";
 
 export interface RecordingResult {
   total: number;
@@ -25,7 +23,7 @@ export interface RecordingResult {
 
 export class FetchRecordingsUseCase {
   constructor(
-    private readonly pumaRepository: PumaRepository,
+    private readonly pluricallRepository: PluricallRepository,
     private readonly leopardRepository: LeopardRepository,
   ) {}
 
@@ -36,7 +34,7 @@ export class FetchRecordingsUseCase {
     resultsNotInFivePercent,
     isHistorical,
   }: FetchRecordingKeyParams): Promise<RecordingResult[]> {
-    const recordingKeys = await this.pumaRepository.fetchRecordings({
+    const recordingKeys = await this.pluricallRepository.fetchRecordings({
       ctName,
       day,
       percentDifferentsResult,

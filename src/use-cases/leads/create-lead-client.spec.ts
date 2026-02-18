@@ -13,23 +13,27 @@ describe("Create Lead Client Use Case", () => {
   });
 
   it("should to create a client", async () => {
-    const { api_key, client_name } = await sut.execute({
+    const { api_key, client_name, environment } = await sut.execute({
       clientName: "Teste",
+      environment: "cloud",
     });
 
-    expect(api_key).toEqual(expect.any(String));
     expect(client_name).toEqual(expect.any(String));
+    expect(environment).toEqual(expect.any(String));
+    expect(api_key).toEqual(expect.any(String));
   });
 
   it("should not be able to create a client with same name twice", async () => {
     const NAME = "test";
     await sut.execute({
       clientName: NAME,
+      environment: "cloud",
     });
 
     await expect(() =>
       sut.execute({
         clientName: NAME,
+        environment: "cloud",
       }),
     ).rejects.toBeInstanceOf(AlreadyExistsError);
   });

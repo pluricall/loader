@@ -1,5 +1,6 @@
-import { PumaRepositoryImpl } from "../../repositories/mssql/puma-repository-impl";
-import { GetClientRecordings } from "../../repositories/puma-repository";
+import { MssqlRepository } from "../../repositories/mssql/mssql-pluricall-repository";
+import { PluricallRepository } from "../../repositories/pluricall-repository";
+import { GetClientRecordings } from "../../repositories/types/pluricall-repository-types";
 
 export interface GetClientRecordingsResponse {
   clientRecord: GetClientRecordings[];
@@ -7,7 +8,7 @@ export interface GetClientRecordingsResponse {
 
 export class GetClientRecordingsUseCase {
   constructor(
-    private pumaRepository: PumaRepositoryImpl = new PumaRepositoryImpl(),
+    private pumaRepository: PluricallRepository = new MssqlRepository(),
   ) {}
 
   async execute(): Promise<GetClientRecordingsResponse> {

@@ -1,5 +1,6 @@
-import { PumaRepositoryImpl } from "../../repositories/mssql/puma-repository-impl";
-import { RecordingMetadata } from "../../repositories/puma-repository";
+import { MssqlRepository } from "../../repositories/mssql/mssql-pluricall-repository";
+import { PluricallRepository } from "../../repositories/pluricall-repository";
+import { RecordingMetadata } from "../../repositories/types/pluricall-repository-types";
 import { ValidationError } from "../errors/validation-error";
 
 export interface GetRecordingsRequest {
@@ -12,12 +13,12 @@ export interface GetRecordingsRequest {
 
 export class GetRecordingMetadatasUseCase {
   constructor(
-    private pumaRepositoryImpl: PumaRepositoryImpl = new PumaRepositoryImpl(),
+    private mssqlRepository: PluricallRepository = new MssqlRepository(),
   ) {}
 
   async execute(filters: GetRecordingsRequest): Promise<RecordingMetadata[]> {
     this.validateFilters(filters);
-    return this.pumaRepositoryImpl.searchRecordingsByFilters(filters);
+    return this.mssqlRepository.searchRecordingsByFilters(filters);
   }
 
   private validateFilters(filters: GetRecordingsRequest) {
