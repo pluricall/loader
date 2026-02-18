@@ -26,8 +26,11 @@ import { createLeadClient } from "./controllers/leads/create-lead-client";
 import { createAltitudeConfig } from "./controllers/leads/create-altitude-config";
 import { saveFieldMapping } from "./controllers/leads/save-field-mapping";
 import { searchLeadClients } from "./controllers/leads/search-lead-clients";
-import { apiKeyAuth } from "./controllers/middlewares/api-key";
+import { apiKeyAuth } from "./middlewares/api-key";
 import { loadLeads } from "./controllers/leads/load-leads";
+
+const basePath =
+  process.env.NODE_ENV === "pre" ? "/preinsight360api" : "/insight360api";
 
 export function appRoutes(app: FastifyInstance) {
   /* Clients */
@@ -56,8 +59,8 @@ export function appRoutes(app: FastifyInstance) {
   app.get("/clients/records", getClientsRecordings);
   app.post("/clients/records", createClientRecordings);
   app.patch("/clients/records/:clientName", updateClientRecordings);
-  app.get("/Insight360api/recordings/search", getRecordingsMetadatas);
-  app.get("/Insight360api/recording/download", downloadRecording);
+  app.get(`/${basePath}/recordings/search`, getRecordingsMetadatas);
+  app.get(`/${basePath}/recording/download`, downloadRecording);
 
   /* Sharepoint */
   app.get("/sharepoint/sites", getSharepointSites);
@@ -65,9 +68,9 @@ export function appRoutes(app: FastifyInstance) {
   app.get("/sharepoint/folders", getSharepointFolders);
 
   /* Leads */
-  app.get("/lead-clients/:client_name", searchLeadClients);
-  app.post("/leads", { preHandler: apiKeyAuth }, loadLeads);
-  app.post("/lead-clients", createLeadClient);
-  app.post("/lead-clients/altitude-config", createAltitudeConfig);
-  app.post("/lead-clients/mapping", saveFieldMapping);
+  app.get(`/${basePath}/lead-clients/:client_name`, searchLeadClients);
+  app.post(`/${basePath}/leads`, { preHandler: apiKeyAuth }, loadLeads);
+  app.post(`/${basePath}/lead-clients`, createLeadClient);
+  app.post(`/${basePath}/lead-clients/altitude-config`, createAltitudeConfig);
+  app.post(`/${basePath}/lead-clients/mapping`, saveFieldMapping);
 }

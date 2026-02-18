@@ -1,20 +1,20 @@
-import {
-  PumaRepository,
-  FetchRecordingKeyParams,
-  RecordingKeyResult,
-  ClientRecordingsParams,
-  GetClientRecordings,
-  RecordingFilters,
-  RecordingMetadata,
-  RecordingDownloadInfo,
-} from "../puma-repository";
-import { connectPumaDb } from "../../db/connect-puma";
+import { connectPluricallDb } from "../../db/pluricall-db";
 import bcrypt from "bcryptjs";
 import { IResult } from "mssql";
+import {
+  ClientRecordingsParams,
+  FetchRecordingKeyParams,
+  GetClientRecordings,
+  RecordingDownloadInfo,
+  RecordingFilters,
+  RecordingKeyResult,
+  RecordingMetadata,
+} from "../types/pluricall-repository-types";
+import { PluricallRepository } from "../pluricall-repository";
 
-export class PumaRepositoryImpl implements PumaRepository {
+export class MssqlRepository implements PluricallRepository {
   async update(clientName: string) {
-    const pool = await connectPumaDb("easy8");
+    const pool = await connectPluricallDb();
 
     const result = await pool.request().input("clientName", clientName).query(`
       UPDATE insight_clients SET status = 'INACTIVO'
@@ -25,7 +25,7 @@ export class PumaRepositoryImpl implements PumaRepository {
   }
 
   async findByName(clientName: string): Promise<{ name: string } | null> {
-    const pool = await connectPumaDb("easy8");
+    const pool = await connectPluricallDb();
 
     const result = await pool.request().input("clientName", clientName).query(`
       SELECT 
@@ -44,7 +44,7 @@ export class PumaRepositoryImpl implements PumaRepository {
   async findByCampaign(
     ctName: string,
   ): Promise<{ id: number; campaign: string } | null> {
-    const pool = await connectPumaDb("easy8");
+    const pool = await connectPluricallDb();
 
     const result = await pool.request().input("ct_", ctName).query(`
       SELECT 
@@ -64,7 +64,7 @@ export class PumaRepositoryImpl implements PumaRepository {
   async findClientByCampaignClient(
     ctName: string,
   ): Promise<{ id: number; name: string } | null> {
-    const pool = await connectPumaDb("easy8");
+    const pool = await connectPluricallDb();
     const result = await pool.request().input("ct_", ctName).query(`
       SELECT c.id, c.client_name
       FROM insight_clients_login c
@@ -83,7 +83,7 @@ export class PumaRepositoryImpl implements PumaRepository {
   }
 
   async findByEmail(email: string): Promise<{ email: string } | null> {
-    const pool = await connectPumaDb("easy8");
+    const pool = await connectPluricallDb();
 
     const result = await pool.request().input("email", email).query(`
       SELECT 
@@ -100,7 +100,7 @@ export class PumaRepositoryImpl implements PumaRepository {
   }
 
   async getAll(): Promise<GetClientRecordings[]> {
-    const pool = await connectPumaDb("easy8");
+    const pool = await connectPluricallDb();
     const result = await pool.query(`
     SELECT 
   client_name, 
@@ -135,7 +135,7 @@ export class PumaRepositoryImpl implements PumaRepository {
   async create(
     data: ClientRecordingsParams & { password?: string; email: string },
   ) {
-    const pool = await connectPumaDb("easy8");
+    const pool = await connectPluricallDb();
     const transaction = pool.transaction();
     await transaction.begin();
 
@@ -198,7 +198,7 @@ export class PumaRepositoryImpl implements PumaRepository {
     isHistorical = false,
     resultsNotInFivePercent,
   }: FetchRecordingKeyParams): Promise<RecordingKeyResult[]> {
-    const puma = await connectPumaDb("easy8");
+    const puma = await connectPluricallDb();
     const result = await puma.query(`
     BEGIN
     SET NOCOUNT ON;
@@ -627,7 +627,7 @@ END
   }
 
   async saveSentRecordings(recording: RecordingMetadata) {
-    const pool = await connectPumaDb("easy8");
+    const pool = await connectPluricallDb();
 
     await pool
       .request()
@@ -657,7 +657,7 @@ END
   async searchRecordingsByFilters(
     filters: RecordingFilters,
   ): Promise<RecordingMetadata[]> {
-    const pool = await connectPumaDb("easy8");
+    const pool = await connectPluricallDb();
     const request = pool.request();
 
     let sql = `
@@ -708,7 +708,7 @@ END
     easycode: string,
     clientId: string,
   ): Promise<IResult<RecordingDownloadInfo>> {
-    const pool = await connectPumaDb("easy8");
+    const pool = await connectPluricallDb();
 
     const result = await pool
       .request()

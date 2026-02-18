@@ -17,7 +17,7 @@ describe("Save Field Mapping Use Case", () => {
   });
 
   it("should save field mapping successfully", async () => {
-    await createClient.execute({ clientName: "Test" });
+    await createClient.execute({ clientName: "Test", environment: "cloud" });
 
     const result = await sut.execute([
       {
@@ -56,7 +56,7 @@ describe("Save Field Mapping Use Case", () => {
   });
 
   it("should not allow duplicate source_field", async () => {
-    await createClient.execute({ clientName: "Test" });
+    await createClient.execute({ clientName: "Test", environment: "cloud" });
 
     await expect(() =>
       sut.execute([

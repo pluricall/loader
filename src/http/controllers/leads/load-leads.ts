@@ -3,7 +3,6 @@ import { z } from "zod";
 import { makeLoadLeadsUseCase } from "../../../use-cases/factories/make-load-leads-use-case";
 
 export async function loadLeads(request: FastifyRequest, reply: FastifyReply) {
-  // Validação do payload
   const schema = z.object({
     leads: z.array(z.record(z.any())).min(1, "At least one lead is required"),
   });
@@ -17,16 +16,11 @@ export async function loadLeads(request: FastifyRequest, reply: FastifyReply) {
       details: err.errors ?? err.message,
     });
   }
-
-  // ✅ O client já está injetado pelo middleware
   const client = (request as any).client;
-
   // Instancia use-case
   const loadLeadsUseCase = makeLoadLeadsUseCase();
-
   // Executa carregamento (unitário ou massivo)
   const results = await loadLeadsUseCase.execute(client.client_name, leads);
-
   // Cria resumo final
   const errors = results
     .filter((r) => !r.success)

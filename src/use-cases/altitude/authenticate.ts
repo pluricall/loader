@@ -1,6 +1,10 @@
 import axios from "axios";
 import https from "https";
 import { AltitudeAuthError } from "../errors/altitude-auth-error";
+import {
+  AltitudeEnvironment,
+  resolveAltitudeConfig,
+} from "../../utils/resolve-altitude-config";
 
 interface AltitudeTokenResponse {
   access_token: string;
@@ -17,21 +21,24 @@ export class AltitudeAuthService {
   private token: string | null = null;
   private expiresAt = 0;
 
-  async getToken(): Promise<string> {
+  async getToken(environment: AltitudeEnvironment): Promise<string> {
     if (this.token && Date.now() < this.expiresAt) {
       return this.token;
     }
 
-    return this.login();
+    return this.login(environment);
   }
 
-  private async login(): Promise<string> {
+  private async login(
+    environment: "cloud" | "onprem" | "pre",
+  ): Promise<string> {
     try {
+      const config = resolveAltitudeConfig(environment);
       const payload = new URLSearchParams({
-        username: process.env.ALTITUDE_USER!,
-        password: process.env.ALTITUDE_PASS!,
+        username: config.username,
+        password: config.password,
         grant_type: "password",
-        instanceaddress: process.env.ALTITUDE_INSTANCE!,
+        instanceaddress: config.instance,
         secureaccess: "false",
         authenticationType: "Uci",
         forced: "true",
@@ -39,7 +46,7 @@ export class AltitudeAuthService {
       });
 
       const resp = await axios.post<AltitudeTokenResponse>(
-        process.env.ALTITUDE_AUTH_URL!,
+        `${config.baseUrl}/token`,
         payload,
         {
           headers: {

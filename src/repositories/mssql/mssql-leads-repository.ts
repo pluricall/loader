@@ -1,4 +1,4 @@
-import { connectPumaDb } from "../../db/connect-puma";
+import { connectPluricallDb } from "../../db/pluricall-db";
 import sql from "mssql";
 import { LeadsRepository } from "../leads-repository";
 import {
@@ -10,8 +10,8 @@ import {
   LeadLogDTO,
 } from "../types/leads-repository";
 
-export class LeadsRepositoryImpl implements LeadsRepository {
-  private poolPromise = connectPumaDb("easy8");
+export class MssqlLeadsRepository implements LeadsRepository {
+  private poolPromise = connectPluricallDb();
 
   private async getPool() {
     return this.poolPromise;
@@ -23,7 +23,7 @@ export class LeadsRepositoryImpl implements LeadsRepository {
     const result = await pool.request().input("name", name).query(`
         SELECT *
         FROM clients_leads_repository
-        WHERE client_name = @name
+        WHERE client_name = @name AND is_active = 1
       `);
 
     return result.recordset[0] ?? null;
@@ -61,11 +61,12 @@ export class LeadsRepositoryImpl implements LeadsRepository {
       .request()
       .input("name", data.client_name)
       .input("api_key", data.api_key)
+      .input("environment", data.environment)
       .input("is_active", data.is_active ?? true).query(`
         INSERT INTO clients_leads_repository
-          (client_name, api_key, is_active)
+          (client_name, api_key, environment, is_active)
         VALUES
-          (@name, @api_key, @is_active)
+          (@name, @api_key, @environment, @is_active)
       `);
   }
 

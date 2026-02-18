@@ -18,7 +18,6 @@ export function copyFilesToLocal(
       const src = file.file_path;
       const dest = path.join(destDir, file.file_name);
       fs.copyFileSync(src, dest);
-      console.log(`✅ Copiado: ${file.file_name}`);
     } catch (e: any) {
       console.error(`❌ Erro ao copiar ${file.file_name}: ${e.message}`);
     }

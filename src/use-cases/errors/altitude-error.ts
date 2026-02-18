@@ -1,8 +1,11 @@
 export class AltitudeApiError extends Error {
-  constructor(
-    public statusCode: number,
-    public details: any,
-  ) {
-    super("Altitude API error");
+  statusCode: number;
+  details?: any;
+
+  constructor(message: string, statusCode: number = 502, details?: any) {
+    super(message);
+    this.name = "AltitudeApiError";
+    this.statusCode = statusCode;
+    this.details = details;
   }
 }

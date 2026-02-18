@@ -1,5 +1,3 @@
-import { IResult } from "mssql";
-
 export interface FetchRecordingKeyParams {
   ctName: string;
   day: string;
@@ -88,26 +86,4 @@ export interface RecordingDownloadInfo {
   drive_id: string;
   folder_path: string;
   clientNameLogin: string;
-}
-
-export interface PumaRepository {
-  findByName: (name: string) => Promise<{ name: string } | null>;
-  findByCampaign: (
-    campaign: string,
-  ) => Promise<{ campaign: string; id: number } | null>;
-  findByEmail: (campaign: string) => Promise<{ email: string } | null>;
-  getAll: () => Promise<GetClientRecordings[]>;
-  update: (name: string) => void;
-  fetchRecordings(
-    params: FetchRecordingKeyParams,
-  ): Promise<RecordingKeyResult[]>;
-  create: (data: ClientRecordingsParams) => void;
-  saveSentRecordings(recording: RecordingMetadata): Promise<void>;
-  searchRecordingsByFilters(
-    filters: RecordingFilters,
-  ): Promise<RecordingMetadata[]>;
-  getInfoToDownloadRecordings: (
-    easycode: string,
-    clientId: string,
-  ) => Promise<IResult<RecordingDownloadInfo>>;
 }

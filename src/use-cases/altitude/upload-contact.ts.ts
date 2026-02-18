@@ -2,22 +2,26 @@ import axios from "axios";
 import https from "https";
 import { AltitudeAuthService } from "./authenticate";
 import { AltitudeApiError } from "../errors/altitude-error";
+import {
+  AltitudeEnvironment,
+  resolveAltitudeConfig,
+} from "../../utils/resolve-altitude-config";
+
+interface UploadContactParams {
+  payload: any;
+  environment: AltitudeEnvironment;
+}
 
 export class AltitudeUploadContact {
-  constructor(
-    private baseUrl: string,
-    private authService: AltitudeAuthService,
-  ) {}
+  constructor(private authService: AltitudeAuthService) {}
 
-  async execute(payload: {
-    campaignName: string;
-    requests: Array<{ RequestType: string; Value: any }>;
-  }) {
-    const token = await this.authService.getToken();
+  async execute({ payload, environment }: UploadContactParams) {
+    const config = resolveAltitudeConfig(environment);
+    const token = await this.authService.getToken(environment);
 
     try {
       const resp = await axios.post(
-        `${this.baseUrl}/instance/campaignManager/uploadContacts`,
+        `${config.baseUrl}/api/instance/campaignManager/uploadContacts`,
         payload,
         {
           headers: {
@@ -30,10 +34,10 @@ export class AltitudeUploadContact {
       return resp.data;
     } catch (error: any) {
       if (error.response?.status === 401) {
-        const newToken = await this.authService.getToken();
+        const newToken = await this.authService.getToken(environment);
 
         const retry = await axios.post(
-          `${this.baseUrl}/instance/campaignManager/uploadContacts`,
+          `${config.baseUrl}/api/instance/campaignManager/uploadContacts`,
           payload,
           {
             headers: {
@@ -50,13 +54,20 @@ export class AltitudeUploadContact {
       }
 
       if (error.response) {
-        throw new AltitudeApiError(error.response.status, error.response.data);
+        const message =
+          error.response.data?.message ||
+          error.response.data?.error_description ||
+          JSON.stringify(error.response.data);
+
+        throw new AltitudeApiError(
+          message,
+          error.response.status,
+          error.response.data,
+        );
       }
 
       // erro de rede / timeout
-      throw new AltitudeApiError(503, {
-        message: "Altitude unreachable",
-      });
+      throw new AltitudeApiError("Altitude unreachable");
     }
   }
 }

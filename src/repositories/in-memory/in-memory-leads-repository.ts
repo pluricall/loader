@@ -31,6 +31,7 @@ export class InMemoryLeadsRepository implements LeadsRepository {
       client_name: data.client_name,
       api_key: data.api_key,
       is_active: data.is_active ?? true,
+      environment: data.environment,
     });
   }
 

@@ -16,7 +16,7 @@ describe("Search Lead Clients Use Case", () => {
   });
 
   it("should return client, config and mapping", async () => {
-    await createClient.execute({ clientName: "Test" });
+    await createClient.execute({ clientName: "Test", environment: "cloud" });
 
     repo.configs.push({
       client_name: "Test",
@@ -54,7 +54,7 @@ describe("Search Lead Clients Use Case", () => {
   });
 
   it("should return empty mapping if none exists", async () => {
-    await createClient.execute({ clientName: "Test" });
+    await createClient.execute({ clientName: "Test", environment: "cloud" });
 
     const result = await sut.execute("Test");
 
@@ -62,7 +62,7 @@ describe("Search Lead Clients Use Case", () => {
   });
 
   it("should return null config if none exists", async () => {
-    await createClient.execute({ clientName: "Test" });
+    await createClient.execute({ clientName: "Test", environment: "cloud" });
 
     const result = await sut.execute("Test");
 

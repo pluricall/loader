@@ -19,6 +19,12 @@ export class LoadLeadsUseCase {
   ) {}
 
   async execute(clientName: string, leads: any[]): Promise<LeadLoadResult[]> {
+    const client = await this.leadsRepository.findClientByName(clientName);
+
+    if (!client) {
+      throw new Error("Client not found!");
+    }
+
     const config = await this.leadsRepository.getAltitudeConfig(clientName);
     const mapping = await this.leadsRepository.getFieldMapping(clientName);
 
@@ -93,7 +99,10 @@ export class LoadLeadsUseCase {
       };
 
       try {
-        const response = await this.createContact.execute(payload);
+        const response = await this.createContact.execute({
+          payload,
+          environment: client.environment,
+        });
 
         results.push({ lead, success: true });
         await this.leadsRepository.saveLog({
@@ -106,7 +115,7 @@ export class LoadLeadsUseCase {
       } catch (err: any) {
         const errorMessage =
           err instanceof AltitudeApiError
-            ? `Altitude: ${err.details?.message || err.message}`
+            ? `Altitude: ${err.message}`
             : err.message;
 
         results.push({ lead, success: false, error: errorMessage });
@@ -154,11 +163,13 @@ export class LoadLeadsUseCase {
 
       try {
         const resp = await this.uploadContact.execute({
-          campaignName: config.campaign_name,
-          requests,
+          payload: {
+            campaignName: config.campaign_name,
+            requests,
+          },
+          environment: client.environment,
         });
 
-        // se Altitude retornar erros individuais, parse para marcar leads específicos
         for (let i = 0; i < batch.length; i++) {
           results.push({ lead: batch[i].lead, success: true });
           await this.leadsRepository.saveLog({

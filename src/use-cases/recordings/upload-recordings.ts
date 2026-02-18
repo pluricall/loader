@@ -4,7 +4,7 @@ import { sanitizeForSharePoint } from "../../utils/sanitize-for-sharepoint";
 import { sendRecordingsToSharepoint } from "../../utils/send-file";
 import { sendEmail } from "../../utils/send-email";
 import { RecordingResult } from "./fetch-recordings";
-import { PumaRepositoryImpl } from "../../repositories/mssql/puma-repository-impl";
+import { MssqlRepository } from "../../repositories/mssql/mssql-pluricall-repository";
 
 export interface DownloadRecordingsRequest {
   ctName: string;
@@ -30,9 +30,9 @@ export interface RecordingWithFolderInfo {
 export class UploadRecordingsUseCase {
   async execute(data: DownloadRecordingsRequest) {
     const fetchRecordingsUseCase = makeFetchRecordingsUseCase();
-    const pumaRepositoryImpl = new PumaRepositoryImpl();
+    const mssqlRepository = new MssqlRepository();
 
-    const client = await pumaRepositoryImpl.findClientByCampaignClient(
+    const client = await mssqlRepository.findClientByCampaignClient(
       data.ctName,
     );
 
@@ -135,15 +135,13 @@ export class UploadRecordingsUseCase {
           );
         }
 
-        console.log(client.id, client.name);
-
         console.log(
           "Salvando no DB:",
           recordingInfo.fileName,
           client.id,
           client.name,
         );
-        await pumaRepositoryImpl.saveSentRecordings({
+        await mssqlRepository.saveSentRecordings({
           clientId: client?.id,
           clientName: client?.name,
           easycode: recordingInfo.record.easycode,
@@ -159,7 +157,6 @@ export class UploadRecordingsUseCase {
           duration: recordingInfo.record.duration,
           resultado: recordingInfo.record.resultado,
         });
-        console.log("Salvo com sucesso!");
       } catch (err) {
         recordingInfo.status = "ERROR";
         recordingInfo.errorMessage = (err as Error).message;
