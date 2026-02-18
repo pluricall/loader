@@ -29,7 +29,7 @@ export async function createAltitudeConfig(
       return reply.status(404).send({ message: error.message });
     }
     return reply.status(500).send({
-      error: `Não foi possível cadastrar o cliente. Contacte o administrador de IT: ${error}`,
+      error: `Não foi possível criar o cadastro do Altitude. Contacte o administrador de IT: ${error}`,
     });
   }
 }
