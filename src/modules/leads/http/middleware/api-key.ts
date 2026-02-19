@@ -1,0 +1,21 @@
+import { FastifyReply, FastifyRequest } from "fastify";
+import { MssqlLeadIntegrationRepository } from "../../infra/mssql/mssql-lead-integration-repository";
+
+export async function apiKeyAuth(request: FastifyRequest, reply: FastifyReply) {
+  const authHeader = request.headers.authorization;
+
+  if (!authHeader?.startsWith("Bearer ")) {
+    return reply.status(401).send({ error: "Missing API key" });
+  }
+
+  const apiKey = authHeader.replace("Bearer ", "");
+
+  const mssqlLeadsRepository = new MssqlLeadIntegrationRepository();
+  const client = await mssqlLeadsRepository.findByApiKey(apiKey);
+
+  if (!client) {
+    return reply.status(401).send({ error: "Invalid API key" });
+  }
+
+  request.client = client;
+}

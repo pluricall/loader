@@ -6,10 +6,12 @@ import fastifyCors from "@fastify/cors";
 import { RecordingsJob } from "./jobs/recordings";
 import { AltitudeApiError } from "./use-cases/errors/altitude-error";
 import { AltitudeAuthError } from "./use-cases/errors/altitude-auth-error";
+import { leadRoutes } from "./modules/leads/http/routes";
 
 export const app = fastify({ requestTimeout: 0 });
 
 app.register(appRoutes);
+app.register(leadRoutes);
 
 app.register(fastifyCors, {
   origin: "*",

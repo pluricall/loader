@@ -22,12 +22,6 @@ import { getClientsRecordings } from "./controllers/recordings/get-clients";
 import { updateClientRecordings } from "./controllers/recordings/update-client";
 import { getRecordingsMetadatas } from "./controllers/recordings/get-metadatas";
 import { downloadRecording } from "./controllers/recordings/download-from-sharepoint";
-import { createLeadClient } from "./controllers/leads/create-lead-client";
-import { createAltitudeConfig } from "./controllers/leads/create-altitude-config";
-import { saveFieldMapping } from "./controllers/leads/save-field-mapping";
-import { searchLeadClients } from "./controllers/leads/search-lead-clients";
-import { apiKeyAuth } from "./middlewares/api-key";
-import { loadLeads } from "./controllers/leads/load-leads";
 
 const basePath =
   process.env.NODE_ENV === "pre" ? "/preinsight360api" : "/insight360api";
@@ -66,11 +60,4 @@ export function appRoutes(app: FastifyInstance) {
   app.get("/sharepoint/sites", getSharepointSites);
   app.get("/sharepoint/drives", getSharepointDrives);
   app.get("/sharepoint/folders", getSharepointFolders);
-
-  /* Leads */
-  app.get(`/${basePath}/lead-clients/:client_name`, searchLeadClients);
-  app.post(`/${basePath}/leads`, { preHandler: apiKeyAuth }, loadLeads);
-  app.post(`/${basePath}/lead-clients`, createLeadClient);
-  app.post(`/${basePath}/lead-clients/altitude-config`, createAltitudeConfig);
-  app.post(`/${basePath}/lead-clients/mapping`, saveFieldMapping);
 }

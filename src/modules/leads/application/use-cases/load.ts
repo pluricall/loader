@@ -1,7 +1,10 @@
-import { LeadsRepository } from "../../repositories/leads-repository";
-import { AltitudeCreateContact } from "../altitude/create-contact";
-import { AltitudeUploadContact } from "../altitude/upload-contact.ts";
-import { AltitudeApiError } from "../errors/altitude-error";
+import { AltitudeCreateContact } from "../../../../use-cases/altitude/create-contact";
+import { AltitudeUploadContact } from "../../../../use-cases/altitude/upload-contact.ts";
+import { AltitudeApiError } from "../../../../use-cases/errors/altitude-error";
+import { AltitudeEnvironment } from "../../../../utils/resolve-altitude-config";
+import { LeadIntegration } from "../../domain/entities/lead-integration";
+import { LeadLogsRepository } from "../../domain/repositories/lead-logs-repository";
+import { LeadMappingRepository } from "../../domain/repositories/lead-mapping-repository";
 
 export interface LeadLoadResult {
   lead: any;
@@ -13,22 +16,24 @@ export class LoadLeadsUseCase {
   private MAX_PARALLEL = 500;
 
   constructor(
-    private leadsRepository: LeadsRepository,
+    private leadLogsRepository: LeadLogsRepository,
+    private leadMappingRepository: LeadMappingRepository,
     private createContact: AltitudeCreateContact,
     private uploadContact: AltitudeUploadContact,
   ) {}
 
-  async execute(clientName: string, leads: any[]): Promise<LeadLoadResult[]> {
-    const client = await this.leadsRepository.findClientByName(clientName);
+  async execute(
+    client: LeadIntegration,
+    leads: any[],
+  ): Promise<LeadLoadResult[]> {
+    console.log("CLIENT ID RECEBIDO:", client);
+    const today = new Date();
+    const dataload = today.toISOString().split("T")[0]; // '2026-02-19'
 
-    if (!client) {
-      throw new Error("Client not found!");
-    }
+    const mapping = await this.leadMappingRepository.findByLeadConfigId(
+      client.id,
+    );
 
-    const config = await this.leadsRepository.getAltitudeConfig(clientName);
-    const mapping = await this.leadsRepository.getFieldMapping(clientName);
-
-    if (!config) throw new Error("Missing Altitude configuration");
     if (!mapping || mapping.length === 0)
       throw new Error("Missing field mapping");
 
@@ -54,19 +59,17 @@ export class LoadLeadsUseCase {
       return { lead, errors };
     });
 
-    // separa leads válidos e inválidos
     const validLeads = validatedLeads.filter((l) => l.errors.length === 0);
     const invalidLeads = validatedLeads.filter((l) => l.errors.length > 0);
 
-    // adiciona invalidos direto nos resultados
     for (const il of invalidLeads) {
       results.push({
         lead: il.lead,
         success: false,
         error: il.errors.join("; "),
       });
-      await this.leadsRepository.saveLog({
-        client_name: clientName,
+      await this.leadLogsRepository.save({
+        lead_config_id: client.id,
         received_payload: JSON.stringify(il.lead),
         altitude_payload: "{}",
         altitude_response: null,
@@ -77,7 +80,6 @@ export class LoadLeadsUseCase {
 
     if (validLeads.length === 0) return results;
 
-    // decide se unitário ou massivo
     if (validLeads.length === 1) {
       const lead = validLeads[0].lead;
 
@@ -88,12 +90,19 @@ export class LoadLeadsUseCase {
         IsAnonymized: false,
       }));
 
+      attributes.push({
+        discriminator: "Attribute",
+        Name: "dataload",
+        Value: dataload,
+        IsAnonymized: false,
+      });
+
       const payload = {
-        campaignName: config.campaign_name,
+        campaignName: client.campaign_name,
         contactCreateRequest: {
           discriminator: "ContactCreateRequest",
-          Status: config.default_status,
-          ContactListName: { RequestType: "Set", Value: config.contact_list },
+          Status: client.default_status,
+          ContactListName: { RequestType: "Set", Value: client.contact_list },
           Attributes: attributes,
         },
       };
@@ -101,12 +110,12 @@ export class LoadLeadsUseCase {
       try {
         const response = await this.createContact.execute({
           payload,
-          environment: client.environment,
+          environment: client.environment as AltitudeEnvironment,
         });
 
         results.push({ lead, success: true });
-        await this.leadsRepository.saveLog({
-          client_name: clientName,
+        await this.leadLogsRepository.save({
+          lead_config_id: client.id,
           received_payload: JSON.stringify(lead),
           altitude_payload: JSON.stringify(payload),
           altitude_response: JSON.stringify(response),
@@ -119,8 +128,8 @@ export class LoadLeadsUseCase {
             : err.message;
 
         results.push({ lead, success: false, error: errorMessage });
-        await this.leadsRepository.saveLog({
-          client_name: clientName,
+        await this.leadLogsRepository.save({
+          lead_config_id: client.id,
           received_payload: JSON.stringify(lead),
           altitude_payload: JSON.stringify(payload),
           altitude_response: null,
@@ -132,7 +141,6 @@ export class LoadLeadsUseCase {
       return results;
     }
 
-    // === MASSIVO ===
     const batches: any[][] = [];
     for (let i = 0; i < validLeads.length; i += this.MAX_PARALLEL) {
       batches.push(validLeads.slice(i, i + this.MAX_PARALLEL));
@@ -147,14 +155,21 @@ export class LoadLeadsUseCase {
           IsAnonymized: false,
         }));
 
+        attributes.push({
+          discriminator: "Attribute",
+          Name: "dataload",
+          Value: dataload,
+          IsAnonymized: false,
+        });
+
         return {
           RequestType: "Insert",
           Value: {
             discriminator: "ContactUploadRequest",
-            ContactStatus: { Value: config.default_status },
+            ContactStatus: { Value: client.default_status },
             ContactListName: {
               RequestType: "Set",
-              Value: config.contact_list,
+              Value: client.contact_list,
             },
             Attributes: attributes,
           },
@@ -164,16 +179,16 @@ export class LoadLeadsUseCase {
       try {
         const resp = await this.uploadContact.execute({
           payload: {
-            campaignName: config.campaign_name,
+            campaignName: client.campaign_name,
             requests,
           },
-          environment: client.environment,
+          environment: client.environment as AltitudeEnvironment,
         });
 
         for (let i = 0; i < batch.length; i++) {
           results.push({ lead: batch[i].lead, success: true });
-          await this.leadsRepository.saveLog({
-            client_name: clientName,
+          await this.leadLogsRepository.save({
+            lead_config_id: client.id,
             received_payload: JSON.stringify(batch[i].lead),
             altitude_payload: JSON.stringify(requests[i]),
             altitude_response: JSON.stringify(resp),
@@ -188,8 +203,8 @@ export class LoadLeadsUseCase {
 
         for (const b of batch) {
           results.push({ lead: b.lead, success: false, error: errorMessage });
-          await this.leadsRepository.saveLog({
-            client_name: clientName,
+          await this.leadLogsRepository.save({
+            lead_config_id: client.id,
             received_payload: JSON.stringify(b.lead),
             altitude_payload: JSON.stringify(requests),
             altitude_response: null,
