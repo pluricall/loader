@@ -6,7 +6,7 @@ import { CreateLeadMappingDTO } from "../../domain/dtos/create-lead-mapping.dto"
 import { LeadMappingRow } from "../types/lead-mapping-row";
 
 export class MssqlLeadMappingRepository implements LeadMappingRepository {
-  private poolPromise = connectPluricallDb();
+  private poolPromise = connectPluricallDb("onprem");
 
   private async getPool() {
     return this.poolPromise;

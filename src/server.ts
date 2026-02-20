@@ -34,6 +34,12 @@ app.setErrorHandler((error, _request, reply: FastifyReply) => {
   }
 
   if (error instanceof ZodError) {
+    return reply.status(400).send({
+      error: error.errors.map((e) => e.message).join(", "),
+    });
+  }
+
+  if (error instanceof ZodError) {
     const issues = error.errors.map((err) => ({
       field: err.path.join(".") || "body",
       message: err.message,

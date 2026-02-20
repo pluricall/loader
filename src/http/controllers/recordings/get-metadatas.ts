@@ -34,7 +34,7 @@ export async function getRecordingsMetadatas(
       return reply.status(401).send({ error: "Invalid Authorization format" });
     }
 
-    const pool = await connectPluricallDb();
+    const pool = await connectPluricallDb("onprem");
     const result = await pool.request().input("email", email).query(`
       SELECT id, password_hash, status
       FROM insight_clients_login

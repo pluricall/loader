@@ -22,6 +22,7 @@ import { getClientsRecordings } from "./controllers/recordings/get-clients";
 import { updateClientRecordings } from "./controllers/recordings/update-client";
 import { getRecordingsMetadatas } from "./controllers/recordings/get-metadatas";
 import { downloadRecording } from "./controllers/recordings/download-from-sharepoint";
+import { plenitudeInsert } from "./controllers/plenitude/insert";
 
 const basePath =
   process.env.NODE_ENV === "pre" ? "/preinsight360api" : "/insight360api";
@@ -53,11 +54,12 @@ export function appRoutes(app: FastifyInstance) {
   app.get("/clients/records", getClientsRecordings);
   app.post("/clients/records", createClientRecordings);
   app.patch("/clients/records/:clientName", updateClientRecordings);
-  app.get(`/${basePath}/recordings/search`, getRecordingsMetadatas);
-  app.get(`/${basePath}/recording/download`, downloadRecording);
+  app.get(`${basePath}/recordings/search`, getRecordingsMetadatas);
+  app.get(`${basePath}/recording/download`, downloadRecording);
 
   /* Sharepoint */
   app.get("/sharepoint/sites", getSharepointSites);
   app.get("/sharepoint/drives", getSharepointDrives);
   app.get("/sharepoint/folders", getSharepointFolders);
+  app.post(`${basePath}/plenitude`, plenitudeInsert);
 }

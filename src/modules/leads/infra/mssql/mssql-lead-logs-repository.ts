@@ -3,7 +3,7 @@ import { LeadLogsDTO } from "../../domain/dtos/create-lead-logs.dto";
 import { LeadLogsRepository } from "../../domain/repositories/lead-logs-repository";
 
 export class MssqlLeadLogsRepository implements LeadLogsRepository {
-  private poolPromise = connectPluricallDb();
+  private poolPromise = connectPluricallDb("onprem");
 
   private async getPool() {
     return this.poolPromise;

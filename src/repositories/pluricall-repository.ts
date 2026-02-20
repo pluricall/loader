@@ -3,6 +3,7 @@ import {
   ClientRecordingsParams,
   FetchRecordingKeyParams,
   GetClientRecordings,
+  LogPlenitudeCallCloud,
   RecordingDownloadInfo,
   RecordingFilters,
   RecordingKeyResult,
@@ -29,4 +30,5 @@ export interface PluricallRepository {
     easycode: string,
     clientId: string,
   ) => Promise<IResult<RecordingDownloadInfo>>;
+  logPlenitudeCallCloud: (data: LogPlenitudeCallCloud) => void;
 }
