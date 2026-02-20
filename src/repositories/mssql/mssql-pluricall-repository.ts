@@ -1,10 +1,12 @@
 import { connectPluricallDb } from "../../db/pluricall-db";
 import bcrypt from "bcryptjs";
-import { IResult } from "mssql";
+import sql, { IResult } from "mssql";
+
 import {
   ClientRecordingsParams,
   FetchRecordingKeyParams,
   GetClientRecordings,
+  LogPlenitudeCallCloud,
   RecordingDownloadInfo,
   RecordingFilters,
   RecordingKeyResult,
@@ -13,8 +15,32 @@ import {
 import { PluricallRepository } from "../pluricall-repository";
 
 export class MssqlRepository implements PluricallRepository {
+  async logPlenitudeCallCloud(data: LogPlenitudeCallCloud) {
+    const conn = await connectPluricallDb("cloud");
+    await conn
+      .request()
+      .input("usuario", sql.NVarChar, data.usuario)
+      .input("endpoint", sql.NVarChar, data.endpoint)
+      .input(
+        "request_payload",
+        sql.NVarChar,
+        JSON.stringify(data.requestPayload),
+      )
+      .input(
+        "response_payload",
+        sql.NVarChar,
+        data.responsePayload ? JSON.stringify(data.responsePayload) : null,
+      )
+      .input("status_code", sql.Int, data.statusCode)
+      .input("error_message", sql.NVarChar, data.errorMessage || null).query(`
+        INSERT INTO plenitude_api_logs
+        (usuario, endpoint, request_payload, response_payload, status_code, error_message)
+        VALUES (@usuario, @endpoint, @request_payload, @response_payload, @status_code, @error_message)
+      `);
+  }
+
   async update(clientName: string) {
-    const pool = await connectPluricallDb();
+    const pool = await connectPluricallDb("onprem");
 
     const result = await pool.request().input("clientName", clientName).query(`
       UPDATE insight_clients SET status = 'INACTIVO'
@@ -25,7 +51,7 @@ export class MssqlRepository implements PluricallRepository {
   }
 
   async findByName(clientName: string): Promise<{ name: string } | null> {
-    const pool = await connectPluricallDb();
+    const pool = await connectPluricallDb("onprem");
 
     const result = await pool.request().input("clientName", clientName).query(`
       SELECT 
@@ -44,7 +70,7 @@ export class MssqlRepository implements PluricallRepository {
   async findByCampaign(
     ctName: string,
   ): Promise<{ id: number; campaign: string } | null> {
-    const pool = await connectPluricallDb();
+    const pool = await connectPluricallDb("onprem");
 
     const result = await pool.request().input("ct_", ctName).query(`
       SELECT 
@@ -64,7 +90,7 @@ export class MssqlRepository implements PluricallRepository {
   async findClientByCampaignClient(
     ctName: string,
   ): Promise<{ id: number; name: string } | null> {
-    const pool = await connectPluricallDb();
+    const pool = await connectPluricallDb("onprem");
     const result = await pool.request().input("ct_", ctName).query(`
       SELECT c.id, c.client_name
       FROM insight_clients_login c
@@ -83,7 +109,7 @@ export class MssqlRepository implements PluricallRepository {
   }
 
   async findByEmail(email: string): Promise<{ email: string } | null> {
-    const pool = await connectPluricallDb();
+    const pool = await connectPluricallDb("onprem");
 
     const result = await pool.request().input("email", email).query(`
       SELECT 
@@ -100,7 +126,7 @@ export class MssqlRepository implements PluricallRepository {
   }
 
   async getAll(): Promise<GetClientRecordings[]> {
-    const pool = await connectPluricallDb();
+    const pool = await connectPluricallDb("onprem");
     const result = await pool.query(`
     SELECT 
   client_name, 
@@ -135,7 +161,7 @@ export class MssqlRepository implements PluricallRepository {
   async create(
     data: ClientRecordingsParams & { password?: string; email: string },
   ) {
-    const pool = await connectPluricallDb();
+    const pool = await connectPluricallDb("onprem");
     const transaction = pool.transaction();
     await transaction.begin();
 
@@ -198,7 +224,7 @@ export class MssqlRepository implements PluricallRepository {
     isHistorical = false,
     resultsNotInFivePercent,
   }: FetchRecordingKeyParams): Promise<RecordingKeyResult[]> {
-    const puma = await connectPluricallDb();
+    const puma = await connectPluricallDb("onprem");
     const result = await puma.query(`
     BEGIN
     SET NOCOUNT ON;
@@ -627,7 +653,7 @@ END
   }
 
   async saveSentRecordings(recording: RecordingMetadata) {
-    const pool = await connectPluricallDb();
+    const pool = await connectPluricallDb("onprem");
 
     await pool
       .request()
@@ -657,7 +683,7 @@ END
   async searchRecordingsByFilters(
     filters: RecordingFilters,
   ): Promise<RecordingMetadata[]> {
-    const pool = await connectPluricallDb();
+    const pool = await connectPluricallDb("onprem");
     const request = pool.request();
 
     let sql = `
@@ -708,7 +734,7 @@ END
     easycode: string,
     clientId: string,
   ): Promise<IResult<RecordingDownloadInfo>> {
-    const pool = await connectPluricallDb();
+    const pool = await connectPluricallDb("onprem");
 
     const result = await pool
       .request()

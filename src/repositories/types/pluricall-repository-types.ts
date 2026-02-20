@@ -87,3 +87,12 @@ export interface RecordingDownloadInfo {
   folder_path: string;
   clientNameLogin: string;
 }
+
+export interface LogPlenitudeCallCloud {
+  usuario: string;
+  endpoint: string;
+  requestPayload: any;
+  responsePayload?: any;
+  statusCode: number;
+  errorMessage?: string;
+}

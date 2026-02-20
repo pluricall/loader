@@ -1,10 +1,12 @@
 import sql from "mssql";
-import { resolveDbConfig } from "../utils/resolve-db-config";
+import { ClientEnvironment, resolveDbConfig } from "../utils/resolve-db-config";
 
 const dbPools: Map<string, sql.ConnectionPool> = new Map();
 
-export async function connectPluricallDb(): Promise<sql.ConnectionPool> {
-  const config = resolveDbConfig("onprem");
+export async function connectPluricallDb(
+  environment: ClientEnvironment,
+): Promise<sql.ConnectionPool> {
+  const config = resolveDbConfig(environment);
 
   const existing = dbPools.get(config.database);
 

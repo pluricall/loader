@@ -5,11 +5,12 @@ import { LeadIntegration } from "../../domain/entities/lead-integration";
 import { LeadIntegrationRepository } from "../../domain/repositories/lead-integration-repository";
 import { LeadIntegrationMapper } from "../mappers/lead-integration-mapper";
 import { LeadIntegrationRow } from "../types/lead-integration-row";
+import { AltitudeEnvironment } from "../../../../utils/resolve-altitude-config";
 
 export class MssqlLeadIntegrationRepository
   implements LeadIntegrationRepository
 {
-  private poolPromise = connectPluricallDb();
+  private poolPromise = connectPluricallDb("onprem");
 
   private async getPool() {
     return this.poolPromise;
@@ -58,6 +59,33 @@ export class MssqlLeadIntegrationRepository
     return LeadIntegrationMapper.toDomain(result.recordset[0]);
   }
 
+  async findByNameAndContactList(
+    campaignName: string,
+    contactList: string,
+    environment: AltitudeEnvironment,
+  ): Promise<LeadIntegration | null> {
+    const pool = await this.getPool();
+
+    const result = await pool
+      .request()
+      .input("campaign_name", campaignName)
+      .input("environment", environment)
+      .input("contact_list", contactList).query<LeadIntegrationRow>(`
+      SELECT *
+      FROM leads_config
+      WHERE campaign_name = @campaign_name
+        AND contact_list = @contact_list
+        AND environment = @environment
+        AND is_active = 1
+    `);
+
+    const record = result.recordset[0];
+
+    if (!record) return null;
+
+    return LeadIntegrationMapper.toDomain(record);
+  }
+
   async findByApiKey(apiKey: string): Promise<LeadIntegration | null> {
     const pool = await this.getPool();
 
@@ -67,22 +95,6 @@ export class MssqlLeadIntegrationRepository
       FROM leads_config
       WHERE api_key = @api_key
         AND is_active = 1
-    `);
-
-    const record = result.recordset[0];
-    if (!record) return null;
-
-    return LeadIntegrationMapper.toDomain(record);
-  }
-
-  async findById(id: number): Promise<LeadIntegration | null> {
-    const pool = await this.getPool();
-
-    const result = await pool.request().input("id", id)
-      .query<LeadIntegrationRow>(`
-      SELECT *
-      FROM leads_config
-      WHERE id = @id AND is_active = 1
     `);
 
     const record = result.recordset[0];
