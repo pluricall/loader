@@ -4,6 +4,8 @@ import { CreateLeadIntegrationDTO } from "../../domain/dtos/create-lead-integrat
 import { CreateLeadMappingDTO } from "../../domain/dtos/create-lead-mapping.dto";
 import { ValidationError } from "../../../../use-cases/errors/validation-error";
 import { AlreadyExistsError } from "../../../../use-cases/errors/name-already-exists-error";
+import { connectPluricallDb } from "../../../../db/pluricall-db";
+import sql from "mssql";
 
 export interface CreateLeadConfigUseCaseDTO {
   lead: CreateLeadIntegrationDTO;
@@ -21,33 +23,47 @@ export class CreateLeadConfigUseCase {
       throw new ValidationError("At least one mapping is required");
     }
 
-    const clientNameAndContactListExists =
+    const existClientsWithSameNameCLandEnvironment =
       await this._leadIntegrationRepository.findByNameAndContactList(
         lead.campaign_name,
         lead.contact_list,
         lead.environment,
       );
 
-    if (clientNameAndContactListExists) {
+    if (existClientsWithSameNameCLandEnvironment) {
       throw new AlreadyExistsError(
         "This campaign and contact list already exists",
       );
     }
 
-    const {
-      id: lead_config_id,
-      api_key,
-      client_name,
-    } = await this._leadIntegrationRepository.create(lead);
+    const pool = await connectPluricallDb(lead.environment);
+    const transaction = new sql.Transaction(pool);
 
-    const mappingsToSave = mapping.map((map) => ({
-      ...map,
-      lead_config_id,
-      api_key,
-    }));
+    await transaction.begin();
+    try {
+      const {
+        id: lead_config_id,
+        api_key,
+        client_name,
+      } = await this._leadIntegrationRepository.create(lead);
 
-    await this._leadMappingRepository.saveMany(lead_config_id, mappingsToSave);
+      const mappingsToSave = mapping.map((map) => ({
+        ...map,
+        lead_config_id,
+        api_key,
+      }));
 
-    return { clientName: client_name };
+      await this._leadMappingRepository.saveMany(
+        lead_config_id,
+        mappingsToSave,
+      );
+
+      await transaction.commit();
+
+      return { clientName: client_name };
+    } catch (error) {
+      await transaction.rollback();
+      throw error;
+    }
   }
 }

@@ -3,12 +3,13 @@ import { env } from "./env";
 import { appRoutes } from "./http/route";
 import { ZodError } from "zod";
 import fastifyCors from "@fastify/cors";
-import { RecordingsJob } from "./jobs/recordings";
 import { AltitudeApiError } from "./use-cases/errors/altitude-error";
 import { AltitudeAuthError } from "./use-cases/errors/altitude-auth-error";
 import { leadRoutes } from "./modules/leads/http/routes";
+import formbody from "@fastify/formbody";
 
 export const app = fastify({ requestTimeout: 0 });
+app.register(formbody);
 
 app.register(appRoutes);
 app.register(leadRoutes);
@@ -20,7 +21,7 @@ app.register(fastifyCors, {
 });
 
 app.register(async () => {
-  RecordingsJob();
+  // RecordingsJob();
 });
 
 app.setErrorHandler((error, _request, reply: FastifyReply) => {

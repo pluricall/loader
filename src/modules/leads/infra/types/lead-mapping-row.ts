@@ -4,5 +4,6 @@ export interface LeadMappingRow {
   source_field: string;
   altitude_field: string;
   is_required: number;
+  is_phone_number: number;
   created_at: string;
 }
