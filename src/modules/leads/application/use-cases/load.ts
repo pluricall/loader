@@ -22,13 +22,34 @@ export class LoadLeadsUseCase {
     private uploadContact: AltitudeUploadContact,
   ) {}
 
+  private normalizePhone(value: string): string {
+    if (!value) return value;
+    let normalized = value.replace(/\D/g, "");
+    if (normalized.startsWith("351")) {
+      normalized = normalized.slice(3);
+    }
+    return normalized;
+  }
+
+  private normalizeLead(lead: any, mapping: any[]) {
+    const normalizedLead = { ...lead };
+
+    for (const m of mapping) {
+      if (m.is_phone_number && normalizedLead[m.source_field]) {
+        normalizedLead[m.source_field] = this.normalizePhone(
+          normalizedLead[m.source_field],
+        );
+      }
+    }
+
+    return normalizedLead;
+  }
+
   async execute(
     client: LeadIntegration,
     leads: any[],
   ): Promise<LeadLoadResult[]> {
-    console.log("CLIENT ID RECEBIDO:", client);
-    const today = new Date();
-    const dataload = today.toISOString().split("T")[0]; // '2026-02-19'
+    const dataload = new Date().toISOString().split("T")[0];
 
     const mapping = await this.leadMappingRepository.findByLeadConfigId(
       client.id,
@@ -52,6 +73,7 @@ export class LoadLeadsUseCase {
       const extraFields = Object.keys(lead).filter(
         (k) => !allowedFields.has(k),
       );
+
       if (extraFields.length > 0) {
         errors.push(`Unknown fields sent: ${extraFields.join(", ")}`);
       }
@@ -68,6 +90,7 @@ export class LoadLeadsUseCase {
         success: false,
         error: il.errors.join("; "),
       });
+
       await this.leadLogsRepository.save({
         lead_config_id: client.id,
         received_payload: JSON.stringify(il.lead),
@@ -81,12 +104,13 @@ export class LoadLeadsUseCase {
     if (validLeads.length === 0) return results;
 
     if (validLeads.length === 1) {
-      const lead = validLeads[0].lead;
+      const originalLead = validLeads[0].lead;
+      const normalizedLead = this.normalizeLead(originalLead, mapping);
 
       const attributes = mapping.map((m) => ({
         discriminator: "Attribute",
         Name: m.altitude_field,
-        Value: lead[m.source_field] ?? "",
+        Value: normalizedLead[m.source_field] ?? "",
         IsAnonymized: false,
       }));
 
@@ -113,11 +137,15 @@ export class LoadLeadsUseCase {
           environment: client.environment as AltitudeEnvironment,
         });
 
-        results.push({ lead, success: true });
+        results.push({ lead: originalLead, success: true });
+
         await this.leadLogsRepository.save({
           lead_config_id: client.id,
-          received_payload: JSON.stringify(lead),
-          altitude_payload: JSON.stringify(payload),
+          received_payload: JSON.stringify(originalLead),
+          altitude_payload: JSON.stringify({
+            normalizedLead,
+            payload,
+          }),
           altitude_response: JSON.stringify(response),
           success: true,
         });
@@ -127,11 +155,19 @@ export class LoadLeadsUseCase {
             ? `Altitude: ${err.message}`
             : err.message;
 
-        results.push({ lead, success: false, error: errorMessage });
+        results.push({
+          lead: originalLead,
+          success: false,
+          error: errorMessage,
+        });
+
         await this.leadLogsRepository.save({
           lead_config_id: client.id,
-          received_payload: JSON.stringify(lead),
-          altitude_payload: JSON.stringify(payload),
+          received_payload: JSON.stringify(originalLead),
+          altitude_payload: JSON.stringify({
+            normalizedLead,
+            payload,
+          }),
           altitude_response: null,
           success: false,
           error_message: errorMessage,
@@ -148,10 +184,12 @@ export class LoadLeadsUseCase {
 
     for (const batch of batches) {
       const requests = batch.map(({ lead }) => {
+        const normalizedLead = this.normalizeLead(lead, mapping);
+
         const attributes = mapping.map((m) => ({
           discriminator: "Attribute",
           Name: m.altitude_field,
-          Value: lead[m.source_field] ?? "",
+          Value: normalizedLead[m.source_field] ?? "",
           IsAnonymized: false,
         }));
 
@@ -163,15 +201,19 @@ export class LoadLeadsUseCase {
         });
 
         return {
-          RequestType: "Insert",
-          Value: {
-            discriminator: "ContactUploadRequest",
-            ContactStatus: { Value: client.default_status },
-            ContactListName: {
-              RequestType: "Set",
-              Value: client.contact_list,
+          originalLead: lead,
+          normalizedLead,
+          request: {
+            RequestType: "Insert",
+            Value: {
+              discriminator: "ContactUploadRequest",
+              ContactStatus: { Value: client.default_status },
+              ContactListName: {
+                RequestType: "Set",
+                Value: client.contact_list,
+              },
+              Attributes: attributes,
             },
-            Attributes: attributes,
           },
         };
       });
@@ -180,17 +222,21 @@ export class LoadLeadsUseCase {
         const resp = await this.uploadContact.execute({
           payload: {
             campaignName: client.campaign_name,
-            requests,
+            requests: requests.map((r) => r.request),
           },
           environment: client.environment as AltitudeEnvironment,
         });
 
-        for (let i = 0; i < batch.length; i++) {
-          results.push({ lead: batch[i].lead, success: true });
+        for (const r of requests) {
+          results.push({ lead: r.originalLead, success: true });
+
           await this.leadLogsRepository.save({
             lead_config_id: client.id,
-            received_payload: JSON.stringify(batch[i].lead),
-            altitude_payload: JSON.stringify(requests[i]),
+            received_payload: JSON.stringify(r.originalLead),
+            altitude_payload: JSON.stringify({
+              normalizedLead: r.normalizedLead,
+              payload: r.request,
+            }),
             altitude_response: JSON.stringify(resp),
             success: true,
           });
@@ -201,12 +247,20 @@ export class LoadLeadsUseCase {
             ? `Altitude: ${err.details?.message || err.message}`
             : err.message;
 
-        for (const b of batch) {
-          results.push({ lead: b.lead, success: false, error: errorMessage });
+        for (const r of requests) {
+          results.push({
+            lead: r.originalLead,
+            success: false,
+            error: errorMessage,
+          });
+
           await this.leadLogsRepository.save({
             lead_config_id: client.id,
-            received_payload: JSON.stringify(b.lead),
-            altitude_payload: JSON.stringify(requests),
+            received_payload: JSON.stringify(r.originalLead),
+            altitude_payload: JSON.stringify({
+              normalizedLead: r.normalizedLead,
+              payload: r.request,
+            }),
             altitude_response: null,
             success: false,
             error_message: errorMessage,

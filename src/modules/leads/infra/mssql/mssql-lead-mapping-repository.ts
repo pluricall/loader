@@ -28,18 +28,21 @@ export class MssqlLeadMappingRepository implements LeadMappingRepository {
           .input("lead_config_id", leadConfigId)
           .input("source_field", map.source_field)
           .input("altitude_field", map.altitude_field)
-          .input("is_required", map.is_required).query(`
+          .input("is_required", map.is_required)
+          .input("is_phone_number", map.is_phone_number).query(`
             INSERT INTO leads_mapping (
               lead_config_id,
               source_field,
               altitude_field,
-              is_required
+              is_required,
+              is_phone_number
             )
             VALUES (
               @lead_config_id,
               @source_field,
               @altitude_field,
-              @is_required
+              @is_required,
+              @is_phone_number
             )
           `);
       }

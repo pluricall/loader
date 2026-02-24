@@ -4,8 +4,8 @@ import { makePlenitudeInsert } from "../../../use-cases/plenitude/factories/make
 import { PlenitudeLoginError } from "../../../use-cases/errors/plenitude-login-error";
 
 const plenitudeBodySchema = z.object({
-  usuario: z.string().nonempty(),
-  pass: z.string().nonempty(),
+  usuario: z.string().nonempty().min(1, "Deve enviar o usuário"),
+  pass: z.string().nonempty().min(1, "Deve enviar a password"),
   version: z.string().default("3.0.0"),
   environment: z.enum(["prod", "test"]).default("prod"),
   digitalData: z.object({
@@ -31,13 +31,8 @@ export async function plenitudeInsert(
   reply: FastifyReply,
 ) {
   try {
-    const parseResult = plenitudeBodySchema.safeParse(request.body);
-    if (!parseResult.success) {
-      return reply.status(400).send({ error: parseResult.error.format() });
-    }
-
     const { usuario, pass, version, environment, digitalData } =
-      parseResult.data;
+      plenitudeBodySchema.parse(request.body);
 
     const plenitudeInsert = makePlenitudeInsert(environment);
     const result = await plenitudeInsert.execute(

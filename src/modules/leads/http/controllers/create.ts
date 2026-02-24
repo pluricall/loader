@@ -33,6 +33,7 @@ export async function createLeadConfigController(
         sourceField: z.string(),
         altitudeField: z.string(),
         isRequired: z.boolean(),
+        isPhoneNumber: z.boolean(),
       }),
     ),
   });
@@ -57,16 +58,19 @@ export async function createLeadConfigController(
         source_field: map.sourceField,
         altitude_field: map.altitudeField,
         is_required: map.isRequired,
+        is_phone_number: map.isPhoneNumber,
       })),
     });
 
     return reply.status(201).send(result);
-  } catch (err) {
+  } catch (err: any) {
     if (err instanceof ValidationError) {
       return reply.status(400).send({ error: err.message });
     } else if (err instanceof AlreadyExistsError) {
       return reply.status(409).send({ error: err.message });
     }
-    return reply.status(500).send({ error: "Create config internal error" });
+    return reply
+      .status(500)
+      .send({ error: `Create config internal error: ${err.message}` });
   }
 }

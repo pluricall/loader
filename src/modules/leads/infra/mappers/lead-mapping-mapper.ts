@@ -9,6 +9,7 @@ export class LeadMappingMapper {
       source_field: raw.source_field,
       altitude_field: raw.altitude_field,
       is_required: Boolean(raw.is_required),
+      is_phone_number: Boolean(raw.is_phone_number),
       created_at: raw.created_at,
     };
   }

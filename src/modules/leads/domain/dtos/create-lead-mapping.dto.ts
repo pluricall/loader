@@ -3,4 +3,5 @@ export interface CreateLeadMappingDTO {
   source_field: string;
   altitude_field: string;
   is_required: boolean;
+  is_phone_number: boolean;
 }

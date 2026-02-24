@@ -64,6 +64,10 @@ const envSchema = z.object({
   CLIENT_SECRET: z.string(),
   SITE_URL: z.string(),
   DRIVE_ID: z.string(),
+
+  LLEIDA_USER: z.string(),
+  LLEIDA_API_KEY: z.string(),
+  LLEIDA_PASS: z.string(),
 });
 
 const _env = envSchema.safeParse(process.env);
