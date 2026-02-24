@@ -1,5 +1,5 @@
 import { FastifyReply, FastifyRequest } from "fastify";
-import { MssqlLeadsRepository } from "../../repositories/mssql/mssql-leads-repository";
+import { MssqlLeadIntegrationRepository } from "../../modules/leads/infra/mssql/mssql-lead-integration-repository";
 
 export async function apiKeyAuth(request: FastifyRequest, reply: FastifyReply) {
   const authHeader = request.headers.authorization;
@@ -10,8 +10,8 @@ export async function apiKeyAuth(request: FastifyRequest, reply: FastifyReply) {
 
   const apiKey = authHeader.replace("Bearer ", "");
 
-  const repo = new MssqlLeadsRepository();
-  const client = await repo.findClientByApiKey(apiKey);
+  const repo = new MssqlLeadIntegrationRepository();
+  const client = await repo.findByApiKey(apiKey);
 
   if (!client) {
     return reply.status(401).send({ error: "Invalid API key" });
