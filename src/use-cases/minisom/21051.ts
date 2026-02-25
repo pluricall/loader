@@ -190,6 +190,7 @@ export class Minisom21051UseCase {
       origem,
       lead_status: "NEW PROCESS",
       utm_source: request.utm_source,
+      bd: request.bd,
     });
 
     return { status: "OK", status_msg: "", gen_id };

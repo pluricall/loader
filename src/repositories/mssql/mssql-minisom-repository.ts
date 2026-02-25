@@ -50,10 +50,11 @@ export class MssqlMinisomRepository implements MinisomRepository {
       .input("request_url", data.request_url)
       .input("origem", data.origem)
       .input("lead_status", data.lead_status)
+      .input("bd_easy", data.bd)
       .input("utm_source", data.utm_source || null)
       .query(`INSERT INTO minisom_leads_repository (lead_id, campaign, email, first_name, raw_phone_number, phone_number,
-         campanha_easy, contact_list_easy, formdata, timestamp, gen_id, request_ip, request_url, origem, lead_status, utm_source)
+         campanha_easy, contact_list_easy, formdata, timestamp, gen_id, request_ip, request_url, origem, lead_status, bd_easy, utm_source)
         VALUES (@lead_id, @campaign, @email, @first_name, @raw_phone_number, @phone_number,
-         @campanha_easy, @contact_list_easy, @formdata, @timestamp, @gen_id, @request_ip, @request_url, @origem, @lead_status, @utm_source)`);
+         @campanha_easy, @contact_list_easy, @formdata, @timestamp, @gen_id, @request_ip, @request_url, @origem, @lead_status, @bd_easy, @utm_source)`);
   }
 }

@@ -14,6 +14,7 @@ export interface InsertAtLeadsRepository {
   origem: string;
   lead_status: string;
   utm_source?: string;
+  bd: string;
 }
 export interface MinisomFormConfig {
   id: number;

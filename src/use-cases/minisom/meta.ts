@@ -150,6 +150,7 @@ export class MinisomMetaUseCase {
       request_url: request.request_url,
       origem: "META",
       lead_status: "NEW PROCESS",
+      bd: bd.bd,
     });
   }
 }
