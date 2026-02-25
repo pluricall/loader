@@ -1,20 +1,41 @@
-import { FastifyReply, FastifyRequest } from "fastify";
+// src/http/controllers/minisom/legacy-controller.ts
+import { FastifyRequest, FastifyReply } from "fastify";
 import { z } from "zod";
-import { makeMinisomMetaUseCase } from "../../../use-cases/minisom/factories/make-meta-use-case";
 import { AltitudeApiError } from "../../../use-cases/errors/altitude-error";
 import { AltitudeAuthError } from "../../../use-cases/errors/altitude-auth-error";
 import { AlreadyExistsError } from "../../../use-cases/errors/name-already-exists-error";
 import { NotFoundError } from "../../../use-cases/errors/not-found-error";
+import { makeMinisom21051UseCase } from "../../../use-cases/minisom/factories/make-21051-use-case";
 
-export const getLeadMeta = z.object({
+const minisomLegacySchema = z.object({
+  auth_key: z.string(),
+  lead_id: z.string().or(z.number()),
   phone_number: z.string(),
-  lead_id: z.string(),
-  form_id: z.string(),
   email: z.string(),
-  full_name: z.string(),
+  first_name: z.string(),
+  bd: z.string(),
+  form_id: z.string().or(z.number()).optional(),
+  last_name: z.any().optional(),
+  campaign: z.any().optional(),
+  birth_date: z.any().optional(),
+  created_date: z.any().optional(),
+  posted_date: z.any().optional(),
+  marketing: z.any().optional(),
+  privacy: z.any().optional(),
+  utm_source: z.any().optional(),
+  utm_code: z.any().optional(),
+  partner_id: z.any().optional(),
+  additional1: z.any().optional(),
+  additional2: z.any().optional(),
+  additional3: z.any().optional(),
+  address: z.any().optional(),
+  city: z.any().optional(),
+  post_code: z.any().optional(),
+  site_id: z.any().optional(),
+  dif_auditiva: z.any().optional(),
 });
 
-export async function minisomMeta(
+export async function minisom21051(
   request: FastifyRequest,
   reply: FastifyReply,
 ) {
@@ -26,27 +47,15 @@ export async function minisomMeta(
       : request.ip;
 
     const request_url = `${request.protocol}://${request.hostname}${request.raw.url}`;
-    const rawBody = request.body as Record<string, any>;
-
-    const { lead_id, form_id, email, full_name, phone_number } =
-      getLeadMeta.parse(rawBody);
-
-    const minisomMetaUseCase = makeMinisomMetaUseCase();
-
-    const result = await minisomMetaUseCase.execute({
-      lead_id,
-      form_id,
-      email,
-      full_name,
-      phone_number,
-      formData: rawBody,
+    const body = minisomLegacySchema.parse(request.body);
+    const minisom21051UseCase = makeMinisom21051UseCase();
+    const result = await minisom21051UseCase.execute({
+      ...body,
       request_ip,
       request_url,
     });
     return reply.status(200).send(result);
   } catch (error: any) {
-    console.error(error);
-
     if (error instanceof AltitudeApiError) {
       return reply.status(400).send({ error: error.message });
     } else if (error instanceof AltitudeAuthError) {

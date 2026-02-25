@@ -27,6 +27,9 @@ import { iberdrolaSenderSms } from "./controllers/iberdrola/sender-sms";
 import { iberdrolaPdf } from "./controllers/iberdrola/webhook-pdf";
 import { iberdrolaSms } from "./controllers/iberdrola/webhook.sms";
 import { minisomMeta } from "./controllers/minisom/meta";
+import { minisom21121 } from "./controllers/minisom/21121";
+import { minisom21051 } from "./controllers/minisom/21051";
+import { minisomCorporate } from "./controllers/minisom/corporate";
 
 const basePath =
   process.env.NODE_ENV === "pre" ? "/preinsight360api" : "/Insight360api";
@@ -70,4 +73,7 @@ export function appRoutes(app: FastifyInstance) {
   app.post(`${basePath}/iberdrola/sms`, iberdrolaSms);
   app.post(`${basePath}/iberdrola/pdf`, iberdrolaPdf);
   app.post(`${basePath}/minisom/meta`, minisomMeta);
+  app.post(`/ws/minisom/21121/`, minisom21121);
+  app.post(`/ws/minisom/21051/`, minisom21051);
+  app.post(`/ws/minisom/21011/`, minisomCorporate);
 }
