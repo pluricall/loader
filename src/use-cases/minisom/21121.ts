@@ -1,31 +1,47 @@
 import { MinisomRepository } from "../../repositories/minisom-repository";
 import { AltitudeCreateContact } from "../altitude/create-contact";
 import { AlreadyExistsError } from "../errors/name-already-exists-error";
-import { NotFoundError } from "../errors/not-found-error";
 
-export interface MinisomMetaRequest {
-  lead_id: string;
-  form_id: string;
-  email: string;
-  full_name: string;
+export interface Minisom21121Request {
+  auth_key: string;
   phone_number: string;
-  formData: Record<string, any>;
+  lead_id: string | number;
+  first_name: string;
+  bd: string;
+  email: string;
+  form_id?: string | number;
+  last_name?: string;
+  campaign?: any;
+  birth_date?: any;
+  created_date?: any;
+  posted_date?: any;
+  marketing?: any;
+  privacy?: any;
+  utm_source?: any;
+  utm_code?: any;
+  additional1?: any;
+  additional2?: any;
+  additional3?: any;
+  address?: any;
+  city?: any;
+  post_code?: any;
+  site_id?: any;
+  dif_auditiva?: any;
   request_ip: string;
   request_url: string;
+  partner_id?: string;
 }
 
-export class MinisomMetaUseCase {
+export class Minisom21121UseCase {
   constructor(
     private minisomRepository: MinisomRepository,
     private altitudeCreateContact: AltitudeCreateContact,
   ) {}
 
-  private normalizePhoneNumber(phone?: string): string {
+  private normalizePhone(phone?: string): string {
     if (!phone) return "";
     let cleaned = phone.replace(/\D/g, "");
-    if (cleaned.startsWith("351")) {
-      cleaned = cleaned.slice(3);
-    }
+    if (cleaned.startsWith("351")) cleaned = cleaned.slice(3);
     return cleaned;
   }
 
@@ -51,22 +67,21 @@ export class MinisomMetaUseCase {
     return `${datePart}_${randomPart}`;
   }
 
-  async execute(request: MinisomMetaRequest) {
+  async execute(request: Minisom21121Request) {
+    if (request.auth_key !== "RVXfaZAIDGei8nKt" || !request.bd) {
+      return {
+        status: "error",
+        status_msg: "Invalid Authorization Key or Missing BD",
+        gen_id: "",
+      };
+    }
+
     const date = new Date();
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, "0");
     const day = String(date.getDate()).padStart(2, "0");
     const dataload = `${year}-${month}-${day}`;
-    const formalizedNumber = this.normalizePhoneNumber(request.phone_number);
-    const gen_id = this.uniqid();
-    const contactList = "Net2026";
-    const campaign = "MinisomExtNet";
     const plc_id = this.generatePlcId();
-
-    const bd = await this.minisomRepository.getBdByFormId(request.form_id);
-    if (!bd) {
-      throw new NotFoundError("BD não encontrada para este form_id");
-    }
 
     const duplicatedLead = await this.minisomRepository.verifyIfLeadIdExists(
       request.lead_id,
@@ -74,6 +89,13 @@ export class MinisomMetaUseCase {
     if (duplicatedLead) {
       throw new AlreadyExistsError("Lead ID já existe");
     }
+
+    const origem = "WEBSERVICE";
+
+    const gen_id = this.uniqid();
+    const normalizedPhoneNumber = this.normalizePhone(request.phone_number);
+    const contactList = "Net2026";
+    const campaign = "MinisomExtNet";
 
     const payload = {
       campaignName: "MinisomExtNet",
@@ -87,7 +109,7 @@ export class MinisomMetaUseCase {
           {
             discriminator: "DatabaseFields",
             Name: "HomePhone",
-            Value: formalizedNumber,
+            Value: normalizedPhoneNumber,
             IsAnonymized: false,
           },
           {
@@ -105,13 +127,19 @@ export class MinisomMetaUseCase {
           {
             discriminator: "DatabaseFields",
             Name: "FirstName",
-            Value: request.full_name,
+            Value: `${request.first_name} ${request.last_name || ""}`.trim(),
+            IsAnonymized: false,
+          },
+          {
+            discriminator: "DatabaseFields",
+            Name: "realizou_exame_tempo",
+            Value: `${origem} ${request.utm_source || ""}`,
             IsAnonymized: false,
           },
           {
             discriminator: "DatabaseFields",
             Name: "bd",
-            Value: bd.bd,
+            Value: request.bd,
             IsAnonymized: false,
           },
           {
@@ -137,19 +165,22 @@ export class MinisomMetaUseCase {
 
     await this.minisomRepository.insertAtLeadsRepository({
       lead_id: request.lead_id,
-      form_id: request.form_id,
+      form_id: request.form_id || "",
       email: request.email,
-      full_name: request.full_name,
+      full_name: `${request.first_name} ${request.last_name || ""}`.trim(),
       phone_number: request.phone_number,
-      formalizedNumber,
+      formalizedNumber: normalizedPhoneNumber,
       campaignName: campaign,
       contactList,
-      formData: request.formData,
+      formData: request,
       genId: gen_id,
       request_ip: request.request_ip,
       request_url: request.request_url,
-      origem: "META",
+      origem,
       lead_status: "NEW PROCESS",
+      utm_source: request.utm_source,
     });
+
+    return { status: "OK", status_msg: "", gen_id };
   }
 }

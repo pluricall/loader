@@ -1,3 +1,4 @@
+import sql from "mssql";
 import { connectPluricallDb } from "../../db/pluricall-db";
 import {
   InsertAtLeadsRepository,
@@ -6,11 +7,11 @@ import {
 } from "../minisom-repository";
 
 export class MssqlMinisomRepository implements MinisomRepository {
-  async verifyIfLeadIdExists(leadId: string): Promise<boolean> {
+  async verifyIfLeadIdExists(leadId: string | number): Promise<boolean> {
     const conn = await connectPluricallDb("onprem");
     const result = await conn
       .request()
-      .input("lead_id", leadId)
+      .input("lead_id", sql.VarChar, String(leadId))
       .query(
         `SELECT COUNT(*) as count FROM minisom_leads_repository WHERE lead_id = @lead_id`,
       );
@@ -34,7 +35,7 @@ export class MssqlMinisomRepository implements MinisomRepository {
     const timestamp = now.toISOString().replace("T", " ").replace("Z", "");
     await conn
       .request()
-      .input("lead_id", data.lead_id)
+      .input("lead_id", sql.VarChar, String(data.lead_id))
       .input("campaign", data.form_id)
       .input("email", data.email)
       .input("first_name", data.full_name)
@@ -44,8 +45,15 @@ export class MssqlMinisomRepository implements MinisomRepository {
       .input("contact_list_easy", data.contactList)
       .input("formdata", JSON.stringify(data.formData))
       .input("timestamp", timestamp)
+      .input("gen_id", data.genId)
+      .input("request_ip", data.request_ip)
+      .input("request_url", data.request_url)
+      .input("origem", data.origem)
+      .input("lead_status", data.lead_status)
+      .input("utm_source", data.utm_source || null)
       .query(`INSERT INTO minisom_leads_repository (lead_id, campaign, email, first_name, raw_phone_number, phone_number,
-         campanha_easy, contact_list_easy, formdata, timestamp)
-        VALUES (@lead_id, @campaign, @email, @first_name, @raw_phone_number, @phone_number, @campanha_easy, @contact_list_easy, @formdata, @timestamp)`);
+         campanha_easy, contact_list_easy, formdata, timestamp, gen_id, request_ip, request_url, origem, lead_status, utm_source)
+        VALUES (@lead_id, @campaign, @email, @first_name, @raw_phone_number, @phone_number,
+         @campanha_easy, @contact_list_easy, @formdata, @timestamp, @gen_id, @request_ip, @request_url, @origem, @lead_status, @utm_source)`);
   }
 }
