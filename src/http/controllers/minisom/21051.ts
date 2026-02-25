@@ -40,9 +40,13 @@ export async function minisom21051(
   reply: FastifyReply,
 ) {
   try {
-    const request_ip =
-      request.headers["x-forwarded-for"]?.toString() || request.ip;
-    const request_url = `${request.hostname}${request.raw.url}`;
+    const forwarded = request.headers["x-forwarded-for"];
+
+    const request_ip = forwarded
+      ? forwarded.toString().split(",")[0].trim()
+      : request.ip;
+
+    const request_url = `${request.protocol}://${request.hostname}${request.raw.url}`;
     const body = minisomLegacySchema.parse(request.body);
     const minisom21051UseCase = makeMinisom21051UseCase();
     const result = await minisom21051UseCase.execute({
