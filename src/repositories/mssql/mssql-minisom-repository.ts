@@ -40,13 +40,13 @@ export class MssqlMinisomRepository implements MinisomRepository {
       .input("campaign", data.form_id)
       .input("email", data.email)
       .input("first_name", data.full_name)
-      .input("raw_phone_number", data.phone_number)
-      .input("phone_number", data.formalizedNumber)
+      .input("raw_phone_number", data.raw_phone_number)
+      .input("phone_number", data.phone_number)
       .input("campanha_easy", data.campaignName)
       .input("contact_list_easy", data.contactList)
       .input("formdata", JSON.stringify(data.formData))
       .input("timestamp", timestamp)
-      .input("gen_id", data.genId)
+      .input("gen_id", data.gen_id)
       .input("request_ip", data.request_ip)
       .input("request_url", data.request_url)
       .input("origem", data.origem)
@@ -57,6 +57,38 @@ export class MssqlMinisomRepository implements MinisomRepository {
          campanha_easy, contact_list_easy, formdata, timestamp, gen_id, request_ip, request_url, origem, lead_status, bd_easy, utm_source)
         VALUES (@lead_id, @campaign, @email, @first_name, @raw_phone_number, @phone_number,
          @campanha_easy, @contact_list_easy, @formdata, @timestamp, @gen_id, @request_ip, @request_url, @origem, @lead_status, @bd_easy, @utm_source)`);
+  }
+
+  async updateLeadStatus(
+    genId: string | number,
+    leadStatus: string,
+  ): Promise<void> {
+    const conn = await connectPluricallDb("onprem");
+
+    await conn
+      .request()
+      .input("gen_id", sql.VarChar, String(genId))
+      .input("lead_status", sql.VarChar, leadStatus).query(`
+      UPDATE minisom_leads_repository
+      SET lead_status = @lead_status
+      WHERE gen_id = @gen_id
+    `);
+  }
+
+  async updateCorporateLeadStatus(
+    genId: string | number,
+    leadStatus: string,
+  ): Promise<void> {
+    const conn = await connectPluricallDb("onprem");
+
+    await conn
+      .request()
+      .input("gen_id", sql.VarChar, String(genId))
+      .input("lead_status", sql.VarChar, leadStatus).query(`
+      UPDATE minisom_corporate_leads_repository
+      SET lead_status = @lead_status
+      WHERE gen_id = @gen_id
+    `);
   }
 
   async insertAtLeadsCorporateRepository(

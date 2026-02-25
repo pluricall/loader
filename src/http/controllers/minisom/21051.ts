@@ -1,4 +1,3 @@
-// src/http/controllers/minisom/legacy-controller.ts
 import { FastifyRequest, FastifyReply } from "fastify";
 import { z } from "zod";
 import { AltitudeApiError } from "../../../use-cases/errors/altitude-error";
@@ -7,7 +6,7 @@ import { AlreadyExistsError } from "../../../use-cases/errors/name-already-exist
 import { NotFoundError } from "../../../use-cases/errors/not-found-error";
 import { makeMinisom21051UseCase } from "../../../use-cases/minisom/factories/make-21051-use-case";
 
-const minisomLegacySchema = z.object({
+const minisom21051Schema = z.object({
   auth_key: z.string(),
   lead_id: z.string().or(z.number()),
   phone_number: z.string(),
@@ -47,14 +46,22 @@ export async function minisom21051(
       : request.ip;
 
     const request_url = `${request.protocol}://${request.hostname}${request.raw.url}`;
-    const body = minisomLegacySchema.parse(request.body);
+    const body = minisom21051Schema.parse(request.body);
     const minisom21051UseCase = makeMinisom21051UseCase();
-    const result = await minisom21051UseCase.execute({
+    const useCaseRequest = {
       ...body,
       request_ip,
       request_url,
+    };
+
+    const result = await minisom21051UseCase.execute(useCaseRequest);
+
+    reply.status(200).send(result);
+
+    minisom21051UseCase.processAsync({
+      ...useCaseRequest,
+      gen_id: result.gen_id,
     });
-    return reply.status(200).send(result);
   } catch (error: any) {
     if (error instanceof AltitudeApiError) {
       return reply.status(400).send({ error: error.message });

@@ -3,12 +3,12 @@ export interface InsertAtLeadsRepository {
   form_id: string | number;
   email: string;
   full_name: string;
+  raw_phone_number: string;
   phone_number: string;
-  formalizedNumber: string;
   campaignName: string;
   contactList: string;
   formData: Record<string, any>;
-  genId: string;
+  gen_id: string;
   request_ip: string;
   request_url: string;
   origem: string;
@@ -58,4 +58,12 @@ export interface MinisomRepository {
   insertAtLeadsCorporateRepository: (
     data: InsertAtLeadsCorporateRepository,
   ) => void;
+  updateLeadStatus: (
+    gen_id: string | number,
+    lead_status: string,
+  ) => Promise<void>;
+  updateCorporateLeadStatus: (
+    gen_id: string | number,
+    lead_status: string,
+  ) => Promise<void>;
 }
