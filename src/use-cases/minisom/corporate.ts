@@ -1,4 +1,8 @@
 import { MinisomRepository } from "../../repositories/minisom-repository";
+import { generateDataload } from "../../utils/generate-dataload";
+import { generateGenId } from "../../utils/generate-gen-id";
+import { generateNormalizedPhone } from "../../utils/generate-normalized-phone";
+import { generatePlcId } from "../../utils/generate-plc-id";
 import { AltitudeCreateContact } from "../altitude/create-contact";
 
 export interface MinisomCorporateRequest {
@@ -18,42 +22,17 @@ export interface MinisomCorporateRequest {
   formData: Record<string, any>;
 }
 
-export class MinisomCorporateUseCase {
+export class MinisomCorporateUseCaseOfc {
   constructor(
     private minisomRepository: MinisomRepository,
     private altitudeCreateContact: AltitudeCreateContact,
   ) {}
 
-  private normalizePhoneNumber(phone?: string): string {
-    if (!phone) return "";
-    let cleaned = phone.replace(/\D/g, "");
-    if (cleaned.startsWith("351")) {
-      cleaned = cleaned.slice(3);
-    }
-    return cleaned;
-  }
-
-  private uniqid(prefix = ""): string {
-    const ts = Date.now().toString(16);
-    const random = Math.floor(Math.random() * 0xfffff).toString(16);
-    return prefix + ts + random;
-  }
-
-  private generatePlcId(): string {
-    const now = new Date();
-
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, "0");
-    const day = String(now.getDate()).padStart(2, "0");
-
-    const datePart = `${year}${month}${day}`;
-
-    const randomPart = Math.floor(Math.random() * 1_000_000)
-      .toString()
-      .padStart(6, "0");
-
-    return `${datePart}_${randomPart}`;
-  }
+  currentYear = new Date().getFullYear();
+  private CAMPAIGN = "MinisomExtNet";
+  private CONTACTLIST = `Net${this.currentYear}`;
+  private ORIGEM = "WEBSERVICE";
+  private LANGUAGE = "pt_PT";
 
   private readonly GSB_CODES = [
     "PTSEM102PPXHA00",
@@ -131,141 +110,154 @@ export class MinisomCorporateUseCase {
   }
 
   async execute(request: MinisomCorporateRequest) {
-    const date = new Date();
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
-    const dataload = `${year}-${month}-${day}`;
-    const formalizedNumber = this.normalizePhoneNumber(request.phone_number);
-    const gen_id = this.uniqid();
-    const contactList = "Net2026";
-    const campaign = "MinisomExtNet";
-    const language = "pt_PT";
+    const normalizedPhoneNumber = generateNormalizedPhone(request.phone_number);
     const originalBd = "IWEB25";
     const bd = this.resolveBdEasy(originalBd, request.adobe_campaign_code);
-    const origem = "WEBSERVICE";
-    const plc_id = this.generatePlcId();
-
-    const payload = {
-      campaignName: "MinisomExtNet",
-      contactCreateRequest: {
-        Status: "Started",
-        ContactListName: {
-          RequestType: "Set",
-          Value: "Net2026",
-        },
-        Attributes: [
-          {
-            discriminator: "DatabaseFields",
-            Name: "MobilePhone",
-            Value: formalizedNumber,
-            IsAnonymized: false,
-          },
-          {
-            discriminator: "DatabaseFields",
-            Name: "id_cliente",
-            Value: gen_id,
-            IsAnonymized: false,
-          },
-          {
-            discriminator: "DatabaseFields",
-            Name: "Email1",
-            Value: request.email,
-            IsAnonymized: false,
-          },
-          {
-            discriminator: "DatabaseFields",
-            Name: "FirstName",
-            Value: `${request.name} ${request.surname}`.trim(),
-            IsAnonymized: false,
-          },
-          {
-            discriminator: "DatabaseFields",
-            Name: "HomeStreet",
-            Value: request.address || "",
-            IsAnonymized: false,
-          },
-          {
-            discriminator: "DatabaseFields",
-            Name: "Manager",
-            Value: request.privacy_consensus_flag || "",
-            IsAnonymized: false,
-          },
-          {
-            discriminator: "DatabaseFields",
-            Name: "Assistant",
-            Value: request.marketing_consensus_flag || "",
-            IsAnonymized: false,
-          },
-          {
-            discriminator: "DatabaseFields",
-            Name: "realizou_exame_tempo",
-            Value: `${origem} ${request.adobe_campaign_code}`,
-            IsAnonymized: false,
-          },
-          {
-            discriminator: "DatabaseFields",
-            Name: "BusinessStreet",
-            Value: request.form_title,
-            IsAnonymized: false,
-          },
-          {
-            discriminator: "DatabaseFields",
-            Name: "PreferredLanguage",
-            Value: language,
-            IsAnonymized: false,
-          },
-          {
-            discriminator: "DatabaseFields",
-            Name: "bd",
-            Value: bd,
-            IsAnonymized: false,
-          },
-          {
-            discriminator: "DatabaseFields",
-            Name: "dataload",
-            Value: dataload,
-            IsAnonymized: false,
-          },
-          {
-            discriminator: "DatabaseFields",
-            Name: "plc_id",
-            Value: plc_id,
-            IsAnonymized: false,
-          },
-        ],
-      },
-    };
-
-    await this.altitudeCreateContact.execute({
-      environment: "onprem",
-      payload,
-    });
+    const gen_id = generateGenId();
 
     await this.minisomRepository.insertAtLeadsCorporateRepository({
-      campaignName: campaign,
+      campaignName: this.CAMPAIGN,
       marketing_consensus_flag: request.marketing_consensus_flag || "",
       privacy_consensus_flag: request.privacy_consensus_flag || "",
       name: request.name || "",
-      form_title: request.form_title || "",
       surname: request.surname || "",
+      form_title: request.form_title || "",
       adobe_campaign_code: request.adobe_campaign_code || "",
       free_message: request.free_message || "",
       type_of_request: request.type_of_request || "",
       utm_source: request.formData.utm_source || "",
       address: request.address || "",
       email: request.email || "",
-      phone_number: formalizedNumber,
+      phone_number: normalizedPhoneNumber,
       raw_phone_number: request.phone_number,
-      contactList,
+      contactList: this.CONTACTLIST,
       gen_id,
       request_ip: request.request_ip,
       request_url: request.request_url,
-      origem,
-      lead_status: "NEW PROCESS",
+      origem: this.ORIGEM,
+      lead_status: "RECEIVED",
       bd,
       formData: request.formData,
-      language,
+      language: this.LANGUAGE,
     });
+
+    return { status: "OK", status_msg: "", gen_id };
+  }
+
+  async processAsync(request: any) {
+    try {
+      const dataload = generateDataload();
+      const plc_id = generatePlcId();
+      const normalizedPhoneNumber = generateNormalizedPhone(
+        request.phone_number,
+      );
+
+      const payload = {
+        campaignName: this.CAMPAIGN,
+        contactCreateRequest: {
+          Status: "Started",
+          ContactListName: { RequestType: "Set", Value: this.CONTACTLIST },
+          Attributes: [
+            {
+              discriminator: "DatabaseFields",
+              Name: "MobilePhone",
+              Value: normalizedPhoneNumber,
+              IsAnonymized: false,
+            },
+            {
+              discriminator: "DatabaseFields",
+              Name: "id_cliente",
+              Value: request.gen_id,
+              IsAnonymized: false,
+            },
+            {
+              discriminator: "DatabaseFields",
+              Name: "Email1",
+              Value: request.email,
+              IsAnonymized: false,
+            },
+            {
+              discriminator: "DatabaseFields",
+              Name: "FirstName",
+              Value: `${request.name} ${request.surname}`.trim(),
+              IsAnonymized: false,
+            },
+            {
+              discriminator: "DatabaseFields",
+              Name: "HomeStreet",
+              Value: request.address || "",
+              IsAnonymized: false,
+            },
+            {
+              discriminator: "DatabaseFields",
+              Name: "Manager",
+              Value: request.privacy_consensus_flag || "",
+              IsAnonymized: false,
+            },
+            {
+              discriminator: "DatabaseFields",
+              Name: "Assistant",
+              Value: request.marketing_consensus_flag || "",
+              IsAnonymized: false,
+            },
+            {
+              discriminator: "DatabaseFields",
+              Name: "realizou_exame_tempo",
+              Value: `${this.ORIGEM} ${request.adobe_campaign_code}`,
+              IsAnonymized: false,
+            },
+            {
+              discriminator: "DatabaseFields",
+              Name: "BusinessStreet",
+              Value: request.form_title,
+              IsAnonymized: false,
+            },
+            {
+              discriminator: "DatabaseFields",
+              Name: "PreferredLanguage",
+              Value: request.language,
+              IsAnonymized: false,
+            },
+            {
+              discriminator: "DatabaseFields",
+              Name: "bd",
+              Value: request.bd,
+              IsAnonymized: false,
+            },
+            {
+              discriminator: "DatabaseFields",
+              Name: "dataload",
+              Value: dataload,
+              IsAnonymized: false,
+            },
+            {
+              discriminator: "DatabaseFields",
+              Name: "plc_id",
+              Value: plc_id,
+              IsAnonymized: false,
+            },
+          ],
+        },
+      };
+      await this.altitudeCreateContact.execute({
+        environment: "onprem",
+        payload,
+      });
+      await this.minisomRepository.updateCorporateLeadStatus(
+        request.gen_id,
+        "LOADED",
+      );
+    } catch (err) {
+      console.error(
+        "Erro em processAsync para gen_id",
+        request.gen_id,
+        ":",
+        err,
+      );
+      await this.minisomRepository.updateCorporateLeadStatus(
+        request.gen_id,
+        "ERROR",
+      );
+    }
   }
 }

@@ -6,7 +6,7 @@ import { AltitudeAuthError } from "../../../use-cases/errors/altitude-auth-error
 import { AlreadyExistsError } from "../../../use-cases/errors/name-already-exists-error";
 import { NotFoundError } from "../../../use-cases/errors/not-found-error";
 
-export const getLeadMeta = z.object({
+export const minisomMetaSchema = z.object({
   phone_number: z.string(),
   lead_id: z.string(),
   form_id: z.string(),
@@ -29,7 +29,7 @@ export async function minisomMeta(
     const rawBody = request.body as Record<string, any>;
 
     const { lead_id, form_id, email, full_name, phone_number } =
-      getLeadMeta.parse(rawBody);
+      minisomMetaSchema.parse(rawBody);
 
     const minisomMetaUseCase = makeMinisomMetaUseCase();
 
@@ -43,7 +43,10 @@ export async function minisomMeta(
       request_ip,
       request_url,
     });
-    return reply.status(200).send(result);
+
+    reply.status(200).send();
+
+    minisomMetaUseCase.processAsync(result);
   } catch (error: any) {
     console.error(error);
 
