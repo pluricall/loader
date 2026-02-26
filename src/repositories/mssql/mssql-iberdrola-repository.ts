@@ -16,12 +16,11 @@ export class MssqlIberdrolaRepository implements IberdrolaRepository {
       .input("message", data.message)
       .input("easycode", data.easycode)
       .input("campaign", data.campaign)
-      .input("response_status", data.responseStatus)
       .query(
         `INSERT INTO iberdrola_sms_send_log 
-         (contract_id, phone_number, message, easycode, campaign, response_status) 
+         (contract_id, phone_number, message, easycode, campaign, timestamp) 
          VALUES 
-         (@contract_id, @phone_number, @message, @easycode, @campaign, @response_status)`,
+         (@contract_id, @phone_number, @message, @easycode, @campaign, GETDATE())`,
       );
   }
 
@@ -38,18 +37,16 @@ export class MssqlIberdrolaRepository implements IberdrolaRepository {
       .input("messageTimeStamp", new Date())
       .input("systemTimeStamp", systemTimeStamp).query(`
       INSERT INTO iberdrola_sms_inbox_log 
-      (rawID, hostedNumber, senderNumber, messageBody, status, messageTimeStamp, systemTimeStamp) 
+      (rawID, hostedNumber, senderNumber, messageBody, messageTimeStamp, systemTimeStamp) 
       VALUES 
-      (@rawID, @hostedNumber, @senderNumber, @messageBody, @status, @messageTimeStamp, @systemTimeStamp)
+      (@rawID, @hostedNumber, @senderNumber, @messageBody, @messageTimeStamp, @systemTimeStamp)
     `);
   }
 
   async webhookPdfResponse(data: WebhookPdfResponse): Promise<void> {
     const conn = await connectPluricallDb("onprem");
-
     const cleanedSrc = data.src ? data.src.trim().replace(/\s+/g, "") : "";
     const cleanedDst = data.dst ? data.dst.trim().replace(/\s+/g, "") : "";
-
     await conn
       .request()
       .input("ref_tsa", data.ref_tsa)
@@ -62,26 +59,9 @@ export class MssqlIberdrolaRepository implements IberdrolaRepository {
       .input("src", cleanedSrc)
       .input("dst", cleanedDst).query(`
         INSERT INTO iberdrola_sms_pdf
-        (ref_tsa, cert_type, mo, mt, mt_id, event, lang, src, dst)
+        (ref_tsa, cert_type, mo, mt, mt_id, event, lang, src, dst, received_at)
         VALUES
-        (@ref_tsa, @cert_type, @mo, @mt, @mt_id, @event, @lang, @src, @dst)
+        (@ref_tsa, @cert_type, @mo, @mt, @mt_id, @event, @lang, @src, @dst, GETDATE())
       `);
-  }
-
-  async updateSendStatus(
-    contractId: string,
-    status: "SUCCESS" | "FAILED",
-  ): Promise<void> {
-    const conn = await connectPluricallDb("onprem");
-    await conn
-      .request()
-      .input("contract_id", contractId)
-      .input("response_status", status).query(`
-      UPDATE iberdrola_sms_send_log 
-      SET response_status = @response_status,
-          updated_at = GETDATE()
-      WHERE contract_id = @contract_id 
-      AND response_status = 'PENDING'
-    `);
   }
 }
