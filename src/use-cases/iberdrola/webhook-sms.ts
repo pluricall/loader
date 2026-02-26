@@ -18,8 +18,6 @@ export class IberdrolaWebhookSmsUseCase {
       receivedAt: fecha,
     });
 
-    await this.iberdrolaRepository.updateSendStatus(idmo, "SUCCESS");
-
     return { success: true };
   }
 }

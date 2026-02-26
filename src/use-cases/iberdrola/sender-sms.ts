@@ -62,7 +62,6 @@ export class SenderRegisteredIberdrolaSmsUseCase {
       message,
       easycode,
       campaign,
-      responseStatus: "PENDING",
     });
 
     return response.data;

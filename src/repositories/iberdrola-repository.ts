@@ -4,7 +4,6 @@ export interface SendedMessagesParams {
   message: string;
   campaign: string;
   easycode: string;
-  responseStatus: "PENDING" | "SUCCESS" | "FAILED";
 }
 
 export interface InsertAnswerParams {
@@ -22,7 +21,6 @@ export interface SearchPendingsResponse {
   message: string;
   campaign: string;
   easycode: string;
-  responseStatus: string;
 }
 
 export interface WebhookPdfResponse {
@@ -52,8 +50,4 @@ export interface IberdrolaRepository {
   sendedMessages: (data: SendedMessagesParams) => void;
   insertAnswer: (data: InsertAnswerParams) => void;
   webhookPdfResponse: (data: WebhookPdfResponse) => void;
-  updateSendStatus: (
-    contractId: string,
-    status: "SUCCESS" | "FAILED",
-  ) => Promise<void>;
 }
