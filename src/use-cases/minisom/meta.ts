@@ -137,7 +137,7 @@ export class MinisomMetaUseCase {
         payload,
       });
 
-      await this.minisomRepository.updateLeadStatus(request.genId, "LOADED");
+      await this.minisomRepository.updateLeadStatus(request.gen_id, "LOADED");
     } catch (err) {
       console.error(
         "Erro em processAsync para gen_id",
@@ -145,7 +145,7 @@ export class MinisomMetaUseCase {
         ":",
         err,
       );
-      await this.minisomRepository.updateLeadStatus(request.genId, "ERROR");
+      await this.minisomRepository.updateLeadStatus(request.gen_id, "ERROR");
     }
   }
 }
