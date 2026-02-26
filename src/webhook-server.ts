@@ -9,6 +9,21 @@ import fastifyCors from "@fastify/cors";
 
 export function startWebhookServer() {
   const webhook = fastify({ requestTimeout: 0 });
+  webhook.addContentTypeParser(
+    ["application/xml", "text/xml"],
+    { parseAs: "string" },
+    function (req, body, done) {
+      done(null, body);
+    },
+  );
+
+  webhook.addContentTypeParser(
+    "application/json",
+    { parseAs: "string" },
+    function (req, body, done) {
+      done(null, body);
+    },
+  );
   webhook.register(formbody);
   webhook.register(webhookRoutes);
   webhook.register(fastifyCors, {
