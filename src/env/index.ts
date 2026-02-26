@@ -4,6 +4,7 @@ import z from "zod";
 const envSchema = z.object({
   NODE_ENV: z.enum(["development", "pre", "production"]),
   PORT: z.coerce.number().default(3333),
+  WEBHOOK_PORT: z.coerce.number().default(3332),
   DATABASE_URL: z.string(),
 
   // SMTP EMAIL

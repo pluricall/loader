@@ -2,6 +2,7 @@
 import { FastifyRequest, FastifyReply } from "fastify";
 import { z } from "zod";
 import { makeAgilidade24041UseCase } from "../../../use-cases/agilidade/factories/make-24041-use-case";
+import { extractAllFields } from "./extract-fields";
 import { UnauthorizedError } from "../../../use-cases/errors/unauthorized-error";
 
 const agilidade24041Schema = z.object({
@@ -30,12 +31,7 @@ const agilidade24041Schema = z.object({
 export async function agilidade24041(req: FastifyRequest, reply: FastifyReply) {
   try {
     const token = req.headers.token?.toString();
-    const formData = req.body as Record<string, any>;
-    const rawBody = req.body as any;
-
-    if (!token) {
-      return reply.status(403).send({ error: "Missing token" });
-    }
+    if (!token) return reply.status(403).send({ error: "Missing token" });
 
     const forwarded = req.headers["x-forwarded-for"];
     const request_ip = forwarded
@@ -43,16 +39,66 @@ export async function agilidade24041(req: FastifyRequest, reply: FastifyReply) {
       : req.ip;
     const request_url = `${req.protocol}://${req.hostname}${req.raw.url}`;
 
-    let parsedBody: any;
-    const firstKey = Object.keys(rawBody)[0];
+    let parsedBody: Record<string, any> = {};
 
-    if (firstKey && firstKey.startsWith("{")) {
-      parsedBody = JSON.parse(firstKey);
-    } else {
-      parsedBody = rawBody;
+    try {
+      if (req.body && typeof req.body === "object") {
+        const bodyObj = req.body as Record<string, any>;
+        const keys = Object.keys(bodyObj);
+        if (keys.length === 1) {
+          const jsonString = keys[0];
+          const innerJsonMatch = jsonString.match(/^\{.*?\}(?=:"")/);
+
+          if (innerJsonMatch) {
+            try {
+              const cleanJson = innerJsonMatch[0]
+                .replace(/\\"/g, '"')
+                .replace(/\\n/g, "")
+                .replace(/\\r/g, "")
+                .replace(/\\t/g, "")
+                .replace(/\s+/g, " ")
+                .trim();
+              parsedBody = JSON.parse(cleanJson);
+            } catch (parseError) {
+              console.error(
+                "Erro no parse do JSON, usando extractAllFields:",
+                parseError,
+              );
+              parsedBody = extractAllFields(jsonString);
+            }
+          } else {
+            parsedBody = extractAllFields(jsonString);
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Erro no processamento do body:", error);
+    }
+
+    if (!parsedBody.nome || !parsedBody.telefone) {
+      console.error("Campos obrigatórios ausentes");
+      console.error("Body recebido:", req.body);
+      console.error("ParsedBody resultante:", parsedBody);
+
+      return reply.status(400).send({
+        error: "Campos obrigatórios não encontrados",
+        received: req.body,
+        parsed: parsedBody,
+      });
+    }
+
+    Object.keys(parsedBody).forEach((key) => {
+      if (typeof parsedBody[key] === "string") {
+        parsedBody[key] = parsedBody[key].trim();
+      }
+    });
+
+    if (parsedBody.telefone) {
+      parsedBody.telefone = parsedBody.telefone.replace(/^\s+/, "");
     }
 
     const body = agilidade24041Schema.parse(parsedBody);
+
     const agilidade24041UseCase = makeAgilidade24041UseCase();
 
     const {
@@ -66,7 +112,7 @@ export async function agilidade24041(req: FastifyRequest, reply: FastifyReply) {
       request_ip,
       request_url,
       token,
-      formdata: formData,
+      formdata: parsedBody,
     });
 
     reply.status(200).send({ status: "OK", gen_id });
@@ -94,9 +140,10 @@ export async function agilidade24041(req: FastifyRequest, reply: FastifyReply) {
     if (error instanceof UnauthorizedError) {
       return reply.status(401).send({ error: error.message });
     }
-
     return reply.status(500).send({
       error: "Internal Server Error",
+      message:
+        process.env.NODE_ENV === "development" ? error.message : undefined,
     });
   }
 }
