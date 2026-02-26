@@ -45,10 +45,6 @@ export class AltitudeAuthService {
         operation: "login",
       });
 
-      console.log(
-        `Requesting token from Altitude ${environment}..., URL: ${config.baseUrl}/token, Payload: ${config.instance}, Username: ${config.username}, password: ${config.password}}`,
-      );
-
       const resp = await axios.post<AltitudeTokenResponse>(
         `${config.baseUrl}/token`,
         payload,

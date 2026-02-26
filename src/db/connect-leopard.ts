@@ -24,7 +24,6 @@ export async function connectLeopardDb(
   try {
     const pool = new sql.ConnectionPool(sqlConfig);
     await pool.connect();
-    console.log(`✅ Conectado ao LEOPARD DB (${databaseName})`);
     leopardPools.set(databaseName, pool);
     return pool;
   } catch (err) {
