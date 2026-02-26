@@ -21,8 +21,6 @@ async function recordingCronJob() {
       (c) => c.startTime.slice(0, 5) === currentHour,
     );
 
-    console.log("Clientes que irão rodar agora:", clientsToRun);
-
     for (const client of clientsToRun) {
       console.log(
         `Iniciando download para cliente ${client.clientName} (${dateStr})...`,
@@ -49,8 +47,6 @@ async function recordingCronJob() {
           subject: `✔️ CronJob finalizado — ${dateStr} (${currentHour})`,
           html,
         });
-
-        console.log("📧 E-mail de finalização enviado com sucesso.");
       } catch (err) {
         console.error("❌ Erro ao enviar e-mail de finalização do cron:", err);
       }
@@ -77,7 +73,6 @@ async function recordingCronJob() {
 
 export async function RecordingsJob() {
   cron.schedule("* * * * *", () => {
-    console.log("Cron job rodando...");
     recordingCronJob();
   });
 }

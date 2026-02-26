@@ -14,7 +14,6 @@ interface SenderRegisteredSmsRequest {
   message: string;
   easycode: string;
   campaign: string;
-  responseStatus: "PENDING" | "SUCCESS" | "FAILED";
 }
 
 export class SenderRegisteredIberdrolaSmsUseCase {
@@ -24,7 +23,6 @@ export class SenderRegisteredIberdrolaSmsUseCase {
     message,
     easycode,
     campaign,
-    responseStatus,
   }: SenderRegisteredSmsRequest): Promise<SenderRegisteredSmsResponse> {
     const response = await axios.post<SenderRegisteredSmsResponse>(
       "https://api.lleida.net/sms/v2/",
@@ -64,7 +62,7 @@ export class SenderRegisteredIberdrolaSmsUseCase {
       message,
       easycode,
       campaign,
-      responseStatus,
+      responseStatus: "PENDING",
     });
 
     return response.data;

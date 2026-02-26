@@ -18,5 +18,4 @@ export async function sendRecordingsToSharepoint({
   await client
     .api(`/drives/${driveId}/root:/${folderPath}/${fileName}:/content`)
     .put(buffer);
-  console.log(`✅ Arquivo enviado: ${folderPath}/${fileName}`);
 }

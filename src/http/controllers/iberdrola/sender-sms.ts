@@ -31,7 +31,6 @@ export async function iberdrolaSenderSms(
       message,
       easycode,
       campaign,
-      responseStatus: "PENDING",
     });
 
     return reply.send(response);

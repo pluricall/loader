@@ -11,7 +11,8 @@ export interface InsertAnswerParams {
   contractId: string;
   response: string;
   phoneNumber: string;
-  status: string;
+  senderNumber: string;
+  receivedAt: string | Date;
 }
 
 export interface SearchPendingsResponse {
@@ -51,5 +52,8 @@ export interface IberdrolaRepository {
   sendedMessages: (data: SendedMessagesParams) => void;
   insertAnswer: (data: InsertAnswerParams) => void;
   webhookPdfResponse: (data: WebhookPdfResponse) => void;
-  webhookSmsResponse: (data: WebhookSmsResponse) => void;
+  updateSendStatus: (
+    contractId: string,
+    status: "SUCCESS" | "FAILED",
+  ) => Promise<void>;
 }
