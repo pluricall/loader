@@ -31,7 +31,7 @@ export class MssqlIberdrolaRepository implements IberdrolaRepository {
     await conn
       .request()
       .input("rawID", data.contractId)
-      .input("hostedNumber", data.phoneNumber)
+      .input("hostedNumber", data.hostedNumber)
       .input("senderNumber", data.senderNumber)
       .input("messageBody", data.response)
       .input("messageTimeStamp", new Date())
