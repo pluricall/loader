@@ -7,10 +7,12 @@ import { AltitudeApiError } from "./use-cases/errors/altitude-error";
 import { AltitudeAuthError } from "./use-cases/errors/altitude-auth-error";
 import { leadRoutes } from "./modules/leads/http/routes";
 import formbody from "@fastify/formbody";
+import { RecordingsJob } from "./jobs/recordings";
+import { startWebhookServer } from "./webhook-server";
 
 export const app = fastify({ requestTimeout: 0 });
+startWebhookServer();
 app.register(formbody);
-
 app.register(appRoutes);
 app.register(leadRoutes);
 
@@ -21,7 +23,7 @@ app.register(fastifyCors, {
 });
 
 app.register(async () => {
-  // RecordingsJob();
+  RecordingsJob();
 });
 
 app.setErrorHandler((error, _request, reply: FastifyReply) => {

@@ -33,7 +33,7 @@ export async function minisomMeta(
 
     const minisomMetaUseCase = makeMinisomMetaUseCase();
 
-    const result = await minisomMetaUseCase.execute({
+    const { gen_id } = await minisomMetaUseCase.execute({
       lead_id,
       form_id,
       email,
@@ -46,7 +46,18 @@ export async function minisomMeta(
 
     reply.status(200).send();
 
-    minisomMetaUseCase.processAsync(result);
+    minisomMetaUseCase.processAsync({
+      ...rawBody,
+      lead_id,
+      form_id,
+      email,
+      full_name,
+      phone_number,
+      gen_id,
+      formData: rawBody,
+      request_ip,
+      request_url,
+    });
   } catch (error: any) {
     console.error(error);
 
