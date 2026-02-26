@@ -72,7 +72,9 @@ export function startWebhookServer() {
   webhook
     .listen({
       host: "0.0.0.0",
-      port: 3332,
+      port: env.WEBHOOK_PORT,
     })
-    .then(() => console.log(`Webhook server running on port 81`));
+    .then(() =>
+      console.log(`Webhook server running on port ${env.WEBHOOK_PORT}`),
+    );
 }
