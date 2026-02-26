@@ -9,7 +9,7 @@ export interface SendedMessagesParams {
 export interface InsertAnswerParams {
   contractId: string;
   response: string;
-  phoneNumber: string;
+  hostedNumber: string;
   senderNumber: string;
   receivedAt: string | Date;
 }

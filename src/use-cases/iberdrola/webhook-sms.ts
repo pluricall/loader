@@ -13,8 +13,8 @@ export class IberdrolaWebhookSmsUseCase {
     await this.iberdrolaRepository.insertAnswer({
       contractId: idmo,
       response: texto,
-      phoneNumber: cleanedDestino,
-      senderNumber: cleanedOrigen,
+      hostedNumber: cleanedOrigen,
+      senderNumber: cleanedDestino,
       receivedAt: fecha,
     });
 

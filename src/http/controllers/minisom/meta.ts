@@ -33,7 +33,7 @@ export async function minisomMeta(
 
     const minisomMetaUseCase = makeMinisomMetaUseCase();
 
-    const { gen_id } = await minisomMetaUseCase.execute({
+    const { gen_id, bd } = await minisomMetaUseCase.execute({
       lead_id,
       form_id,
       email,
@@ -53,6 +53,7 @@ export async function minisomMeta(
       email,
       full_name,
       phone_number,
+      bd,
       gen_id,
       formData: rawBody,
       request_ip,
