@@ -17,13 +17,6 @@ export function startWebhookServer() {
     },
   );
 
-  webhook.addContentTypeParser(
-    "application/json",
-    { parseAs: "string" },
-    function (req, body, done) {
-      done(null, body);
-    },
-  );
   webhook.register(formbody);
   webhook.register(webhookRoutes);
   webhook.register(fastifyCors, {
