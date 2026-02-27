@@ -1,9 +1,9 @@
 import { ServilusaRepository } from "../../repositories/servilusa-repository";
 import { generateDataload } from "../../utils/generate-dataload";
 import { generateGenId } from "../../utils/generate-gen-id";
-import { generateNormalizedPhone } from "../../utils/generate-normalized-phone";
 import { generatePlcId } from "../../utils/generate-plc-id";
 import { AltitudeCreateContact } from "../altitude/create-contact";
+import { generateNormalizedPhonePT } from "./normalizer";
 
 export interface ServilusaEncuesta {
   id: string | number;
@@ -58,7 +58,7 @@ export class Servilusa23081UseCase {
       const encuesta = request.encuesta;
 
       const rawPhoneNumber = String(encuesta.telefono || "");
-      const normalizedPhone = generateNormalizedPhone(rawPhoneNumber);
+      const normalizedPhone = generateNormalizedPhonePT(rawPhoneNumber);
 
       await this.servilusaRepository.insertAtServilusaLeadsRepository({
         lead_id: encuesta.id,
@@ -127,7 +127,7 @@ export class Servilusa23081UseCase {
     try {
       const dataload = generateDataload();
       const plc_id = generatePlcId();
-      const normalizedPhoneNumber = generateNormalizedPhone(request.telefono);
+      const normalizedPhoneNumber = generateNormalizedPhonePT(request.telefono);
 
       const payload = {
         campaignName: this.CAMPAIGN,
