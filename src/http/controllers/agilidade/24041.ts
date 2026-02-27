@@ -142,8 +142,6 @@ export async function agilidade24041(req: FastifyRequest, reply: FastifyReply) {
     }
     return reply.status(500).send({
       error: "Internal Server Error",
-      message:
-        process.env.NODE_ENV === "development" ? error.message : undefined,
     });
   }
 }

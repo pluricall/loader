@@ -1,7 +1,6 @@
 import { ServilusaRepository } from "../../repositories/servilusa-repository";
 import { generateDataload } from "../../utils/generate-dataload";
 import { generateGenId } from "../../utils/generate-gen-id";
-import { generatePlcId } from "../../utils/generate-plc-id";
 import { AltitudeCreateContact } from "../altitude/create-contact";
 import { generateNormalizedPhonePT } from "./normalizer";
 
@@ -126,7 +125,6 @@ export class Servilusa23081UseCase {
   async processAsync(request: ServilusaEncuesta, gen_id: string) {
     try {
       const dataload = generateDataload();
-      const plc_id = generatePlcId();
       const normalizedPhoneNumber = generateNormalizedPhonePT(request.telefono);
 
       const payload = {
@@ -154,12 +152,6 @@ export class Servilusa23081UseCase {
               discriminator: "DatabaseFields",
               Name: "observacoes",
               Value: request.otrosdatos || "",
-              IsAnonymized: false,
-            },
-            {
-              discriminator: "DatabaseFields",
-              Name: "plc_cod_bd",
-              Value: String(request.id),
               IsAnonymized: false,
             },
             {
@@ -249,7 +241,7 @@ export class Servilusa23081UseCase {
             {
               discriminator: "DatabaseFields",
               Name: "plc_id",
-              Value: plc_id,
+              Value: request.id,
               IsAnonymized: false,
             },
           ],
