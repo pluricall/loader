@@ -3,7 +3,7 @@ import { generateDataload } from "../../../../utils/generate-dataload";
 import { generatePlcId } from "../../../../utils/generate-plc-id";
 import { MinisomRepository } from "../../repositories/minisom.repository";
 
-interface UploadContacts21051 {
+interface UploadContacts21121 {
   phoneNumber: string;
   leadId: string | number;
   name: string;
@@ -18,7 +18,7 @@ interface UploadContacts21051 {
   city: any;
 }
 
-export class Minisom21051UploadContactsUseCase {
+export class Minisom21121UploadContactsUseCase {
   constructor(
     private minisomRepository: MinisomRepository,
     private altitudeCreateContact: AltitudeCreateContact,
@@ -40,13 +40,13 @@ export class Minisom21051UploadContactsUseCase {
     bd,
     email,
     genId,
-    birthDate,
     utmSource,
-    city,
     campaign,
     contactList,
     origem,
-  }: UploadContacts21051) {
+    birthDate,
+    city,
+  }: UploadContacts21121) {
     try {
       const dataload = generateDataload();
       const plcId = generatePlcId();
@@ -82,7 +82,7 @@ export class Minisom21051UploadContactsUseCase {
 
       await this.minisomRepository.updateLeadStatus(genId, "LOADED");
     } catch (err: any) {
-      console.error("Erro inesperado no uploadContacts:", err);
+      console.error("Erro inesperado no 21121UploadContacts:", err);
       await this.minisomRepository.updateLeadStatus(genId, "ERROR");
     }
   }

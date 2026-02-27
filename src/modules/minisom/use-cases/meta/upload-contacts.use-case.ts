@@ -3,22 +3,18 @@ import { generateDataload } from "../../../../utils/generate-dataload";
 import { generatePlcId } from "../../../../utils/generate-plc-id";
 import { MinisomRepository } from "../../repositories/minisom.repository";
 
-interface UploadContacts21051 {
+interface UploadContactsMeta {
   phoneNumber: string;
-  leadId: string | number;
   name: string;
   bd: string;
-  campaign: string;
-  contactList: string;
-  origem: string;
   email: string;
   genId: string;
-  birthDate: any;
-  utmSource: any;
-  city: any;
+  campaign: string;
+  contactList: string;
+  leadId: string | number;
 }
 
-export class Minisom21051UploadContactsUseCase {
+export class MinisomMetaUploadContactsUseCase {
   constructor(
     private minisomRepository: MinisomRepository,
     private altitudeCreateContact: AltitudeCreateContact,
@@ -35,22 +31,17 @@ export class Minisom21051UploadContactsUseCase {
 
   async execute({
     phoneNumber,
-    leadId,
     name,
     bd,
     email,
     genId,
-    birthDate,
-    utmSource,
-    city,
     campaign,
     contactList,
-    origem,
-  }: UploadContacts21051) {
+    leadId,
+  }: UploadContactsMeta) {
     try {
       const dataload = generateDataload();
       const plcId = generatePlcId();
-      const origemAndSource = `${origem} ${utmSource || ""}`.trim();
 
       const payload = {
         campaignName: campaign,
@@ -66,9 +57,6 @@ export class Minisom21051UploadContactsUseCase {
             this.buildAltitudeField("Email1", email),
             this.buildAltitudeField("FirstName", name),
             this.buildAltitudeField("bd", bd),
-            this.buildAltitudeField("realizou_exame_tempo", origemAndSource),
-            this.buildAltitudeField("HomeCity", city),
-            this.buildAltitudeField("Birthday", birthDate),
             this.buildAltitudeField("dataload", dataload),
             this.buildAltitudeField("plc_id", plcId),
           ],
@@ -82,7 +70,7 @@ export class Minisom21051UploadContactsUseCase {
 
       await this.minisomRepository.updateLeadStatus(genId, "LOADED");
     } catch (err: any) {
-      console.error("Erro inesperado no uploadContacts:", err);
+      console.error("Erro inesperado no MetaUploadContacts:", err);
       await this.minisomRepository.updateLeadStatus(genId, "ERROR");
     }
   }
