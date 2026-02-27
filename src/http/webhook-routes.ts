@@ -1,16 +1,8 @@
 import type { FastifyInstance } from "fastify";
-import { minisom21121 } from "./controllers/minisom/21121";
-import { minisomCorporate } from "./controllers/minisom/corporate";
-import { agilidade24041 } from "./controllers/agilidade/24041";
 import { saveLinceRequest } from "../utils/save-lince-request";
-import { servilusa23081 } from "./controllers/servilusa/23081";
 import { minisomRoutes } from "../modules/minisom/http/routes";
 
 export function webhookRoutes(webhook: FastifyInstance) {
-  webhook.post(`/ws/minisom/21121/`, minisom21121);
-  webhook.post(`/ws/minisom/21011/`, minisomCorporate);
-  webhook.post(`/ws/agilidade/24041/`, agilidade24041);
-  webhook.post(`/ws/servilusa/23081/`, servilusa23081);
   webhook.register(minisomRoutes);
   webhook.route({
     method: ["GET", "POST", "PUT", "PATCH", "DELETE"],

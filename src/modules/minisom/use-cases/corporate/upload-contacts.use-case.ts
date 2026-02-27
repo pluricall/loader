@@ -3,22 +3,24 @@ import { generateDataload } from "../../../../utils/generate-dataload";
 import { generatePlcId } from "../../../../utils/generate-plc-id";
 import { MinisomRepository } from "../../repositories/minisom.repository";
 
-interface UploadContacts21051 {
+interface UploadContactsCorporate {
   phoneNumber: string;
-  leadId: string | number;
+  email: string;
   name: string;
   bd: string;
+  formTitle: string;
+  adobeCampaignCode: string;
+  marketingConsensusFlag: string;
+  privacyConsensusFlag: string;
+  address: string;
+  language: string;
+  genId: string;
   campaign: string;
   contactList: string;
   origem: string;
-  email: string;
-  genId: string;
-  birthDate: any;
-  utmSource: any;
-  city: any;
 }
 
-export class Minisom21051UploadContactsUseCase {
+export class MinisomCorporateUploadContactsUseCase {
   constructor(
     private minisomRepository: MinisomRepository,
     private altitudeCreateContact: AltitudeCreateContact,
@@ -35,40 +37,42 @@ export class Minisom21051UploadContactsUseCase {
 
   async execute({
     phoneNumber,
-    leadId,
+    formTitle,
     name,
     bd,
     email,
     genId,
-    birthDate,
-    utmSource,
-    city,
+    adobeCampaignCode,
     campaign,
     contactList,
     origem,
-  }: UploadContacts21051) {
+    address,
+    marketingConsensusFlag,
+    privacyConsensusFlag,
+    language,
+  }: UploadContactsCorporate) {
     try {
       const dataload = generateDataload();
       const plcId = generatePlcId();
-      const origemAndSource = `${origem} ${utmSource || ""}`.trim();
+      const origemAndSource = `${origem} ${adobeCampaignCode || ""}`.trim();
 
       const payload = {
         campaignName: campaign,
         contactCreateRequest: {
           Status: "Started",
-          ContactListName: {
-            RequestType: "Set",
-            Value: contactList,
-          },
+          ContactListName: { RequestType: "Set", Value: contactList },
           Attributes: [
-            this.buildAltitudeField("HomePhone", phoneNumber),
-            this.buildAltitudeField("id_cliente", leadId),
+            this.buildAltitudeField("MobilePhone", phoneNumber),
+            this.buildAltitudeField("id_cliente", genId),
             this.buildAltitudeField("Email1", email),
             this.buildAltitudeField("FirstName", name),
-            this.buildAltitudeField("bd", bd),
+            this.buildAltitudeField("HomeStreet", address),
+            this.buildAltitudeField("Manager", privacyConsensusFlag),
+            this.buildAltitudeField("Assistant", marketingConsensusFlag),
             this.buildAltitudeField("realizou_exame_tempo", origemAndSource),
-            this.buildAltitudeField("HomeCity", city),
-            this.buildAltitudeField("Birthday", birthDate),
+            this.buildAltitudeField("BusinessStreet", formTitle),
+            this.buildAltitudeField("PreferredLanguage", language),
+            this.buildAltitudeField("bd", bd),
             this.buildAltitudeField("dataload", dataload),
             this.buildAltitudeField("plc_id", plcId),
           ],
@@ -82,7 +86,7 @@ export class Minisom21051UploadContactsUseCase {
 
       await this.minisomRepository.updateLeadStatus(genId, "LOADED");
     } catch (err: any) {
-      console.error("Erro inesperado no uploadContacts:", err);
+      console.error("Erro inesperado no CorporateUploadContacts:", err);
       await this.minisomRepository.updateLeadStatus(genId, "ERROR");
     }
   }

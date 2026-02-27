@@ -2,28 +2,28 @@ import { AlreadyExistsError } from "../../../../use-cases/errors/name-already-ex
 import { generateNormalizedPhonePT } from "../../../../use-cases/servilusa/normalizer";
 import { generateGenId } from "../../../../utils/generate-gen-id";
 import { MinisomRepository } from "../../repositories/minisom.repository";
-import { Minisom21051DTO } from "../../schemas/minisom-21051.schema";
-import { Minisom21051UploadContactsUseCase } from "./upload-contacts.use-case";
+import { Minisom21121DTO } from "../../schemas/minisom-21121.schema";
+import { Minisom21121UploadContactsUseCase } from "./upload-contacts.use-case";
 
-export interface Minisom21051Request {
-  bodyRequest: Minisom21051DTO;
+export interface Minisom21121Request {
+  bodyRequest: Minisom21121DTO;
   requestIp: string;
   requestUrl: string;
 }
 
-export class Minisom21051UseCase {
+export class Minisom21121UseCase {
   constructor(
     private minisomRepository: MinisomRepository,
-    private minisom21051UploadContacts: Minisom21051UploadContactsUseCase,
+    private minisom21121UploadContacts: Minisom21121UploadContactsUseCase,
   ) {}
 
   private readonly YEAR = new Date().getFullYear();
-  private readonly AUTH_KEY = "HRCecRJ3V30EXxO9QkESpKGV";
+  private readonly AUTH_KEY = "RVXfaZAIDGei8nKt";
   private readonly CAMPAIGN = "MinisomExtNet";
   private readonly CONTACTLIST = `Net${this.YEAR}`;
   private readonly ORIGEM = "WEBSERVICE";
 
-  async execute({ bodyRequest, requestIp, requestUrl }: Minisom21051Request) {
+  async execute({ bodyRequest, requestIp, requestUrl }: Minisom21121Request) {
     if (bodyRequest.auth_key !== this.AUTH_KEY) {
       return {
         status: "error",
@@ -47,6 +47,7 @@ export class Minisom21051UseCase {
     if (duplicatedLead) {
       throw new AlreadyExistsError("Lead ID already exists");
     }
+
     const genId = generateGenId();
     const normalizedPhoneNumber = generateNormalizedPhonePT(
       bodyRequest.phone_number,
@@ -73,7 +74,7 @@ export class Minisom21051UseCase {
       lead_status: "RECEIVED",
     });
 
-    this.minisom21051UploadContacts.execute({
+    this.minisom21121UploadContacts.execute({
       campaign: this.CAMPAIGN,
       contactList: this.CONTACTLIST,
       origem: this.ORIGEM,

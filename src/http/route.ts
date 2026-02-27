@@ -26,7 +26,7 @@ import { plenitudeInsert } from "./controllers/plenitude/insert";
 import { iberdrolaSenderSms } from "./controllers/iberdrola/sender-sms";
 import { iberdrolaPdf } from "./controllers/iberdrola/webhook-pdf";
 import { iberdrolaSms } from "./controllers/iberdrola/webhook.sms";
-import { minisomMeta } from "./controllers/minisom/meta";
+import { minisomMeta } from "../modules/minisom/http/controllers/meta/minisom-meta.controller";
 
 const basePath =
   process.env.NODE_ENV === "pre" ? "/preinsight360api" : "/Insight360api";
