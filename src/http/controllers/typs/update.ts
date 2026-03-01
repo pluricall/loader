@@ -1,7 +1,7 @@
 import { FastifyRequest, FastifyReply } from "fastify";
 import { z } from "zod";
-import { NotFoundError } from "../../../use-cases/errors/not-found-error";
-import { AlreadyExistsError } from "../../../use-cases/errors/name-already-exists-error";
+import { NotFoundError } from "../../../shared/errors/not-found-error";
+import { AlreadyExistsError } from "../../../shared/errors/name-already-exists-error";
 import { makeUpdateTypUseCase } from "../../../use-cases/factories/make-update-typ-use-case";
 import { EntityNameEnum, LoadingModeEnum } from "@prisma/client";
 

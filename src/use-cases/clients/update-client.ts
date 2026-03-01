@@ -1,6 +1,6 @@
 import { Clients, Status, Frequency } from "@prisma/client";
-import { NotFoundError } from "../errors/not-found-error";
-import { AlreadyExistsError } from "../errors/name-already-exists-error";
+import { NotFoundError } from "../../shared/errors/not-found-error";
+import { AlreadyExistsError } from "../../shared/errors/name-already-exists-error";
 import { ClientsRepository } from "../../repositories/clients-repository";
 
 interface UpdateClientsRequest {

@@ -1,9 +1,9 @@
 import { Status, BdType } from "@prisma/client";
 import { z } from "zod";
 import { FastifyReply, FastifyRequest } from "fastify";
-import { NotFoundError } from "../../../use-cases/errors/not-found-error";
+import { NotFoundError } from "../../../shared/errors/not-found-error";
 import { makeUpdateBdUseCase } from "../../../use-cases/factories/make-update-bd-use-case";
-import { UnauthorizedError } from "../../../use-cases/errors/unauthorized-error";
+import { UnauthorizedError } from "../../../shared/errors/unauthorized-error";
 
 export async function updateBd(request: FastifyRequest, reply: FastifyReply) {
   const paramsSchema = z.object({

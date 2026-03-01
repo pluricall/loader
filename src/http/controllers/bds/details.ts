@@ -1,6 +1,6 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 import { z } from "zod";
-import { NotFoundError } from "../../../use-cases/errors/not-found-error";
+import { NotFoundError } from "../../../shared/errors/not-found-error";
 import { makeGetBdDetailsUseCase } from "../../../use-cases/factories/make-get-bd-details-use-case";
 
 export async function bdDetails(request: FastifyRequest, reply: FastifyReply) {

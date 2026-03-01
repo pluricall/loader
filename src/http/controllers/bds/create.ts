@@ -1,7 +1,7 @@
 import { Status, BdType } from "@prisma/client";
 import { z } from "zod";
 import { FastifyReply, FastifyRequest } from "fastify";
-import { NotFoundError } from "../../../use-cases/errors/not-found-error";
+import { NotFoundError } from "../../../shared/errors/not-found-error";
 import { makeCreateBdUseCase } from "../../../use-cases/factories/make-create-bd-use-case";
 
 export async function createBd(request: FastifyRequest, reply: FastifyReply) {

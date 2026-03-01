@@ -1,7 +1,7 @@
 import { FastifyRequest, FastifyReply } from "fastify";
-import { GetRequestIpAndUrl } from "../../../../../utils/get-request-and-url";
-import { MinisomCorporateFactory } from "../../../use-cases/corporate/minisom-corporate.factory";
+import { GetRequestIpAndUrl } from "../../../../../shared/utils/get-request-and-url";
 import { minisomCorporateSchema } from "../../../schemas/minisom-corporate.schema";
+import { makeMinisomCorporateUseCase } from "../../../use-cases/factories/minisom-corporate.factory";
 
 export async function minisomCorporate(
   request: FastifyRequest,
@@ -9,7 +9,7 @@ export async function minisomCorporate(
 ) {
   try {
     const body = minisomCorporateSchema.parse(request.body);
-    const minisomCorporateFactory = MinisomCorporateFactory();
+    const minisomCorporateFactory = makeMinisomCorporateUseCase();
     const { request_ip, request_url } = GetRequestIpAndUrl(request);
 
     const result = await minisomCorporateFactory.execute({

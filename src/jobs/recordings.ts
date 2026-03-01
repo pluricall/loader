@@ -1,5 +1,5 @@
 import cron from "node-cron";
-import { sendEmail } from "../utils/send-email";
+import { sendEmail } from "../shared/utils/send-email";
 import { GetClientRecordingsUseCase } from "../use-cases/recordings/get-client-recordings";
 import { UploadRecordingsUseCase } from "../use-cases/recordings/upload-recordings";
 

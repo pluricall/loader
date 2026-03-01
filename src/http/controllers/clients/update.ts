@@ -1,9 +1,9 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 import { z } from "zod";
 import { Frequency, Status } from "@prisma/client";
-import { AlreadyExistsError } from "../../../use-cases/errors/name-already-exists-error";
+import { AlreadyExistsError } from "../../../shared/errors/name-already-exists-error";
 import { makeUpdateClientUseCase } from "../../../use-cases/factories/make-update-client-use-case";
-import { NotFoundError } from "../../../use-cases/errors/not-found-error";
+import { NotFoundError } from "../../../shared/errors/not-found-error";
 
 export async function updateClient(
   request: FastifyRequest,

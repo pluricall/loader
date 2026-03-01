@@ -1,18 +1,18 @@
-import { AltitudeCreateContact } from "../../../../use-cases/altitude/create-contact";
-import { generateDataload } from "../../../../utils/generate-dataload";
-import { generatePlcId } from "../../../../utils/generate-plc-id";
+import { AltitudeCreateContact } from "../../../../shared/infra/providers/altitude/create-contact.service";
+import { generateDataload } from "../../../../shared/utils/generate-dataload";
+import { generatePlcId } from "../../../../shared/utils/generate-plc-id";
 import { MinisomRepository } from "../../repositories/minisom.repository";
 
 interface UploadContacts21121 {
-  phoneNumber: string;
-  leadId: string | number;
-  name: string;
-  bd: string;
-  campaign: string;
-  contactList: string;
-  origem: string;
-  email: string;
-  genId: string;
+  phoneNumber: string | number;
+  leadId: any;
+  name: any;
+  bd: any;
+  campaign: any;
+  contactList: any;
+  origem: any;
+  email: any;
+  genId: any;
   birthDate: any;
   utmSource: any;
   city: any;
@@ -62,15 +62,18 @@ export class Minisom21121UploadContactsUseCase {
           },
           Attributes: [
             this.buildAltitudeField("HomePhone", phoneNumber),
-            this.buildAltitudeField("id_cliente", leadId),
-            this.buildAltitudeField("Email1", email),
-            this.buildAltitudeField("FirstName", name),
-            this.buildAltitudeField("bd", bd),
-            this.buildAltitudeField("realizou_exame_tempo", origemAndSource),
-            this.buildAltitudeField("HomeCity", city),
-            this.buildAltitudeField("Birthday", birthDate),
-            this.buildAltitudeField("dataload", dataload),
-            this.buildAltitudeField("plc_id", plcId),
+            this.buildAltitudeField("id_cliente", String(leadId)),
+            this.buildAltitudeField("Email1", String(email)),
+            this.buildAltitudeField("FirstName", String(name)),
+            this.buildAltitudeField("bd", String(bd)),
+            this.buildAltitudeField(
+              "realizou_exame_tempo",
+              String(origemAndSource),
+            ),
+            this.buildAltitudeField("HomeCity", String(city)),
+            this.buildAltitudeField("Birthday", String(birthDate)),
+            this.buildAltitudeField("dataload", String(dataload)),
+            this.buildAltitudeField("plc_id", String(plcId)),
           ],
         },
       };

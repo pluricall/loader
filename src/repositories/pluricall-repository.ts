@@ -3,6 +3,7 @@ import {
   ClientRecordingsParams,
   FetchRecordingKeyParams,
   GetClientRecordings,
+  InsertInsight360ApiLogsDTO,
   LogPlenitudeCallCloud,
   RecordingDownloadInfo,
   RecordingFilters,
@@ -31,4 +32,5 @@ export interface PluricallRepository {
     clientId: string,
   ) => Promise<IResult<RecordingDownloadInfo>>;
   logPlenitudeCallCloud: (data: LogPlenitudeCallCloud) => void;
+  insertInsight360ApiLogs: (data: InsertInsight360ApiLogsDTO) => void;
 }

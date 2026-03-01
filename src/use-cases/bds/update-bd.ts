@@ -1,6 +1,6 @@
 import { Bds, BdType, Status } from "@prisma/client";
-import { NotFoundError } from "../errors/not-found-error";
-import { UnauthorizedError } from "../errors/unauthorized-error";
+import { NotFoundError } from "../../shared/errors/not-found-error";
+import { UnauthorizedError } from "../../shared/errors/unauthorized-error";
 import { ClientsRepository } from "../../repositories/clients-repository";
 import { BdsRepository } from "../../repositories/bds-repository";
 

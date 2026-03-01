@@ -1,4 +1,4 @@
-import client from "../../../db/sharePointConnection";
+import client from "../../../shared/infra/db/sharePointConnection";
 
 export async function downloadFromSharepoint(
   driveId: string,
@@ -10,7 +10,6 @@ export async function downloadFromSharepoint(
       .responseType("arraybuffer")
       .get();
 
-    // response agora é ArrayBuffer
     return Buffer.from(response);
   } catch (err: any) {
     console.error("Erro ao baixar arquivo do SharePoint:", err);

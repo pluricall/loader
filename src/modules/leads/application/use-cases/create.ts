@@ -2,10 +2,10 @@ import { LeadIntegrationRepository } from "../../domain/repositories/lead-integr
 import { LeadMappingRepository } from "../../domain/repositories/lead-mapping-repository";
 import { CreateLeadIntegrationDTO } from "../../domain/dtos/create-lead-integration.dto";
 import { CreateLeadMappingDTO } from "../../domain/dtos/create-lead-mapping.dto";
-import { ValidationError } from "../../../../use-cases/errors/validation-error";
-import { AlreadyExistsError } from "../../../../use-cases/errors/name-already-exists-error";
-import { connectPluricallDb } from "../../../../db/pluricall-db";
+import { ValidationError } from "../../../../shared/errors/validation-error";
+import { AlreadyExistsError } from "../../../../shared/errors/name-already-exists-error";
 import sql from "mssql";
+import { connectPluricallDb } from "../../../../shared/infra/db/pluricall-db";
 
 export interface CreateLeadConfigUseCaseDTO {
   lead: CreateLeadIntegrationDTO;

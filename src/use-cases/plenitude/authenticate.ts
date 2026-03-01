@@ -1,5 +1,5 @@
 import axios from "axios";
-import { PlenitudeLoginError } from "../errors/plenitude-login-error";
+import { PlenitudeLoginError } from "../../shared/errors/plenitude-login-error";
 
 interface PlenitudeLoginResponse {
   IdError: number;

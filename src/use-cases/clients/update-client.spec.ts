@@ -1,8 +1,8 @@
 import { describe, it, beforeEach, expect } from "vitest";
 import { InMemoryClientsRepository } from "../../repositories/in-memory/in-memory-clients-repository";
 import { UpdateClientsUseCase } from "./update-client";
-import { NotFoundError } from "../errors/not-found-error";
-import { AlreadyExistsError } from "../errors/name-already-exists-error";
+import { NotFoundError } from "../../shared/errors/not-found-error";
+import { AlreadyExistsError } from "../../shared/errors/name-already-exists-error";
 
 let clientsRepository: InMemoryClientsRepository;
 let sut: UpdateClientsUseCase;

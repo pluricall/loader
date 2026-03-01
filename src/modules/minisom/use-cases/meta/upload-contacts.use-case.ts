@@ -1,17 +1,17 @@
-import { AltitudeCreateContact } from "../../../../use-cases/altitude/create-contact";
-import { generateDataload } from "../../../../utils/generate-dataload";
-import { generatePlcId } from "../../../../utils/generate-plc-id";
+import { AltitudeCreateContact } from "../../../../shared/infra/providers/altitude/create-contact.service";
+import { generateDataload } from "../../../../shared/utils/generate-dataload";
+import { generatePlcId } from "../../../../shared/utils/generate-plc-id";
 import { MinisomRepository } from "../../repositories/minisom.repository";
 
 interface UploadContactsMeta {
-  phoneNumber: string;
-  name: string;
-  bd: string;
-  email: string;
-  genId: string;
-  campaign: string;
-  contactList: string;
-  leadId: string | number;
+  phoneNumber: string | number;
+  name: any;
+  bd: any;
+  email: any;
+  genId: any;
+  campaign: any;
+  contactList: any;
+  leadId: any;
 }
 
 export class MinisomMetaUploadContactsUseCase {
@@ -53,12 +53,12 @@ export class MinisomMetaUploadContactsUseCase {
           },
           Attributes: [
             this.buildAltitudeField("HomePhone", phoneNumber),
-            this.buildAltitudeField("id_cliente", leadId),
-            this.buildAltitudeField("Email1", email),
-            this.buildAltitudeField("FirstName", name),
-            this.buildAltitudeField("bd", bd),
-            this.buildAltitudeField("dataload", dataload),
-            this.buildAltitudeField("plc_id", plcId),
+            this.buildAltitudeField("id_cliente", String(leadId)),
+            this.buildAltitudeField("Email1", String(email)),
+            this.buildAltitudeField("FirstName", String(name)),
+            this.buildAltitudeField("bd", String(bd)),
+            this.buildAltitudeField("dataload", String(dataload)),
+            this.buildAltitudeField("plc_id", String(plcId)),
           ],
         },
       };

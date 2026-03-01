@@ -1,5 +1,5 @@
 import { expect, describe, it, beforeEach } from "vitest";
-import { NotFoundError } from "../errors/not-found-error";
+import { NotFoundError } from "../../shared/errors/not-found-error";
 import { RemoveTypUseCase } from "./remove-typ";
 import { InMemoryTypsRepository } from "../../repositories/in-memory/in-memory-typs-repository";
 

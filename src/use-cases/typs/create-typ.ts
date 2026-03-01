@@ -1,5 +1,5 @@
 import { TypsRepository } from "../../repositories/typs-repository";
-import { AlreadyExistsError } from "../errors/name-already-exists-error";
+import { AlreadyExistsError } from "../../shared/errors/name-already-exists-error";
 
 interface RegisterTypsRequest {
   name: string;

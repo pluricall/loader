@@ -96,3 +96,15 @@ export interface LogPlenitudeCallCloud {
   statusCode: number;
   errorMessage?: string;
 }
+
+export interface InsertInsight360ApiLogsDTO {
+  method: string;
+  route?: string;
+  requestUrl?: string;
+  requestIp?: string;
+  headers?: any;
+  body?: any;
+  queryParams?: any;
+  responseStatus?: number;
+  errorMessage?: string;
+}

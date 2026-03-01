@@ -1,5 +1,5 @@
 import { Status, Clients, Frequency } from "@prisma/client";
-import { AlreadyExistsError } from "../errors/name-already-exists-error";
+import { AlreadyExistsError } from "../../shared/errors/name-already-exists-error";
 import { ClientsRepository } from "../../repositories/clients-repository";
 
 interface CreateClientsResponse {

@@ -1,19 +1,46 @@
-import fastify, { FastifyReply } from "fastify";
+import fastify, { FastifyReply, FastifyRequest } from "fastify";
 import { env } from "./env";
 import { ZodError } from "zod";
-import { AltitudeApiError } from "./use-cases/errors/altitude-error";
-import { AltitudeAuthError } from "./use-cases/errors/altitude-auth-error";
+import { AltitudeApiError } from "./shared/errors/altitude-error";
+import { AltitudeAuthError } from "./shared/errors/altitude-auth-error";
 import { webhookRoutes } from "./http/webhook-routes";
 import formbody from "@fastify/formbody";
 import fastifyCors from "@fastify/cors";
+import { MssqlPluricallRepository } from "./repositories/mssql/mssql-pluricall-repository";
 
-export function startWebhookServer() {
+export async function startWebhookServer() {
   const webhook = fastify({ requestTimeout: 0 });
   webhook.addContentTypeParser(
     ["application/xml", "text/xml"],
     { parseAs: "string" },
     function (req, body, done) {
       done(null, body);
+    },
+  );
+
+  const pluricallRepository = new MssqlPluricallRepository();
+
+  webhook.addHook(
+    "onResponse",
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      try {
+        const safeBody = JSON.stringify(request.body ?? {});
+        const truncatedBody =
+          safeBody.length > 20000 ? safeBody.substring(0, 20000) : safeBody;
+
+        await pluricallRepository.insertInsight360ApiLogs({
+          method: request.method,
+          route: request.routeOptions?.url ?? request.url,
+          requestUrl: request.url,
+          requestIp: request.ip,
+          headers: request.headers ?? {},
+          body: truncatedBody,
+          queryParams: request.query ?? {},
+          responseStatus: reply.statusCode,
+        });
+      } catch (err) {
+        console.error("Failed to log request:", err);
+      }
     },
   );
 

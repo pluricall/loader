@@ -1,6 +1,6 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 import { z } from "zod";
-import { NotFoundError } from "../../../use-cases/errors/not-found-error";
+import { NotFoundError } from "../../../shared/errors/not-found-error";
 import { UpdateClientStatusUseCase } from "../../../use-cases/recordings/update-client-recordings";
 
 export async function updateClientRecordings(

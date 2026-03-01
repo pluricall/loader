@@ -1,8 +1,10 @@
 import { FastifyRequest, FastifyReply } from "fastify";
-import { GetRequestIpAndUrl } from "../../../../../utils/get-request-and-url";
-import { AlreadyExistsError } from "../../../../../use-cases/errors/name-already-exists-error";
+import { GetRequestIpAndUrl } from "../../../../../shared/utils/get-request-and-url";
+import { AlreadyExistsError } from "../../../../../shared/errors/name-already-exists-error";
 import { minisom21051Schema } from "../../../schemas/minisom-21051.schema";
-import { Minisom21051Factory } from "../../../use-cases/21051/minisom-21051.factory";
+import { UnauthorizedError } from "../../../../../shared/errors/unauthorized-error";
+import { FieldRequiredError } from "../../../../../shared/errors/field-required";
+import { makeMinisom21051UseCase } from "../../../use-cases/factories/minisom-21051.factory";
 
 export async function minisom21051(
   request: FastifyRequest,
@@ -10,7 +12,7 @@ export async function minisom21051(
 ) {
   try {
     const body = minisom21051Schema.parse(request.body);
-    const minisom21051Factory = Minisom21051Factory();
+    const minisom21051Factory = makeMinisom21051UseCase();
     const { request_ip, request_url } = GetRequestIpAndUrl(request);
 
     const result = await minisom21051Factory.execute({
@@ -28,6 +30,10 @@ export async function minisom21051(
     console.error("Error in minisom21051 controller:", error);
     if (error instanceof AlreadyExistsError) {
       return reply.status(409).send({ error: error.message });
+    } else if (error instanceof UnauthorizedError) {
+      return reply.status(401).send({ error: error.message });
+    } else if (error instanceof FieldRequiredError) {
+      return reply.status(400).send({ error: error.message });
     }
 
     return reply.status(500).send({

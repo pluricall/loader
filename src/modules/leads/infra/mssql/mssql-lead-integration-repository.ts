@@ -1,11 +1,11 @@
 import { randomBytes } from "crypto";
-import { connectPluricallDb } from "../../../../db/pluricall-db";
 import { CreateLeadIntegrationDTO } from "../../domain/dtos/create-lead-integration.dto";
 import { LeadIntegration } from "../../domain/entities/lead-integration";
 import { LeadIntegrationRepository } from "../../domain/repositories/lead-integration-repository";
 import { LeadIntegrationMapper } from "../mappers/lead-integration-mapper";
 import { LeadIntegrationRow } from "../types/lead-integration-row";
-import { AltitudeEnvironment } from "../../../../utils/resolve-altitude-config";
+import { AltitudeEnvironment } from "../../../../shared/utils/resolve-altitude-config";
+import { connectPluricallDb } from "../../../../shared/infra/db/pluricall-db";
 
 export class MssqlLeadIntegrationRepository
   implements LeadIntegrationRepository

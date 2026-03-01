@@ -1,6 +1,6 @@
 import { FastifyRequest, FastifyReply } from "fastify";
 import { z } from "zod";
-import { NotFoundError } from "../../../use-cases/errors/not-found-error";
+import { NotFoundError } from "../../../shared/errors/not-found-error";
 import { makeRemoveTypUseCase } from "../../../use-cases/factories/make-remove-typ-use-case";
 
 export async function removeTyp(request: FastifyRequest, reply: FastifyReply) {

@@ -1,10 +1,10 @@
-import { MssqlRepository } from "../../repositories/mssql/mssql-pluricall-repository";
+import { MssqlPluricallRepository } from "../../repositories/mssql/mssql-pluricall-repository";
 import { PluricallRepository } from "../../repositories/pluricall-repository";
-import { NotFoundError } from "../errors/not-found-error";
+import { NotFoundError } from "../../shared/errors/not-found-error";
 
 export class UpdateClientStatusUseCase {
   constructor(
-    private pumaRepository: PluricallRepository = new MssqlRepository(),
+    private pumaRepository: PluricallRepository = new MssqlPluricallRepository(),
   ) {}
 
   async execute(clientName: string) {

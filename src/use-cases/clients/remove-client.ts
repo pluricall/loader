@@ -1,5 +1,5 @@
 import { Clients } from "@prisma/client";
-import { NotFoundError } from "../errors/not-found-error";
+import { NotFoundError } from "../../shared/errors/not-found-error";
 import { ClientsRepository } from "../../repositories/clients-repository";
 
 interface RemoveClientRequest {

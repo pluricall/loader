@@ -1,7 +1,7 @@
-import { MssqlRepository } from "../../repositories/mssql/mssql-pluricall-repository";
+import { MssqlPluricallRepository } from "../../repositories/mssql/mssql-pluricall-repository";
 import { PluricallRepository } from "../../repositories/pluricall-repository";
 import { RecordingMetadata } from "../../repositories/types/pluricall-repository-types";
-import { ValidationError } from "../errors/validation-error";
+import { ValidationError } from "../../shared/errors/validation-error";
 
 export interface GetRecordingsRequest {
   clientId: string;
@@ -13,7 +13,7 @@ export interface GetRecordingsRequest {
 
 export class GetRecordingMetadatasUseCase {
   constructor(
-    private mssqlRepository: PluricallRepository = new MssqlRepository(),
+    private mssqlRepository: PluricallRepository = new MssqlPluricallRepository(),
   ) {}
 
   async execute(filters: GetRecordingsRequest): Promise<RecordingMetadata[]> {

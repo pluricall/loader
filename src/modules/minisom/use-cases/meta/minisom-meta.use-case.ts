@@ -1,7 +1,7 @@
-import { AlreadyExistsError } from "../../../../use-cases/errors/name-already-exists-error";
-import { NotFoundError } from "../../../../use-cases/errors/not-found-error";
-import { generateNormalizedPhonePT } from "../../../../use-cases/servilusa/normalizer";
-import { generateGenId } from "../../../../utils/generate-gen-id";
+import { AlreadyExistsError } from "../../../../shared/errors/name-already-exists-error";
+import { NotFoundError } from "../../../../shared/errors/not-found-error";
+import { generateGenId } from "../../../../shared/utils/generate-gen-id";
+import { generateNormalizedPhonePT } from "../../../../shared/utils/generate-normalized-phone";
 import { MinisomRepository } from "../../repositories/minisom.repository";
 import { MinisomMetaDTO } from "../../schemas/minisom-meta.schema";
 import { MinisomMetaUploadContactsUseCase } from "./upload-contacts.use-case";
@@ -28,7 +28,9 @@ export class MinisomMetaUseCase {
       bodyRequest.phone_number,
     );
 
-    const bd = await this.minisomRepository.getBdByFormId(bodyRequest.form_id);
+    const { bd } = await this.minisomRepository.getBdByFormId(
+      bodyRequest.form_id,
+    );
     if (!bd) {
       throw new NotFoundError("Form Id not found");
     }
@@ -43,28 +45,45 @@ export class MinisomMetaUseCase {
 
     const genId = generateGenId();
 
-    this.minisomRepository.insertAtLeadsRepository({
-      lead_id: bodyRequest.lead_id,
-      form_id: bodyRequest.form_id,
-      email: bodyRequest.email,
-      full_name: bodyRequest.full_name,
-      raw_phone_number: bodyRequest.phone_number,
-      phone_number: normalizedPhoneNumber,
-      campaignName: this.CAMPAIGN,
+    await this.minisomRepository.insertAtLeadsRepository({
+      bd,
+      genId,
+      campaign: bodyRequest.form_id,
+      leadId: bodyRequest.lead_id,
+      rawPhoneNumber: bodyRequest.phone_number,
+      phoneNumber: normalizedPhoneNumber,
+      email: bodyRequest.email || "",
+      firstName: bodyRequest.full_name || "",
+      requestIp: requestIp || "",
+      requestUrl: requestUrl || "",
+      formData: bodyRequest || "",
+      mappingTemplate: "DEFAULT",
+      utmSource: "",
+      address: "",
+      city: "",
+      createdDate: "",
+      lastName: "",
+      postedDate: "",
+      autDados: "",
+      age: "",
+      difAuditiva: "",
+      distId: "",
+      notes1: "",
+      notes2: "",
+      notes3: "",
+      postCode: "",
+      score: "",
+      siteId: "",
+      campanhaEasy: this.CAMPAIGN,
       contactList: this.CONTACTLIST,
-      formData: bodyRequest,
-      gen_id: genId,
-      request_ip: requestIp,
-      request_url: requestUrl,
       origem: this.ORIGEM,
-      lead_status: "RECEIVED",
-      bd: bd.bd,
+      leadStatus: "RECEIVED",
     });
 
     this.minisomMetaUploadContacts.execute({
-      bd: bd.bd,
-      email: bodyRequest.email,
+      bd,
       genId,
+      email: bodyRequest.email,
       leadId: bodyRequest.lead_id,
       name: bodyRequest.full_name,
       phoneNumber: normalizedPhoneNumber,
@@ -72,10 +91,6 @@ export class MinisomMetaUseCase {
       campaign: this.CAMPAIGN,
     });
 
-    return {
-      ...bodyRequest,
-      genId,
-      bd: bd.bd,
-    };
+    return { status: "OK", statusMsg: "Lead loaded with success.", genId };
   }
 }

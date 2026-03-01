@@ -1,4 +1,4 @@
-import { MssqlRepository } from "../../repositories/mssql/mssql-pluricall-repository";
+import { MssqlPluricallRepository } from "../../repositories/mssql/mssql-pluricall-repository";
 import { PluricallRepository } from "../../repositories/pluricall-repository";
 import { GetClientRecordings } from "../../repositories/types/pluricall-repository-types";
 
@@ -8,7 +8,7 @@ export interface GetClientRecordingsResponse {
 
 export class GetClientRecordingsUseCase {
   constructor(
-    private pumaRepository: PluricallRepository = new MssqlRepository(),
+    private pumaRepository: PluricallRepository = new MssqlPluricallRepository(),
   ) {}
 
   async execute(): Promise<GetClientRecordingsResponse> {

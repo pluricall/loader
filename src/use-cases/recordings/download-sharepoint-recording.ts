@@ -1,5 +1,5 @@
 import { downloadFromSharepoint } from "../../http/controllers/sharepoint/download";
-import { MssqlRepository } from "../../repositories/mssql/mssql-pluricall-repository";
+import { MssqlPluricallRepository } from "../../repositories/mssql/mssql-pluricall-repository";
 import { PluricallRepository } from "../../repositories/pluricall-repository";
 
 export interface DownloadedRecording {
@@ -10,7 +10,7 @@ export interface DownloadedRecording {
 
 export class DownloadSharepointRecordingUseCase {
   constructor(
-    private mssqlRepository: PluricallRepository = new MssqlRepository(),
+    private mssqlRepository: PluricallRepository = new MssqlPluricallRepository(),
   ) {}
 
   async execute(

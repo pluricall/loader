@@ -1,4 +1,4 @@
-import { connectLeopardDb } from "../../db/connect-leopard";
+import { connectLeopardDb } from "../../shared/infra/db/connect-leopard";
 
 export interface RecordingFile {
   rec_key: string;

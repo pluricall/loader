@@ -1,4 +1,4 @@
-import { connectPluricallDb } from "../../../../db/pluricall-db";
+import { connectPluricallDb } from "../../../../shared/infra/db/pluricall-db";
 import { LeadLogsDTO } from "../../domain/dtos/create-lead-logs.dto";
 import { LeadLogsRepository } from "../../domain/repositories/lead-logs-repository";
 

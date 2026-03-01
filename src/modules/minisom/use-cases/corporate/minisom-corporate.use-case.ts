@@ -1,5 +1,5 @@
-import { generateNormalizedPhonePT } from "../../../../use-cases/servilusa/normalizer";
-import { generateGenId } from "../../../../utils/generate-gen-id";
+import { generateGenId } from "../../../../shared/utils/generate-gen-id";
+import { generateNormalizedPhonePT } from "../../../../shared/utils/generate-normalized-phone";
 import { MinisomRepository } from "../../repositories/minisom.repository";
 import { MinisomCorporateDTO } from "../../schemas/minisom-corporate.schema";
 import { MinisomCorporateUploadContactsUseCase } from "./upload-contacts.use-case";

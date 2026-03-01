@@ -1,6 +1,6 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 import { z } from "zod";
-import { AlreadyExistsError } from "../../../use-cases/errors/name-already-exists-error";
+import { AlreadyExistsError } from "../../../shared/errors/name-already-exists-error";
 import { CreateClientRecordingUseCase } from "../../../use-cases/recordings/create-client-recording";
 
 export async function createClientRecordings(

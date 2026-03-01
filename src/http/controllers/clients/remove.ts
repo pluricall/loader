@@ -1,5 +1,5 @@
 import { FastifyReply, FastifyRequest } from "fastify";
-import { NotFoundError } from "../../../use-cases/errors/not-found-error";
+import { NotFoundError } from "../../../shared/errors/not-found-error";
 import { makeRemoveClientUseCase } from "../../../use-cases/factories/make-remove-client-use-case";
 import { z } from "zod";
 

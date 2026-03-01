@@ -1,5 +1,5 @@
 import { FastifyReply, FastifyRequest } from "fastify";
-import { NotFoundError } from "../../../use-cases/errors/not-found-error";
+import { NotFoundError } from "../../../shared/errors/not-found-error";
 import { z } from "zod";
 import { makeRemoveBdUseCase } from "../../../use-cases/factories/make-remove-bd-use-case";
 

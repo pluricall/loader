@@ -1,7 +1,7 @@
 import { EntityNameEnum, LoadingModeEnum } from "@prisma/client";
 import { TypsRepository } from "../../repositories/typs-repository";
-import { NotFoundError } from "../errors/not-found-error";
-import { AlreadyExistsError } from "../errors/name-already-exists-error";
+import { NotFoundError } from "../../shared/errors/not-found-error";
+import { AlreadyExistsError } from "../../shared/errors/name-already-exists-error";
 
 interface UpdateTypRequest {
   name?: string;

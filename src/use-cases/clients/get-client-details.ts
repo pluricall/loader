@@ -1,5 +1,5 @@
 import { ClientsRepository } from "../../repositories/clients-repository";
-import { NotFoundError } from "../errors/not-found-error";
+import { NotFoundError } from "../../shared/errors/not-found-error";
 
 interface GetClientDetailsParams {
   clientId: string;
