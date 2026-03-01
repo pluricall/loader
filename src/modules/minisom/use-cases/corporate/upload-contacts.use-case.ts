@@ -1,23 +1,23 @@
-import { AltitudeCreateContact } from "../../../../use-cases/altitude/create-contact";
-import { generateDataload } from "../../../../utils/generate-dataload";
-import { generatePlcId } from "../../../../utils/generate-plc-id";
+import { AltitudeCreateContact } from "../../../../shared/infra/providers/altitude/create-contact.service";
+import { generateDataload } from "../../../../shared/utils/generate-dataload";
+import { generatePlcId } from "../../../../shared/utils/generate-plc-id";
 import { MinisomRepository } from "../../repositories/minisom.repository";
 
 interface UploadContactsCorporate {
-  phoneNumber: string;
-  email: string;
-  name: string;
-  bd: string;
-  formTitle: string;
-  adobeCampaignCode: string;
-  marketingConsensusFlag: string;
-  privacyConsensusFlag: string;
-  address: string;
-  language: string;
-  genId: string;
-  campaign: string;
-  contactList: string;
-  origem: string;
+  phoneNumber: string | number;
+  email: any;
+  name: any;
+  bd: any;
+  formTitle: any;
+  adobeCampaignCode: any;
+  marketingConsensusFlag: any;
+  privacyConsensusFlag: any;
+  address: any;
+  language: any;
+  genId: any;
+  campaign: any;
+  contactList: any;
+  origem: any;
 }
 
 export class MinisomCorporateUploadContactsUseCase {
@@ -63,18 +63,24 @@ export class MinisomCorporateUploadContactsUseCase {
           ContactListName: { RequestType: "Set", Value: contactList },
           Attributes: [
             this.buildAltitudeField("MobilePhone", phoneNumber),
-            this.buildAltitudeField("id_cliente", genId),
-            this.buildAltitudeField("Email1", email),
-            this.buildAltitudeField("FirstName", name),
-            this.buildAltitudeField("HomeStreet", address),
-            this.buildAltitudeField("Manager", privacyConsensusFlag),
-            this.buildAltitudeField("Assistant", marketingConsensusFlag),
-            this.buildAltitudeField("realizou_exame_tempo", origemAndSource),
-            this.buildAltitudeField("BusinessStreet", formTitle),
-            this.buildAltitudeField("PreferredLanguage", language),
-            this.buildAltitudeField("bd", bd),
-            this.buildAltitudeField("dataload", dataload),
-            this.buildAltitudeField("plc_id", plcId),
+            this.buildAltitudeField("id_cliente", String(genId)),
+            this.buildAltitudeField("Email1", String(email)),
+            this.buildAltitudeField("FirstName", String(name)),
+            this.buildAltitudeField("HomeStreet", String(address)),
+            this.buildAltitudeField("Manager", String(privacyConsensusFlag)),
+            this.buildAltitudeField(
+              "Assistant",
+              String(marketingConsensusFlag),
+            ),
+            this.buildAltitudeField(
+              "realizou_exame_tempo",
+              String(origemAndSource),
+            ),
+            this.buildAltitudeField("BusinessStreet", String(formTitle)),
+            this.buildAltitudeField("PreferredLanguage", String(language)),
+            this.buildAltitudeField("bd", String(bd)),
+            this.buildAltitudeField("dataload", String(dataload)),
+            this.buildAltitudeField("plc_id", String(plcId)),
           ],
         },
       };

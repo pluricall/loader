@@ -1,8 +1,8 @@
 import { FastifyRequest, FastifyReply } from "fastify";
 import bcrypt from "bcryptjs";
-import { connectPluricallDb } from "../../../db/pluricall-db";
-import { ValidationError } from "../../../use-cases/errors/validation-error";
+import { ValidationError } from "../../../shared/errors/validation-error";
 import { GetRecordingMetadatasUseCase } from "../../../use-cases/recordings/get-recording-metadatas";
+import { connectPluricallDb } from "../../../shared/infra/db/pluricall-db";
 
 interface GetRecordingsQuery {
   clientId: string;

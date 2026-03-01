@@ -1,5 +1,5 @@
 import { FastifyReply, FastifyRequest } from "fastify";
-import { AlreadyExistsError } from "../../../use-cases/errors/name-already-exists-error";
+import { AlreadyExistsError } from "../../../shared/errors/name-already-exists-error";
 import { z } from "zod";
 import { makeCreateTypUseCase } from "../../../use-cases/factories/make-create-typ-use-case";
 

@@ -1,5 +1,5 @@
 import { FastifyReply, FastifyRequest } from "fastify";
-import client from "../../../db/sharePointConnection";
+import client from "../../../shared/infra/db/sharePointConnection";
 
 export async function getSharepointDrives(
   request: FastifyRequest,

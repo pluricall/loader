@@ -1,20 +1,36 @@
 export interface InsertAtLeadsRepository {
-  lead_id: string | number;
-  form_id: string | number;
-  email: string;
-  full_name: string;
-  raw_phone_number: string;
-  phone_number: string;
-  campaignName: string;
-  contactList: string;
-  formData: Record<string, any>;
-  gen_id: string;
-  request_ip: string;
-  request_url: string;
-  origem: string;
-  lead_status: string;
-  utm_source?: string;
-  bd: string;
+  requestIp: any;
+  requestUrl: any;
+  genId: any;
+  campanhaEasy: any;
+  contactList: any;
+  bd: any;
+  mappingTemplate: any;
+  rawPhoneNumber: any;
+  phoneNumber: any;
+  leadStatus: any;
+  campaign: any;
+  leadId: any;
+  distId: any;
+  firstName: any;
+  lastName: any;
+  email: any;
+  createdDate: any;
+  postedDate: any;
+  address: any;
+  city: any;
+  postCode: any;
+  siteId: any;
+  age: any;
+  difAuditiva: any;
+  origem: any;
+  utmSource: any;
+  notes1: any;
+  notes2: any;
+  notes3: any;
+  autDados: any;
+  score: any;
+  formData: any;
 }
 
 export interface InsertAtLeadsCorporateRepository {

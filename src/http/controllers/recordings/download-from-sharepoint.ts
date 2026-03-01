@@ -1,7 +1,7 @@
 import { DownloadSharepointRecordingUseCase } from "../../../use-cases/recordings/download-sharepoint-recording";
-import { connectPluricallDb } from "../../../db/pluricall-db";
 import { FastifyReply, FastifyRequest } from "fastify";
 import JSZip from "jszip";
+import { connectPluricallDb } from "../../../shared/infra/db/pluricall-db";
 
 interface DownloadQuery {
   easycode: string;

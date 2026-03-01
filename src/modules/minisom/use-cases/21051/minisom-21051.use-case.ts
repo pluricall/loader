@@ -1,6 +1,8 @@
-import { AlreadyExistsError } from "../../../../use-cases/errors/name-already-exists-error";
-import { generateNormalizedPhonePT } from "../../../../use-cases/servilusa/normalizer";
-import { generateGenId } from "../../../../utils/generate-gen-id";
+import { FieldRequiredError } from "../../../../shared/errors/field-required";
+import { AlreadyExistsError } from "../../../../shared/errors/name-already-exists-error";
+import { UnauthorizedError } from "../../../../shared/errors/unauthorized-error";
+import { generateGenId } from "../../../../shared/utils/generate-gen-id";
+import { generateNormalizedPhonePT } from "../../../../shared/utils/generate-normalized-phone";
 import { MinisomRepository } from "../../repositories/minisom.repository";
 import { Minisom21051DTO } from "../../schemas/minisom-21051.schema";
 import { Minisom21051UploadContactsUseCase } from "./upload-contacts.use-case";
@@ -25,19 +27,11 @@ export class Minisom21051UseCase {
 
   async execute({ bodyRequest, requestIp, requestUrl }: Minisom21051Request) {
     if (bodyRequest.auth_key !== this.AUTH_KEY) {
-      return {
-        status: "error",
-        statusMsg: "Invalid Authorization Key",
-        genId: "",
-      };
+      throw new UnauthorizedError("Invalid Authorization Key");
     }
 
     if (!bodyRequest.bd) {
-      return {
-        status: "error",
-        statusMsg: "Missing BD",
-        genId: "",
-      };
+      throw new FieldRequiredError("BD is required");
     }
 
     const duplicatedLead = await this.minisomRepository.verifyIfLeadIdExists(
@@ -47,6 +41,7 @@ export class Minisom21051UseCase {
     if (duplicatedLead) {
       throw new AlreadyExistsError("Lead ID already exists");
     }
+
     const genId = generateGenId();
     const normalizedPhoneNumber = generateNormalizedPhonePT(
       bodyRequest.phone_number,
@@ -55,37 +50,53 @@ export class Minisom21051UseCase {
       `${bodyRequest.first_name} ${bodyRequest.last_name || ""}`.trim();
 
     await this.minisomRepository.insertAtLeadsRepository({
-      lead_id: bodyRequest.lead_id,
-      form_id: bodyRequest.form_id || "",
-      email: bodyRequest.email,
-      bd: bodyRequest.bd,
-      full_name: fullName,
-      raw_phone_number: bodyRequest.phone_number,
-      phone_number: normalizedPhoneNumber,
-      gen_id: genId,
-      utm_source: bodyRequest.utm_source,
-      request_ip: requestIp,
-      request_url: requestUrl,
-      formData: bodyRequest,
-      campaignName: this.CAMPAIGN,
+      leadId: bodyRequest.lead_id || "",
+      campaign: bodyRequest.form_id || "",
+      email: bodyRequest.email || "",
+      bd: bodyRequest.bd || "",
+      firstName: bodyRequest.first_name || "",
+      rawPhoneNumber: bodyRequest.phone_number,
+      phoneNumber: normalizedPhoneNumber,
+      genId,
+      utmSource: bodyRequest.utm_source || "",
+      requestIp: requestIp || "",
+      requestUrl: requestUrl || "",
+      formData: bodyRequest || "",
+      address: bodyRequest.address || "",
+      city: bodyRequest.city || "",
+      createdDate: bodyRequest.created_date || "",
+      lastName: bodyRequest.last_name || "",
+      postedDate: bodyRequest.posted_date || "",
+      mappingTemplate: "DEFAULT",
+      autDados: "",
+      age: "",
+      difAuditiva: "",
+      distId: "",
+      notes1: "",
+      notes2: "",
+      notes3: "",
+      postCode: "",
+      score: "",
+      siteId: "",
+      campanhaEasy: this.CAMPAIGN,
       contactList: this.CONTACTLIST,
       origem: this.ORIGEM,
-      lead_status: "RECEIVED",
+      leadStatus: "RECEIVED",
     });
 
     this.minisom21051UploadContacts.execute({
+      phoneNumber: normalizedPhoneNumber,
+      name: fullName,
+      genId,
+      email: bodyRequest.email || "",
+      bd: bodyRequest.bd,
+      birthDate: bodyRequest.birth_date || "",
+      city: bodyRequest.city || "",
+      leadId: bodyRequest.lead_id || "",
+      utmSource: bodyRequest.utm_source || "",
       campaign: this.CAMPAIGN,
       contactList: this.CONTACTLIST,
       origem: this.ORIGEM,
-      phoneNumber: normalizedPhoneNumber,
-      name: fullName,
-      email: bodyRequest.email,
-      bd: bodyRequest.bd,
-      birthDate: bodyRequest.birth_date,
-      city: bodyRequest.city,
-      leadId: bodyRequest.lead_id,
-      utmSource: bodyRequest.utm_source,
-      genId,
     });
 
     return { status: "OK", statusMsg: "Lead loaded with success.", genId };

@@ -1,7 +1,7 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 import { z } from "zod";
 import { makePlenitudeInsert } from "../../../use-cases/plenitude/factories/make-plenitude-insert";
-import { PlenitudeLoginError } from "../../../use-cases/errors/plenitude-login-error";
+import { PlenitudeLoginError } from "../../../shared/errors/plenitude-login-error";
 
 const plenitudeBodySchema = z.object({
   usuario: z.string().nonempty().min(1, "Deve enviar o usuário"),

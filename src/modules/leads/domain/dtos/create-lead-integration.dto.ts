@@ -1,4 +1,4 @@
-import { AltitudeEnvironment } from "../../../../utils/resolve-altitude-config";
+import { AltitudeEnvironment } from "../../../../shared/utils/resolve-altitude-config";
 
 export interface CreateLeadIntegrationDTO {
   client_name: string;

@@ -2,7 +2,7 @@ import { expect, describe, it, beforeEach } from "vitest";
 import { InMemoryClientsRepository } from "../../repositories/in-memory/in-memory-clients-repository";
 import { GetBdDetailsUseCase } from "./get-bd-details";
 import { InMemoryBdsRepository } from "../../repositories/in-memory/in-memory-bds-repository";
-import { NotFoundError } from "../errors/not-found-error";
+import { NotFoundError } from "../../shared/errors/not-found-error";
 
 let clientsRepository: InMemoryClientsRepository;
 let bdsRepository: InMemoryBdsRepository;

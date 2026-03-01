@@ -23,15 +23,16 @@ import { updateClientRecordings } from "./controllers/recordings/update-client";
 import { getRecordingsMetadatas } from "./controllers/recordings/get-metadatas";
 import { downloadRecording } from "./controllers/recordings/download-from-sharepoint";
 import { plenitudeInsert } from "./controllers/plenitude/insert";
-import { iberdrolaSenderSms } from "./controllers/iberdrola/sender-sms";
-import { iberdrolaPdf } from "./controllers/iberdrola/webhook-pdf";
-import { iberdrolaSms } from "./controllers/iberdrola/webhook.sms";
 import { minisomMeta } from "../modules/minisom/http/controllers/meta/minisom-meta.controller";
+import { iberdrolaRoutes } from "../modules/iberdrola/http/route";
+import { servilusaRoutes } from "../modules/servilusa/http/routes";
 
 const basePath =
   process.env.NODE_ENV === "pre" ? "/preinsight360api" : "/Insight360api";
 
 export function appRoutes(app: FastifyInstance) {
+  app.register(iberdrolaRoutes);
+  app.register(servilusaRoutes);
   /* Clients */
   app.post("/clients", createClient);
   app.get("/clients", searchClients);
@@ -66,8 +67,6 @@ export function appRoutes(app: FastifyInstance) {
   app.get("/sharepoint/drives", getSharepointDrives);
   app.get("/sharepoint/folders", getSharepointFolders);
   app.post(`${basePath}/plenitude`, plenitudeInsert);
-  app.post(`${basePath}/iberdrola/sender`, iberdrolaSenderSms);
-  app.post(`${basePath}/iberdrola/sms`, iberdrolaSms);
-  app.post(`${basePath}/iberdrola/pdf`, iberdrolaPdf);
+
   app.post(`${basePath}/minisom/meta`, minisomMeta);
 }

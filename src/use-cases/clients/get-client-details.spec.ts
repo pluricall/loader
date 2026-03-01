@@ -1,7 +1,7 @@
 import { expect, describe, it, beforeEach } from "vitest";
 import { InMemoryClientsRepository } from "../../repositories/in-memory/in-memory-clients-repository";
 import { GetClientDetailsUseCase } from "./get-client-details";
-import { NotFoundError } from "../errors/not-found-error";
+import { NotFoundError } from "../../shared/errors/not-found-error";
 
 let clientsRepository: InMemoryClientsRepository;
 let sut: GetClientDetailsUseCase;

@@ -1,10 +1,10 @@
 import fs from "fs/promises";
 import { makeFetchRecordingsUseCase } from "../factories/make-fetch-records-use-case";
-import { sanitizeForSharePoint } from "../../utils/sanitize-for-sharepoint";
-import { sendRecordingsToSharepoint } from "../../utils/send-file";
-import { sendEmail } from "../../utils/send-email";
+import { sendEmail } from "../../shared/utils/send-email";
 import { RecordingResult } from "./fetch-recordings";
-import { MssqlRepository } from "../../repositories/mssql/mssql-pluricall-repository";
+import { MssqlPluricallRepository } from "../../repositories/mssql/mssql-pluricall-repository";
+import { sanitizeForSharePoint } from "../../http/controllers/sharepoint/utils/sanitize-for-sharepoint";
+import { sendRecordingsToSharepoint } from "../../http/controllers/sharepoint/utils/send-file";
 
 export interface DownloadRecordingsRequest {
   ctName: string;
@@ -30,7 +30,7 @@ export interface RecordingWithFolderInfo {
 export class UploadRecordingsUseCase {
   async execute(data: DownloadRecordingsRequest) {
     const fetchRecordingsUseCase = makeFetchRecordingsUseCase();
-    const mssqlRepository = new MssqlRepository();
+    const mssqlRepository = new MssqlPluricallRepository();
 
     const client = await mssqlRepository.findClientByCampaignClient(
       data.ctName,
@@ -135,12 +135,6 @@ export class UploadRecordingsUseCase {
           );
         }
 
-        console.log(
-          "Salvando no DB:",
-          recordingInfo.fileName,
-          client.id,
-          client.name,
-        );
         await mssqlRepository.saveSentRecordings({
           clientId: client?.id,
           clientName: client?.name,

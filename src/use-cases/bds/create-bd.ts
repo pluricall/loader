@@ -1,5 +1,5 @@
 import { Bds, BdType, Status } from "@prisma/client";
-import { NotFoundError } from "../errors/not-found-error";
+import { NotFoundError } from "../../shared/errors/not-found-error";
 import { randomBytes } from "crypto";
 import { ClientsRepository } from "../../repositories/clients-repository";
 import { BdsRepository } from "../../repositories/bds-repository";

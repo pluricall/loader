@@ -1,9 +1,9 @@
 import sql from "mssql";
-import { connectPluricallDb } from "../../../../db/pluricall-db";
 import { LeadMappingRepository } from "../../domain/repositories/lead-mapping-repository";
 import { LeadMappingMapper } from "../mappers/lead-mapping-mapper";
 import { CreateLeadMappingDTO } from "../../domain/dtos/create-lead-mapping.dto";
 import { LeadMappingRow } from "../types/lead-mapping-row";
+import { connectPluricallDb } from "../../../../shared/infra/db/pluricall-db";
 
 export class MssqlLeadMappingRepository implements LeadMappingRepository {
   private poolPromise = connectPluricallDb("onprem");

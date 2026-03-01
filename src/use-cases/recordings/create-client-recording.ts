@@ -1,11 +1,11 @@
-import { MssqlRepository } from "../../repositories/mssql/mssql-pluricall-repository";
+import { MssqlPluricallRepository } from "../../repositories/mssql/mssql-pluricall-repository";
 import { PluricallRepository } from "../../repositories/pluricall-repository";
 import { ClientRecordingsParams } from "../../repositories/types/pluricall-repository-types";
-import { AlreadyExistsError } from "../errors/name-already-exists-error";
+import { AlreadyExistsError } from "../../shared/errors/name-already-exists-error";
 
 export class CreateClientRecordingUseCase {
   constructor(
-    private mssqlRepository: PluricallRepository = new MssqlRepository(),
+    private mssqlRepository: PluricallRepository = new MssqlPluricallRepository(),
   ) {}
 
   async execute(data: ClientRecordingsParams) {

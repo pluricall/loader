@@ -1,8 +1,8 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 import { z } from "zod";
 import { makeLoadLeadUseCase } from "../../application/factories/make-load-use-case";
-import { AltitudeApiError } from "../../../../use-cases/errors/altitude-error";
-import { NotFoundError } from "../../../../use-cases/errors/not-found-error";
+import { AltitudeApiError } from "../../../../shared/errors/altitude-error";
+import { NotFoundError } from "../../../../shared/errors/not-found-error";
 
 export async function loadLeadController(
   request: FastifyRequest,

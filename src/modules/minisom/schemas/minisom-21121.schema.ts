@@ -1,13 +1,13 @@
 import { z } from "zod";
 
 export const minisom21121Schema = z.object({
-  auth_key: z.string(),
-  phone_number: z.string(),
-  email: z.string(),
-  first_name: z.string(),
-  bd: z.string(),
-  lead_id: z.string().or(z.number()),
-  form_id: z.string().or(z.number()).optional(),
+  auth_key: z.any(),
+  phone_number: z.any(),
+  email: z.any(),
+  first_name: z.any(),
+  bd: z.any(),
+  lead_id: z.any(),
+  form_id: z.any().optional(),
   last_name: z.any().optional(),
   birth_date: z.any().optional(),
   created_date: z.any().optional(),

@@ -1,8 +1,8 @@
 import { FastifyRequest, FastifyReply } from "fastify";
 import { makeCreateLeadConfigUseCase } from "../../application/factories/make-create-use-case";
 import { z } from "zod";
-import { ValidationError } from "../../../../use-cases/errors/validation-error";
-import { AlreadyExistsError } from "../../../../use-cases/errors/name-already-exists-error";
+import { ValidationError } from "../../../../shared/errors/validation-error";
+import { AlreadyExistsError } from "../../../../shared/errors/name-already-exists-error";
 
 export async function createLeadConfigController(
   request: FastifyRequest,

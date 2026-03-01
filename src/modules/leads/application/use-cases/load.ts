@@ -1,7 +1,7 @@
-import { AltitudeCreateContact } from "../../../../use-cases/altitude/create-contact";
-import { AltitudeUploadContact } from "../../../../use-cases/altitude/upload-contact.ts";
-import { AltitudeApiError } from "../../../../use-cases/errors/altitude-error";
-import { AltitudeEnvironment } from "../../../../utils/resolve-altitude-config";
+import { AltitudeCreateContact } from "../../../../shared/infra/providers/altitude/create-contact.service";
+import { AltitudeUploadContact } from "../../../../shared/infra/providers/altitude/upload-contact.service";
+import { AltitudeApiError } from "../../../../shared/errors/altitude-error";
+import { AltitudeEnvironment } from "../../../../shared/utils/resolve-altitude-config";
 import { LeadIntegration } from "../../domain/entities/lead-integration";
 import { LeadLogsRepository } from "../../domain/repositories/lead-logs-repository";
 import { LeadMappingRepository } from "../../domain/repositories/lead-mapping-repository";

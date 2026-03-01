@@ -61,9 +61,6 @@ export class DownloadFtpFile {
     }
   }
 
-  /**
-   * Identifica em qual etapa falhou (opcional, só pra logs)
-   */
   private identifyErrorStep(message: string) {
     if (message.includes("connect")) return "connection";
     if (message.includes("download")) return "download";

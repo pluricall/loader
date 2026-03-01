@@ -1,9 +1,12 @@
 import type { FastifyInstance } from "fastify";
-import { saveLinceRequest } from "../utils/save-lince-request";
+import { saveLinceRequest } from "../shared/utils/save-lince-request";
 import { minisomRoutes } from "../modules/minisom/http/routes";
+import { agilidadeRoutes } from "../modules/agilidade/http/routes";
 
 export function webhookRoutes(webhook: FastifyInstance) {
   webhook.register(minisomRoutes);
+  webhook.register(agilidadeRoutes);
+
   webhook.route({
     method: ["GET", "POST", "PUT", "PATCH", "DELETE"],
     url: "/*",

@@ -1,7 +1,7 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 import { z } from "zod";
 import { Frequency, Status } from "@prisma/client";
-import { AlreadyExistsError } from "../../../use-cases/errors/name-already-exists-error";
+import { AlreadyExistsError } from "../../../shared/errors/name-already-exists-error";
 import { makeCreateClientUseCase } from "../../../use-cases/factories/make-create-client-use-case";
 
 export async function createClient(

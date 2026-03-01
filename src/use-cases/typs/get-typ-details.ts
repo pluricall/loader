@@ -1,5 +1,5 @@
 import { TypsRepository } from "../../repositories/typs-repository";
-import { NotFoundError } from "../errors/not-found-error";
+import { NotFoundError } from "../../shared/errors/not-found-error";
 
 export class GetTypDetailsUseCase {
   constructor(private prismaTypsRepository: TypsRepository) {}

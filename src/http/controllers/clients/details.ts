@@ -1,6 +1,6 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 import { z } from "zod";
-import { NotFoundError } from "../../../use-cases/errors/not-found-error";
+import { NotFoundError } from "../../../shared/errors/not-found-error";
 import { makeGetClientDetailsUseCase } from "../../../use-cases/factories/make-get-client-details-use-case";
 
 export async function clientDetails(

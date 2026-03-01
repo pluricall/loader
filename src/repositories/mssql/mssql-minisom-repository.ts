@@ -1,11 +1,11 @@
 import sql from "mssql";
-import { connectPluricallDb } from "../../db/pluricall-db";
 import {
   InsertAtLeadsCorporateRepository,
   InsertAtLeadsRepository,
   MinisomFormConfig,
   MinisomRepository,
 } from "../minisom-repository";
+import { connectPluricallDb } from "../../shared/infra/db/pluricall-db";
 
 export class MssqlMinisomRepository implements MinisomRepository {
   async verifyIfLeadIdExists(leadId: string | number): Promise<boolean> {

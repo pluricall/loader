@@ -1,4 +1,3 @@
-import { connectPluricallDb } from "../../db/pluricall-db";
 import bcrypt from "bcryptjs";
 import sql, { IResult } from "mssql";
 
@@ -6,6 +5,7 @@ import {
   ClientRecordingsParams,
   FetchRecordingKeyParams,
   GetClientRecordings,
+  InsertInsight360ApiLogsDTO,
   LogPlenitudeCallCloud,
   RecordingDownloadInfo,
   RecordingFilters,
@@ -13,8 +13,9 @@ import {
   RecordingMetadata,
 } from "../types/pluricall-repository-types";
 import { PluricallRepository } from "../pluricall-repository";
+import { connectPluricallDb } from "../../shared/infra/db/pluricall-db";
 
-export class MssqlRepository implements PluricallRepository {
+export class MssqlPluricallRepository implements PluricallRepository {
   async logPlenitudeCallCloud(data: LogPlenitudeCallCloud) {
     const conn = await connectPluricallDb("cloud");
     await conn
@@ -765,5 +766,50 @@ END
     `);
 
     return result;
+  }
+
+  async insertInsight360ApiLogs(
+    data: InsertInsight360ApiLogsDTO,
+  ): Promise<void> {
+    try {
+      const conn = await connectPluricallDb("onprem");
+
+      await conn
+        .request()
+        .input("method", String(data.method))
+        .input("route", String(data.route ?? ""))
+        .input("request_url", String(data.requestUrl ?? ""))
+        .input("request_ip", String(data.requestIp ?? ""))
+        .input("headers", JSON.stringify(data.headers ?? {}))
+        .input("body", JSON.stringify(data.body ?? {}))
+        .input("query_params", JSON.stringify(data.queryParams ?? {}))
+        .input("response_status", data.responseStatus ?? null)
+        .input("error_message", String(data.errorMessage ?? "")).query(`
+        INSERT INTO insight360api_logs (
+          method,
+          route,
+          request_url,
+          request_ip,
+          headers,
+          body,
+          query_params,
+          response_status,
+          error_message
+        )
+        VALUES (
+          @method,
+          @route,
+          @request_url,
+          @request_ip,
+          @headers,
+          @body,
+          @query_params,
+          @response_status,
+          @error_message
+        )
+      `);
+    } catch (err) {
+      console.error("Failed to insert request log:", err);
+    }
   }
 }

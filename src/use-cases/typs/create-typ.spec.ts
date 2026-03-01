@@ -1,5 +1,5 @@
 import { expect, describe, it, beforeEach } from "vitest";
-import { AlreadyExistsError } from "../errors/name-already-exists-error";
+import { AlreadyExistsError } from "../../shared/errors/name-already-exists-error";
 import { CreateTypUseCase } from "./create-typ";
 import { InMemoryTypsRepository } from "../../repositories/in-memory/in-memory-typs-repository";
 
