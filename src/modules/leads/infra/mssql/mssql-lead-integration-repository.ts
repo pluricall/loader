@@ -72,7 +72,7 @@ export class MssqlLeadIntegrationRepository
       .input("environment", environment)
       .input("contact_list", contactList).query<LeadIntegrationRow>(`
       SELECT *
-      FROM clients_leads_config
+      FROM leads_config
       WHERE campaign_name = @campaign_name
         AND contact_list = @contact_list
         AND environment = @environment
@@ -92,7 +92,7 @@ export class MssqlLeadIntegrationRepository
     const result = await pool.request().input("api_key", apiKey)
       .query<LeadIntegrationRow>(`
       SELECT *
-      FROM clients_leads_config
+      FROM leads_config
       WHERE api_key = @api_key
         AND is_active = 1
     `);
