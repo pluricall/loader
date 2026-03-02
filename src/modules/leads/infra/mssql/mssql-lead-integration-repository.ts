@@ -31,7 +31,7 @@ export class MssqlLeadIntegrationRepository
       .input("timezone", data.timezone)
       .input("default_status", data.default_status)
       .input("uses_dncl", data.uses_dncl).query<LeadIntegrationRow>(`
-    INSERT INTO clients_leads_config (
+    INSERT INTO leads_config (
       client_name,
       api_key,
       environment,
