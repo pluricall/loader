@@ -161,7 +161,7 @@ export class MssqlMinisomRepository implements MinisomRepository {
       const timestamp = now.toISOString().replace("T", " ").replace("Z", "");
       const result = await conn
         .request()
-        .input("timestamp", this.truncate(timestamp, 8))
+        .input("timestamp", timestamp)
         .input("request_ip", this.truncate(data.requestIp, 50))
         .input("request_url", this.truncate(data.requestUrl, 300))
         .input("gen_id", this.truncate(data.genId, 70))

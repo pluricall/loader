@@ -21,7 +21,7 @@ export async function minisom21051(
       requestUrl: request_url,
     });
 
-    reply.status(200).send({
+    reply.status(201).send({
       status: result.status,
       status_msg: result.statusMsg,
       gen_id: result.genId,

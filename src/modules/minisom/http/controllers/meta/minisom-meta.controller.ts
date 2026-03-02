@@ -20,7 +20,7 @@ export async function minisomMeta(
       requestIp: request_ip,
     });
 
-    reply.status(200).send({
+    reply.status(201).send({
       status: result.status,
       status_msg: result.statusMsg,
       gen_id: result.genId,
