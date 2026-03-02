@@ -3,7 +3,7 @@ import { LeadLogsDTO } from "../../domain/dtos/create-lead-logs.dto";
 import { LeadLogsRepository } from "../../domain/repositories/lead-logs-repository";
 
 export class MssqlLeadLogsRepository implements LeadLogsRepository {
-  private poolPromise = connectPluricallDb("onprem");
+  private poolPromise = connectPluricallDb("cloud");
 
   private async getPool() {
     return this.poolPromise;
@@ -20,7 +20,7 @@ export class MssqlLeadLogsRepository implements LeadLogsRepository {
       .input("altitude_response", log.altitude_response)
       .input("success", log.success)
       .input("error", log.error_message ?? null).query(`
-        INSERT INTO leads_repository (
+        INSERT INTO clients_leads_repository (
           lead_config_id,
           received_payload,
           altitude_payload,

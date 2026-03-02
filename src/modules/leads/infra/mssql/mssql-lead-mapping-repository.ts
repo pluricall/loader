@@ -6,7 +6,7 @@ import { LeadMappingRow } from "../types/lead-mapping-row";
 import { connectPluricallDb } from "../../../../shared/infra/db/pluricall-db";
 
 export class MssqlLeadMappingRepository implements LeadMappingRepository {
-  private poolPromise = connectPluricallDb("onprem");
+  private poolPromise = connectPluricallDb("cloud");
 
   private async getPool() {
     return this.poolPromise;
@@ -30,7 +30,7 @@ export class MssqlLeadMappingRepository implements LeadMappingRepository {
           .input("altitude_field", map.altitude_field)
           .input("is_required", map.is_required)
           .input("is_phone_number", map.is_phone_number).query(`
-            INSERT INTO leads_mapping (
+            INSERT INTO clients_leads_mapping (
               lead_config_id,
               source_field,
               altitude_field,
@@ -60,7 +60,7 @@ export class MssqlLeadMappingRepository implements LeadMappingRepository {
     const result = await pool.request().input("lead_config_id", leadConfigId)
       .query<LeadMappingRow>(`
         SELECT *
-        FROM leads_mapping
+        FROM clients_leads_mapping
         WHERE lead_config_id = @lead_config_id
       `);
 
