@@ -22,12 +22,15 @@ export class LoadLeadsUseCase {
     private uploadContact: AltitudeUploadContact,
   ) {}
 
-  private normalizePhone(value: string): string {
-    if (!value) return value;
-    let normalized = value.replace(/\D/g, "");
+  private normalizePhone(value: unknown): string {
+    if (value === null || value === undefined) return "";
+
+    let normalized = String(value).replace(/\D/g, "");
+
     if (normalized.startsWith("351")) {
       normalized = normalized.slice(3);
     }
+
     return normalized;
   }
 

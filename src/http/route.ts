@@ -67,6 +67,5 @@ export function appRoutes(app: FastifyInstance) {
   app.get("/sharepoint/drives", getSharepointDrives);
   app.get("/sharepoint/folders", getSharepointFolders);
   app.post(`${basePath}/plenitude`, plenitudeInsert);
-
   app.post(`${basePath}/minisom/meta`, minisomMeta);
 }

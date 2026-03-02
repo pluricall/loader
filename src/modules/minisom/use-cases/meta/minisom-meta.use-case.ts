@@ -28,9 +28,7 @@ export class MinisomMetaUseCase {
       bodyRequest.phone_number,
     );
 
-    const { bd } = await this.minisomRepository.getBdByFormId(
-      bodyRequest.form_id,
-    );
+    const bd = await this.minisomRepository.getBdByFormId(bodyRequest.form_id);
     if (!bd) {
       throw new NotFoundError("Form Id not found");
     }
@@ -46,7 +44,7 @@ export class MinisomMetaUseCase {
     const genId = generateGenId();
 
     await this.minisomRepository.insertAtLeadsRepository({
-      bd,
+      bd: bd.bd,
       genId,
       campaign: bodyRequest.form_id,
       leadId: bodyRequest.lead_id,
@@ -81,7 +79,7 @@ export class MinisomMetaUseCase {
     });
 
     this.minisomMetaUploadContacts.execute({
-      bd,
+      bd: bd.bd,
       genId,
       email: bodyRequest.email,
       leadId: bodyRequest.lead_id,
