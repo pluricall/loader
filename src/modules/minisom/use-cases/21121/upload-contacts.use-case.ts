@@ -25,6 +25,9 @@ export class Minisom21121UploadContactsUseCase {
   ) {}
 
   private buildAltitudeField(Name: string, Value: any) {
+    if (Name === "FirstName" && typeof Value === "string") {
+      Value = Value.substring(0, 100);
+    }
     return {
       discriminator: "DatabaseFields",
       Name,

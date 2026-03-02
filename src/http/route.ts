@@ -26,6 +26,7 @@ import { plenitudeInsert } from "./controllers/plenitude/insert";
 import { minisomMeta } from "../modules/minisom/http/controllers/meta/minisom-meta.controller";
 import { iberdrolaRoutes } from "../modules/iberdrola/http/route";
 import { servilusaRoutes } from "../modules/servilusa/http/routes";
+import { agilidadeRoutes } from "../modules/agilidade/http/routes";
 
 const basePath =
   process.env.NODE_ENV === "pre" ? "/preinsight360api" : "/Insight360api";
@@ -33,6 +34,7 @@ const basePath =
 export function appRoutes(app: FastifyInstance) {
   app.register(iberdrolaRoutes);
   app.register(servilusaRoutes);
+  app.register(agilidadeRoutes);
   /* Clients */
   app.post("/clients", createClient);
   app.get("/clients", searchClients);
