@@ -5,7 +5,6 @@ import { ZodError } from "zod";
 import fastifyCors from "@fastify/cors";
 import { AltitudeApiError } from "./shared/errors/altitude-error";
 import { AltitudeAuthError } from "./shared/errors/altitude-auth-error";
-import { leadRoutes } from "./modules/leads/http/routes";
 import formbody from "@fastify/formbody";
 import { RecordingsJob } from "./jobs/recordings";
 import { startWebhookServer } from "./webhook-server";
@@ -67,7 +66,6 @@ app.addHook(
 
 app.register(formbody);
 app.register(appRoutes);
-app.register(leadRoutes);
 
 app.register(fastifyCors, {
   origin: "*",
