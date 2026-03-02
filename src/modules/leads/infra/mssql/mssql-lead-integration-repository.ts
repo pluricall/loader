@@ -10,7 +10,7 @@ import { connectPluricallDb } from "../../../../shared/infra/db/pluricall-db";
 export class MssqlLeadIntegrationRepository
   implements LeadIntegrationRepository
 {
-  private poolPromise = connectPluricallDb("onprem");
+  private poolPromise = connectPluricallDb("cloud");
 
   private async getPool() {
     return this.poolPromise;
@@ -31,7 +31,7 @@ export class MssqlLeadIntegrationRepository
       .input("timezone", data.timezone)
       .input("default_status", data.default_status)
       .input("uses_dncl", data.uses_dncl).query<LeadIntegrationRow>(`
-    INSERT INTO leads_config (
+    INSERT INTO clients_leads_config (
       client_name,
       api_key,
       environment,
@@ -72,7 +72,7 @@ export class MssqlLeadIntegrationRepository
       .input("environment", environment)
       .input("contact_list", contactList).query<LeadIntegrationRow>(`
       SELECT *
-      FROM leads_config
+      FROM clients_leads_config
       WHERE campaign_name = @campaign_name
         AND contact_list = @contact_list
         AND environment = @environment
@@ -92,7 +92,7 @@ export class MssqlLeadIntegrationRepository
     const result = await pool.request().input("api_key", apiKey)
       .query<LeadIntegrationRow>(`
       SELECT *
-      FROM leads_config
+      FROM clients_leads_config
       WHERE api_key = @api_key
         AND is_active = 1
     `);
