@@ -8,6 +8,12 @@ import {
 import { connectPluricallDb } from "../../../shared/infra/db/pluricall-db";
 
 export class MssqlMinisomRepository implements MinisomRepository {
+  private truncate(value: any, max: number): string {
+    if (value === null || value === undefined) return "";
+    const str = String(value);
+    return str.length > max ? str.slice(0, max) : str;
+  }
+
   async verifyIfLeadIdExists(leadId: string | number): Promise<boolean> {
     const conn = await connectPluricallDb("onprem");
     const result = await conn
@@ -155,39 +161,39 @@ export class MssqlMinisomRepository implements MinisomRepository {
       const timestamp = now.toISOString().replace("T", " ").replace("Z", "");
       const result = await conn
         .request()
-        .input("timestamp", String(timestamp))
-        .input("request_ip", String(data.requestIp))
-        .input("request_url", String(data.requestUrl))
-        .input("gen_id", String(data.genId))
-        .input("campanha_easy", String(data.campanhaEasy))
-        .input("contact_list_easy", String(data.contactList))
-        .input("bd_easy", String(data.bd))
-        .input("mapping_template", String(data.mappingTemplate))
-        .input("raw_phone_number", String(data.rawPhoneNumber))
-        .input("phone_number", String(data.phoneNumber))
-        .input("lead_status", String(data.leadStatus))
-        .input("campaign", String(data.campaign))
-        .input("lead_id", String(data.leadId))
-        .input("dist_id", String(data.distId))
-        .input("first_name", String(data.firstName))
-        .input("last_name", String(data.lastName))
-        .input("email", String(data.email))
-        .input("created_date", String(data.createdDate))
-        .input("posted_date", String(data.postedDate))
-        .input("address", String(data.address))
-        .input("city", String(data.city))
-        .input("post_code", String(data.postCode))
-        .input("site_id", String(data.siteId))
-        .input("age", String(data.age))
-        .input("dif_auditiva", String(data.difAuditiva))
-        .input("origem", String(data.origem))
-        .input("utm_source", String(data.utmSource))
-        .input("notes1", String(data.notes1))
-        .input("notes2", String(data.notes2))
-        .input("notes3", String(data.notes3))
-        .input("aut_dados", String(data.autDados))
-        .input("score", String(data.score))
-        .input("formdata", String(JSON.stringify(data.formData))).query(`
+        .input("timestamp", this.truncate(timestamp, 8))
+        .input("request_ip", this.truncate(data.requestIp, 50))
+        .input("request_url", this.truncate(data.requestUrl, 300))
+        .input("gen_id", this.truncate(data.genId, 70))
+        .input("campanha_easy", this.truncate(data.campanhaEasy, 30))
+        .input("contact_list_easy", this.truncate(data.contactList, 50))
+        .input("bd_easy", this.truncate(data.bd, 30))
+        .input("mapping_template", this.truncate(data.mappingTemplate, 150))
+        .input("raw_phone_number", this.truncate(data.rawPhoneNumber, 50))
+        .input("phone_number", this.truncate(data.phoneNumber, 14))
+        .input("lead_status", this.truncate(data.leadStatus, 100))
+        .input("campaign", this.truncate(data.campaign, 80))
+        .input("lead_id", this.truncate(data.leadId, 70))
+        .input("dist_id", this.truncate(data.distId, 70))
+        .input("first_name", this.truncate(data.firstName, 80))
+        .input("last_name", this.truncate(data.lastName, 80))
+        .input("email", this.truncate(data.email, 180))
+        .input("created_date", this.truncate(data.createdDate, 80))
+        .input("posted_date", this.truncate(data.postedDate, 80))
+        .input("address", this.truncate(data.address, 250))
+        .input("city", this.truncate(data.city, 80))
+        .input("post_code", this.truncate(data.postCode, 80))
+        .input("site_id", this.truncate(data.siteId, 50))
+        .input("age", this.truncate(data.age, 50))
+        .input("dif_auditiva", this.truncate(data.difAuditiva, 150))
+        .input("origem", this.truncate(data.origem, 50))
+        .input("utm_source", this.truncate(data.utmSource, 100))
+        .input("notes1", this.truncate(data.notes1, 250))
+        .input("notes2", this.truncate(data.notes2, 250))
+        .input("notes3", this.truncate(data.notes3, 250))
+        .input("aut_dados", this.truncate(data.autDados, 150))
+        .input("score", this.truncate(data.score, 50))
+        .input("formdata", JSON.stringify(data.formData)).query(`
       INSERT INTO minisom_leads_repository (
         timestamp,
         request_ip,
