@@ -20,26 +20,57 @@ export async function startWebhookServer() {
 
   const pluricallRepository = new MssqlPluricallRepository();
 
+  const allowedRoutes = [
+    "/ws/minisom/21051/",
+    "/ws/minisom/21121/",
+    "/ws/minisom/21011/",
+    "/ws/agilidade/24041/",
+  ];
+
   webhook.addHook(
     "onResponse",
     async (request: FastifyRequest, reply: FastifyReply) => {
       try {
-        const safeBody = JSON.stringify(request.body ?? {});
-        const truncatedBody =
-          safeBody.length > 20000 ? safeBody.substring(0, 20000) : safeBody;
+        const routeUrl = request.routeOptions?.url ?? request.url;
+
+        if (!allowedRoutes.includes(routeUrl)) {
+          return;
+        }
+
+        let safeBody: string;
+        const body = request.body ?? {};
+
+        if (typeof body === "string" && body.trim().startsWith("<?xml")) {
+          safeBody =
+            body.length > 20000
+              ? body.substring(0, 20000) + "... [XML truncado]"
+              : body;
+        } else if (typeof body === "object") {
+          const stringified = JSON.stringify(body);
+          safeBody =
+            stringified.length > 20000
+              ? stringified.substring(0, 20000) + "... [truncated]"
+              : stringified;
+        } else {
+          safeBody = String(body);
+          if (safeBody.length > 20000) {
+            safeBody = safeBody.substring(0, 20000) + "... [truncated]";
+          }
+        }
 
         await pluricallRepository.insertInsight360ApiLogs({
           method: request.method,
-          route: request.routeOptions?.url ?? request.url,
+          route: routeUrl,
           requestUrl: request.url,
           requestIp: request.ip,
           headers: request.headers ?? {},
-          body: truncatedBody,
+          body: safeBody,
           queryParams: request.query ?? {},
           responseStatus: reply.statusCode,
         });
-      } catch (err) {
-        console.error("Failed to log request:", err);
+      } catch (err: any) {
+        console.error("❌ ERRO NO HOOK onResponse:", err);
+        console.error("Stack trace:", err.stack);
       }
     },
   );
@@ -59,12 +90,6 @@ export async function startWebhookServer() {
         code: error.details?.code,
         message: error.details?.message ?? error.message,
         details: error.details?.args ?? null,
-      });
-    }
-
-    if (error instanceof ZodError) {
-      return reply.status(400).send({
-        error: error.errors.map((e) => e.message).join(", "),
       });
     }
 
