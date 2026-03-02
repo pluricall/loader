@@ -30,7 +30,7 @@ export class MssqlLeadMappingRepository implements LeadMappingRepository {
           .input("altitude_field", map.altitude_field)
           .input("is_required", map.is_required)
           .input("is_phone_number", map.is_phone_number).query(`
-            INSERT INTO clients_leads_mapping (
+            INSERT INTO leads_mapping (
               lead_config_id,
               source_field,
               altitude_field,
@@ -60,7 +60,7 @@ export class MssqlLeadMappingRepository implements LeadMappingRepository {
     const result = await pool.request().input("lead_config_id", leadConfigId)
       .query<LeadMappingRow>(`
         SELECT *
-        FROM clients_leads_mapping
+        FROM leads_mapping
         WHERE lead_config_id = @lead_config_id
       `);
 
