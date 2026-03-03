@@ -7,3 +7,19 @@ services:
       - POSTGRESQL_USERNAME=loader
       - POSTGRESQL_PASSWORD=loader
       - POSTGRESQL_DATABASE=loaderdb
+    volumes:
+      - postgres_data:/bitnami/postgresql
+
+  redis:
+    image: redis:7
+    container_name: redis-altitude
+    ports:
+      - 6379:6379
+    restart: always
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+
+volumes:
+  postgres_data:
+  redis_data:

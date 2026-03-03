@@ -1,7 +1,6 @@
-import { AltitudeCreateContact } from "../../../../shared/infra/providers/altitude/create-contact.service";
+import { altitudeQueue } from "../../../../shared/infra/queue/altitude/altitude-queue";
 import { generateDataload } from "../../../../shared/utils/generate-dataload";
 import { generatePlcId } from "../../../../shared/utils/generate-plc-id";
-import { MinisomRepository } from "../../repositories/minisom.repository";
 
 interface UploadContactsMeta {
   phoneNumber: string | number;
@@ -15,11 +14,6 @@ interface UploadContactsMeta {
 }
 
 export class MinisomMetaUploadContactsUseCase {
-  constructor(
-    private minisomRepository: MinisomRepository,
-    private altitudeCreateContact: AltitudeCreateContact,
-  ) {}
-
   private buildAltitudeField(Name: string, Value: any) {
     if (Name === "FirstName" && typeof Value === "string") {
       Value = Value.substring(0, 100);
@@ -42,39 +36,34 @@ export class MinisomMetaUploadContactsUseCase {
     contactList,
     leadId,
   }: UploadContactsMeta) {
-    try {
-      const dataload = generateDataload();
-      const plcId = generatePlcId();
+    const dataload = generateDataload();
+    const plcId = generatePlcId();
 
-      const payload = {
-        campaignName: campaign,
-        contactCreateRequest: {
-          Status: "Started",
-          ContactListName: {
-            RequestType: "Set",
-            Value: contactList,
-          },
-          Attributes: [
-            this.buildAltitudeField("HomePhone", phoneNumber),
-            this.buildAltitudeField("id_cliente", String(leadId)),
-            this.buildAltitudeField("Email1", String(email)),
-            this.buildAltitudeField("FirstName", String(name)),
-            this.buildAltitudeField("bd", String(bd)),
-            this.buildAltitudeField("dataload", String(dataload)),
-            this.buildAltitudeField("plc_id", String(plcId)),
-          ],
+    const payload = {
+      campaignName: campaign,
+      contactCreateRequest: {
+        Status: "Started",
+        ContactListName: {
+          RequestType: "Set",
+          Value: contactList,
         },
-      };
+        Attributes: [
+          this.buildAltitudeField("HomePhone", phoneNumber),
+          this.buildAltitudeField("id_cliente", String(leadId)),
+          this.buildAltitudeField("Email1", String(email)),
+          this.buildAltitudeField("FirstName", String(name)),
+          this.buildAltitudeField("bd", String(bd)),
+          this.buildAltitudeField("dataload", String(dataload)),
+          this.buildAltitudeField("plc_id", String(plcId)),
+        ],
+      },
+    };
 
-      await this.altitudeCreateContact.execute({
-        environment: "onprem",
-        payload,
-      });
-
-      await this.minisomRepository.updateLeadStatus(genId, "LOADED");
-    } catch (err: any) {
-      console.error("Erro inesperado no MetaUploadContacts:", err);
-      await this.minisomRepository.updateLeadStatus(genId, "ERROR");
-    }
+    await altitudeQueue.add("create-contact", {
+      environment: "onprem",
+      payload,
+      genId,
+      repository: "minisomMeta",
+    });
   }
 }
