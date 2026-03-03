@@ -19,9 +19,7 @@ export async function minisomCorporate(
     });
 
     reply.status(201).send({
-      status: result.status,
-      status_msg: result.statusMsg,
-      gen_id: result.genId,
+      records: { id: result.genId },
     });
   } catch (error: any) {
     console.error("Error in minisomCorporate controller:", error);

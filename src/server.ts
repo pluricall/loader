@@ -1,17 +1,19 @@
 import fastify, { FastifyReply, FastifyRequest } from "fastify";
 import { env } from "./env";
-import { appRoutes } from "./http/route";
+import { appRoutes } from "./migrating/http/route";
 import { ZodError } from "zod";
 import fastifyCors from "@fastify/cors";
 import { AltitudeApiError } from "./shared/errors/altitude-error";
 import { AltitudeAuthError } from "./shared/errors/altitude-auth-error";
 import formbody from "@fastify/formbody";
-import { RecordingsJob } from "./jobs/recordings";
+import { RecordingsJob } from "./migrating/jobs/recordings";
 import { startWebhookServer } from "./webhook-server";
-import { MssqlPluricallRepository } from "./repositories/mssql/mssql-pluricall-repository";
+import { startAltitudeWorker } from "./shared/infra/queue/altitude/altitude-worker";
+import { MssqlPluricallRepository } from "./migrating/repositories/mssql/mssql-pluricall-repository";
 
 export const app = fastify({ requestTimeout: 0 });
 startWebhookServer();
+startAltitudeWorker();
 app.addContentTypeParser(
   ["application/xml", "text/xml"],
   { parseAs: "string" },

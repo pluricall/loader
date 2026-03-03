@@ -89,8 +89,4 @@ export class AltitudeAuthService {
     }
   }
 }
-
-export function AltitudeAuthServiceFactory() {
-  const altitudeAuthService = new AltitudeAuthService();
-  return altitudeAuthService;
-}
+export const altitudeAuthService = new AltitudeAuthService();

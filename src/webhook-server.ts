@@ -3,13 +3,15 @@ import { env } from "./env";
 import { ZodError } from "zod";
 import { AltitudeApiError } from "./shared/errors/altitude-error";
 import { AltitudeAuthError } from "./shared/errors/altitude-auth-error";
-import { webhookRoutes } from "./http/webhook-routes";
+import { webhookRoutes } from "./migrating/http/webhook-routes";
 import formbody from "@fastify/formbody";
 import fastifyCors from "@fastify/cors";
-import { MssqlPluricallRepository } from "./repositories/mssql/mssql-pluricall-repository";
+import { startAltitudeWorker } from "./shared/infra/queue/altitude/altitude-worker";
+import { MssqlPluricallRepository } from "./migrating/repositories/mssql/mssql-pluricall-repository";
 
 export async function startWebhookServer() {
   const webhook = fastify({ requestTimeout: 0 });
+  startAltitudeWorker();
   webhook.addContentTypeParser(
     ["application/xml", "text/xml"],
     { parseAs: "string" },

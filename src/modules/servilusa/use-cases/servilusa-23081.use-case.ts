@@ -112,13 +112,4 @@ export class Servilusa23081UseCase {
       };
     }
   }
-
-  // Se precisar do método processAsync
-  async processAsync(
-    request: ServilusaEncuestaSchema,
-    requestIp: string,
-    requestUrl: string,
-  ) {
-    return this.execute(request, requestIp, requestUrl);
-  }
 }
