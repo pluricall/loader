@@ -1,6 +1,6 @@
 import { Prisma } from "@prisma/client";
-import { prisma } from "../../config/prisma";
 import { TypsRepository } from "../typs-repository";
+import { prisma } from "../../../config/prisma";
 
 export class PrismaTypsRepository implements TypsRepository {
   async create(data: Prisma.TypCreateInput) {

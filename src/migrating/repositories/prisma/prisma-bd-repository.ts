@@ -1,6 +1,6 @@
 import { Prisma, Bds } from "@prisma/client";
-import { prisma } from "../../config/prisma";
 import { BdsRepository } from "../bds-repository";
+import { prisma } from "../../../config/prisma";
 
 export class PrismaBdsRepository implements BdsRepository {
   async create(

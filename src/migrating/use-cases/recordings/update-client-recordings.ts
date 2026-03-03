@@ -1,6 +1,6 @@
+import { NotFoundError } from "../../../shared/errors/not-found-error";
 import { MssqlPluricallRepository } from "../../repositories/mssql/mssql-pluricall-repository";
 import { PluricallRepository } from "../../repositories/pluricall-repository";
-import { NotFoundError } from "../../shared/errors/not-found-error";
 
 export class UpdateClientStatusUseCase {
   constructor(

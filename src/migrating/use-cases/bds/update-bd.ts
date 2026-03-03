@@ -1,8 +1,8 @@
 import { Bds, BdType, Status } from "@prisma/client";
-import { NotFoundError } from "../../shared/errors/not-found-error";
-import { UnauthorizedError } from "../../shared/errors/unauthorized-error";
 import { ClientsRepository } from "../../repositories/clients-repository";
 import { BdsRepository } from "../../repositories/bds-repository";
+import { NotFoundError } from "../../../shared/errors/not-found-error";
+import { UnauthorizedError } from "../../../shared/errors/unauthorized-error";
 
 interface UpdateBdResponse {
   bd: Bds;

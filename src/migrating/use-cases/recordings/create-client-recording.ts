@@ -1,7 +1,7 @@
+import { AlreadyExistsError } from "../../../shared/errors/name-already-exists-error";
 import { MssqlPluricallRepository } from "../../repositories/mssql/mssql-pluricall-repository";
 import { PluricallRepository } from "../../repositories/pluricall-repository";
 import { ClientRecordingsParams } from "../../repositories/types/pluricall-repository-types";
-import { AlreadyExistsError } from "../../shared/errors/name-already-exists-error";
 
 export class CreateClientRecordingUseCase {
   constructor(

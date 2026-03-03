@@ -1,7 +1,7 @@
 import { Bds } from "@prisma/client";
-import { NotFoundError } from "../../shared/errors/not-found-error";
 import { ClientsRepository } from "../../repositories/clients-repository";
 import { BdsRepository } from "../../repositories/bds-repository";
+import { NotFoundError } from "../../../shared/errors/not-found-error";
 
 interface SearchBdsRequest {
   clientId: string;

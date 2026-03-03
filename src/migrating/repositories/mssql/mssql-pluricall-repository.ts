@@ -13,7 +13,7 @@ import {
   RecordingMetadata,
 } from "../types/pluricall-repository-types";
 import { PluricallRepository } from "../pluricall-repository";
-import { connectPluricallDb } from "../../shared/infra/db/pluricall-db";
+import { connectPluricallDb } from "../../../shared/infra/db/pluricall-db";
 
 export class MssqlPluricallRepository implements PluricallRepository {
   async logPlenitudeCallCloud(data: LogPlenitudeCallCloud) {
