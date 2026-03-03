@@ -1,5 +1,6 @@
-import { altitudeQueue } from "../../../../shared/infra/queue/altitude/altitude-queue";
+import { AltitudeCreateContact } from "../../../../shared/infra/providers/altitude/create-contact.service";
 import { generateDataload } from "../../../../shared/utils/generate-dataload";
+import { AgilidadeRepository } from "../../repositories/agilidade.repository";
 
 export interface AgilidadeUploadContactRequest {
   campaignName: any;
@@ -22,6 +23,11 @@ export interface AgilidadeUploadContactRequest {
 }
 
 export class Agilidade24041UploadContactsUseCase {
+  constructor(
+    private agilidadeRepository: AgilidadeRepository,
+    private altitudeCreateContact: AltitudeCreateContact,
+  ) {}
+
   private buildAltitudeField(Name: string, Value: any) {
     if (Name === "FirstName" && typeof Value === "string") {
       Value = Value.substring(0, 100);
@@ -53,43 +59,48 @@ export class Agilidade24041UploadContactsUseCase {
     form_id,
     genId,
   }: AgilidadeUploadContactRequest) {
-    const dataload = generateDataload();
+    try {
+      const dataload = generateDataload();
 
-    const payload = {
-      campaignName: campaign,
-      contactCreateRequest: {
-        Status: "Started",
-        ContactListName: {
-          RequestType: "Set",
-          Value: contactList,
+      const payload = {
+        campaignName: campaign,
+        contactCreateRequest: {
+          Status: "Started",
+          ContactListName: {
+            RequestType: "Set",
+            Value: contactList,
+          },
+          Attributes: [
+            this.buildAltitudeField("HomePhone", phoneNumber),
+            this.buildAltitudeField("telefone", phoneNumber),
+            this.buildAltitudeField("enderecoemail", String(email)),
+            this.buildAltitudeField("nome", String(nome)),
+            this.buildAltitudeField("FirstName", String(nome)),
+            this.buildAltitudeField("localidade", String(localidade)),
+            this.buildAltitudeField("bd_id", String(lead_id)),
+            this.buildAltitudeField("bd_created_time", String(created_date)),
+            this.buildAltitudeField("bd_ad_id", String(ad_id)),
+            this.buildAltitudeField("bd_ad_name", String(ad_name)),
+            this.buildAltitudeField("bd_adset_id", String(adset_id)),
+            this.buildAltitudeField("bd_adset_name", String(adset_name)),
+            this.buildAltitudeField("bd_campaign_id", String(campaign_id)),
+            this.buildAltitudeField("bd_campaign_name", String(campaign_name)),
+            this.buildAltitudeField("bd_form_id", String(form_id)),
+            this.buildAltitudeField("plc_id", String(genId)),
+            this.buildAltitudeField("dataload", String(dataload)),
+          ],
         },
-        Attributes: [
-          this.buildAltitudeField("HomePhone", phoneNumber),
-          this.buildAltitudeField("telefone", phoneNumber),
-          this.buildAltitudeField("enderecoemail", String(email)),
-          this.buildAltitudeField("nome", String(nome)),
-          this.buildAltitudeField("FirstName", String(nome)),
-          this.buildAltitudeField("localidade", String(localidade)),
-          this.buildAltitudeField("bd_id", String(lead_id)),
-          this.buildAltitudeField("bd_created_time", String(created_date)),
-          this.buildAltitudeField("bd_ad_id", String(ad_id)),
-          this.buildAltitudeField("bd_ad_name", String(ad_name)),
-          this.buildAltitudeField("bd_adset_id", String(adset_id)),
-          this.buildAltitudeField("bd_adset_name", String(adset_name)),
-          this.buildAltitudeField("bd_campaign_id", String(campaign_id)),
-          this.buildAltitudeField("bd_campaign_name", String(campaign_name)),
-          this.buildAltitudeField("bd_form_id", String(form_id)),
-          this.buildAltitudeField("plc_id", String(genId)),
-          this.buildAltitudeField("dataload", String(dataload)),
-        ],
-      },
-    };
+      };
 
-    await altitudeQueue.add("create-contact", {
-      environment: "onprem",
-      payload,
-      genId,
-      repository: "agilidade24041",
-    });
+      await this.altitudeCreateContact.execute({
+        environment: "onprem",
+        payload,
+      });
+
+      await this.agilidadeRepository.updateLeadStatus(genId, "LOADED");
+    } catch (err: any) {
+      console.error("Erro inesperado no 21121UploadContacts:", err);
+      await this.agilidadeRepository.updateLeadStatus(genId, "ERROR");
+    }
   }
 }
