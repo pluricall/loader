@@ -1,7 +1,7 @@
+import { ValidationError } from "xml2js";
 import { MssqlPluricallRepository } from "../../repositories/mssql/mssql-pluricall-repository";
 import { PluricallRepository } from "../../repositories/pluricall-repository";
 import { RecordingMetadata } from "../../repositories/types/pluricall-repository-types";
-import { ValidationError } from "../../shared/errors/validation-error";
 
 export interface GetRecordingsRequest {
   clientId: string;

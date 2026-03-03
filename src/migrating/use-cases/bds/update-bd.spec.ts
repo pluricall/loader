@@ -1,8 +1,8 @@
 import { describe, it, beforeEach, expect } from "vitest";
 import { InMemoryClientsRepository } from "../../repositories/in-memory/in-memory-clients-repository";
-import { NotFoundError } from "../../shared/errors/not-found-error";
 import { UpdateBdUseCase } from "./update-bd";
 import { InMemoryBdsRepository } from "../../repositories/in-memory/in-memory-bds-repository";
+import { NotFoundError } from "../../../shared/errors/not-found-error";
 
 let clientsRepository: InMemoryClientsRepository;
 let bdsRepository: InMemoryBdsRepository;

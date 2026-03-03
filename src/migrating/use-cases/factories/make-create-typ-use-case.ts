@@ -1,4 +1,5 @@
 import { PrismaTypsRepository } from "../../repositories/prisma/prisma-typs-repository";
+
 import { CreateTypUseCase } from "../typs/create-typ";
 
 export function makeCreateTypUseCase() {
