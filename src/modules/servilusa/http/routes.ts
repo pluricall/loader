@@ -1,5 +1,5 @@
 import { FastifyInstance } from "fastify";
-import { servilusa23081 } from "./controllers/23081";
+import { servilusa23081 } from "./controllers/servilusa-23081.controller";
 
 const basePath =
   process.env.NODE_ENV === "pre" ? "/preinsight360api" : "/Insight360api";
