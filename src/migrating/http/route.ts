@@ -23,7 +23,6 @@ import { updateClientRecordings } from "./controllers/recordings/update-client";
 import { getRecordingsMetadatas } from "./controllers/recordings/get-metadatas";
 import { downloadRecording } from "./controllers/recordings/download-from-sharepoint";
 import { plenitudeInsert } from "./controllers/plenitude/insert";
-import { minisomMeta } from "../../modules/minisom/http/controllers/meta/minisom-meta.controller";
 import { iberdrolaRoutes } from "../../modules/iberdrola/http/route";
 import { servilusaRoutes } from "../../modules/servilusa/http/routes";
 
@@ -68,5 +67,4 @@ export function appRoutes(app: FastifyInstance) {
   app.get("/sharepoint/drives", getSharepointDrives);
   app.get("/sharepoint/folders", getSharepointFolders);
   app.post(`${basePath}/plenitude`, plenitudeInsert);
-  app.post(`${basePath}/minisom/meta`, minisomMeta);
 }

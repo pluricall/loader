@@ -69,6 +69,10 @@ const envSchema = z.object({
   LLEIDA_USER: z.string(),
   LLEIDA_API_KEY: z.string(),
   LLEIDA_PASS: z.string(),
+
+  REDIS_PASSWORD: z.string(),
+  REDIS_HOST: z.string(),
+  REDIS_PORT: z.coerce.number(),
 });
 
 const _env = envSchema.safeParse(process.env);
