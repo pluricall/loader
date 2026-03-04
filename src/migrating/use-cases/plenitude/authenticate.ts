@@ -54,7 +54,7 @@ export class PlenitudeAuthService {
 
       this.token = resp.data.Data.token;
       this.idDistribuidor = resp.data.Data.id_distribuidor;
-      this.tokenExpiresAt = Date.now() + 6 * 60 * 60 * 1000; // 6h
+      this.tokenExpiresAt = Date.now() + 6 * 60 * 60 * 1000;
 
       return { token: this.token, idDistribuidor: this.idDistribuidor };
     } catch (err: any) {

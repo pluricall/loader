@@ -79,7 +79,6 @@ interface XmlListaEncuestas {
   };
 }
 
-const DELAY_BETWEEN_LEADS = 3000;
 const parseXmlAsync = async (
   xml: string,
   options?: any,
@@ -94,29 +93,6 @@ const parseXmlAsync = async (
 
 function ensureArray<T>(item: T | T[]): T[] {
   return Array.isArray(item) ? item : [item];
-}
-
-async function processLeadsInBackground(
-  servilusaUseCase: any,
-  encuestas: ServilusaEncuestaSchema[],
-  request_ip: string,
-  request_url: string,
-) {
-  for (let i = 0; i < encuestas.length; i++) {
-    const encuestaData = encuestas[i];
-
-    try {
-      if (i > 0) {
-        await new Promise((resolve) =>
-          setTimeout(resolve, DELAY_BETWEEN_LEADS),
-        );
-      }
-
-      await servilusaUseCase.execute(encuestaData, request_ip, request_url);
-    } catch (error) {
-      console.error(`Erro ao processar lead ${encuestaData.id}:`, error);
-    }
-  }
 }
 
 export async function servilusa23081(
@@ -168,6 +144,8 @@ export async function servilusa23081(
     const campanhas = ensureArray(listaEncuestas.campanya);
 
     const todasEncuestas: ServilusaEncuestaSchema[] = [];
+    const idsRecebidos: string[] = [];
+
     for (const campanha of campanhas) {
       const encuestas = ensureArray(campanha.encuesta);
 
@@ -202,6 +180,7 @@ export async function servilusa23081(
         };
 
         todasEncuestas.push(encuestaData);
+        idsRecebidos.push(String(encuesta.id));
       }
     }
 
@@ -216,34 +195,20 @@ export async function servilusa23081(
 
     const servilusaUseCase = makeServilusa23081UseCase();
 
-    const acceptedIds: string[] = [];
-
-    for (const encuesta of todasEncuestas) {
-      try {
-        const result = await servilusaUseCase.execute(
-          encuesta,
-          request_ip,
-          request_url,
-        );
-
-        if (result.status === "OK") {
-          acceptedIds.push(String(encuesta.id));
+    setImmediate(async () => {
+      for (const encuesta of todasEncuestas) {
+        try {
+          await servilusaUseCase.execute(encuesta, request_ip, request_url);
+        } catch (error) {
+          console.error(
+            `Erro ao processar encuesta ${encuesta.id} na fila:`,
+            error,
+          );
         }
-      } catch (error) {
-        console.error(`Erro ao processar encuesta ${encuesta.id}`, error);
       }
-    }
-
-    processLeadsInBackground(
-      servilusaUseCase,
-      todasEncuestas,
-      request_ip,
-      request_url,
-    ).catch((error) => {
-      console.error("Erro fatal no processamento em background:", error);
     });
 
-    const encuestasXml = acceptedIds
+    const encuestasXml = idsRecebidos
       .map(
         (id) => `
     <encuesta>

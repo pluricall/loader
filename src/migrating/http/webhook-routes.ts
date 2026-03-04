@@ -3,11 +3,13 @@ import { saveLinceRequest } from "../../shared/utils/save-lince-request";
 import { minisomRoutes } from "../../modules/minisom/http/routes";
 import { leadRoutes } from "../../modules/leads/http/routes";
 import { agilidadeRoutes } from "../../modules/agilidade/http/routes";
+import { servilusaRoutes } from "../../modules/servilusa/http/routes";
 
 export function webhookRoutes(webhook: FastifyInstance) {
   webhook.register(minisomRoutes);
   webhook.register(leadRoutes);
   webhook.register(agilidadeRoutes);
+  webhook.register(servilusaRoutes);
   webhook.route({
     method: ["GET", "POST", "PUT", "PATCH", "DELETE"],
     url: "/*",
