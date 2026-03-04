@@ -3,13 +3,34 @@ import { saveLinceRequest } from "../../shared/utils/save-lince-request";
 import { minisomRoutes } from "../../modules/minisom/http/routes";
 import { leadRoutes } from "../../modules/leads/http/routes";
 import { agilidadeRoutes } from "../../modules/agilidade/http/routes";
-import { servilusaRoutes } from "../../modules/servilusa/http/routes";
+import { servilusa23081 } from "../../modules/servilusa/http/controllers/servilusa-23081.controller";
 
 export function webhookRoutes(webhook: FastifyInstance) {
   webhook.register(minisomRoutes);
   webhook.register(leadRoutes);
   webhook.register(agilidadeRoutes);
-  webhook.register(servilusaRoutes);
+  webhook.post(`/ws/servilusa/23081/`, async (request, reply) => {
+    let xmlString: string;
+
+    if (typeof request.body === "string") {
+      xmlString = request.body;
+    } else if (typeof request.body === "object" && request.body !== null) {
+      xmlString = Object.keys(request.body)[0] || "";
+    } else {
+      xmlString = "";
+    }
+
+    if (!xmlString || xmlString.trim() === "") {
+      return reply.status(400).header("Content-Type", "application/xml").send(`
+<?xml version="1.0" encoding="UTF-8"?>
+<response>
+  <status>ERROR</status>
+  <message>XML não fornecido</message>
+</response>`);
+    }
+
+    return servilusa23081({ ...request, body: xmlString }, reply);
+  });
   webhook.route({
     method: ["GET", "POST", "PUT", "PATCH", "DELETE"],
     url: "/*",
