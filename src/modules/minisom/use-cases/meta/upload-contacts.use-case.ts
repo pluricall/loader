@@ -1,5 +1,4 @@
 import { AltitudeCreateContact } from "../../../../shared/infra/providers/altitude/create-contact.service";
-import { altitudeQueue } from "../../../../shared/infra/queue/altitude/altitude-queue";
 import { generateDataload } from "../../../../shared/utils/generate-dataload";
 import { generatePlcId } from "../../../../shared/utils/generate-plc-id";
 import { MinisomRepository } from "../../repositories/minisom.repository";
@@ -67,12 +66,12 @@ export class MinisomMetaUploadContactsUseCase {
         },
       };
 
-      await altitudeQueue.add("create-contact", {
+      await this.altitudeCreateContact.execute({
         environment: "onprem",
         payload,
-        genId,
-        repository: "minisomMeta",
       });
+
+      await this.minisomRepository.updateLeadStatus(genId, "LOADED");
     } catch (err: any) {
       console.error("Erro inesperado no MetaUploadContacts:", err);
       await this.minisomRepository.updateLeadStatus(genId, "ERROR");

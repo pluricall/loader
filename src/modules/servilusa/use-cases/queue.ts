@@ -1,5 +1,7 @@
+import { AltitudeCreateContact } from "../../../shared/infra/providers/altitude/create-contact.service";
 import { altitudeQueue } from "../../../shared/infra/queue/altitude/altitude-queue";
 import { generateDataload } from "../../../shared/utils/generate-dataload";
+import { ServilusaRepository } from "../repositories/servilusa.repository";
 
 export interface ServilusaEncuesta {
   id: any;
@@ -35,6 +37,11 @@ export interface ServilusaEncuesta {
 }
 
 export class Servilusa23081UploadContactsUseCase {
+  constructor(
+    private servilusaRepository: ServilusaRepository,
+    private altitudeCreateContact: AltitudeCreateContact,
+  ) {}
+
   private buildAltitudeField(Name: string, Value: any) {
     if (Name === "FirstName" && typeof Value === "string") {
       Value = Value.substring(0, 100);
@@ -48,66 +55,73 @@ export class Servilusa23081UploadContactsUseCase {
   }
 
   async execute(request: ServilusaEncuesta) {
-    const dataload = generateDataload();
+    try {
+      const dataload = generateDataload();
 
-    const codigoPregunta = String(request.codigo_pregunta || "").substring(
-      0,
-      5,
-    );
-    const codigoCentro = String(request.codigo_centro || "").substring(0, 5);
-    const codigoCampanya = String(request.codigo_campanya || "").substring(
-      0,
-      5,
-    );
+      const codigoPregunta = String(request.codigo_pregunta || "").substring(
+        0,
+        5,
+      );
+      const codigoCentro = String(request.codigo_centro || "").substring(0, 5);
+      const codigoCampanya = String(request.codigo_campanya || "").substring(
+        0,
+        5,
+      );
 
-    const payload = {
-      campaignName: request.campaign,
-      contactCreateRequest: {
-        Status: "Started",
-        ContactListName: {
-          RequestType: "Set",
-          Value: request.contactList,
+      const payload = {
+        campaignName: request.campaign,
+        contactCreateRequest: {
+          Status: "Started",
+          ContactListName: {
+            RequestType: "Set",
+            Value: request.contactList,
+          },
+          Attributes: [
+            this.buildAltitudeField("HomePhone", request.phoneNumber),
+            this.buildAltitudeField(
+              "FirstName",
+              String(request.nombre_encuestado),
+            ),
+            this.buildAltitudeField("observacoes", String(request.otrosdatos)),
+            this.buildAltitudeField("lead_id", String(request.id)),
+            this.buildAltitudeField("gen_id", String(request.genId)),
+            this.buildAltitudeField("encuesta_id", String(request.id)),
+            this.buildAltitudeField("nif", String(request.nif_cliente)),
+            this.buildAltitudeField("codigo_centro", String(codigoCentro)),
+            this.buildAltitudeField("codigo_campanya", String(codigoCampanya)),
+            this.buildAltitudeField(
+              "codigo_oleada",
+              String(request.codigo_oleada),
+            ),
+            this.buildAltitudeField(
+              "codigo_interno_cliente",
+              String(request.codigo_interno_cliente),
+            ),
+            this.buildAltitudeField("codigo_pregunta", String(codigoPregunta)),
+            this.buildAltitudeField(
+              "nombre_centro",
+              String(request.nombre_centro),
+            ),
+            this.buildAltitudeField("idioma", String(request.idioma)),
+            this.buildAltitudeField("skey", String(request.skey)),
+            this.buildAltitudeField("bd", "LEADS"),
+            this.buildAltitudeField("dataload", String(dataload)),
+            this.buildAltitudeField("plc_id", String(request.id)),
+          ],
         },
-        Attributes: [
-          this.buildAltitudeField("HomePhone", request.phoneNumber),
-          this.buildAltitudeField(
-            "FirstName",
-            String(request.nombre_encuestado),
-          ),
-          this.buildAltitudeField("observacoes", String(request.otrosdatos)),
-          this.buildAltitudeField("lead_id", String(request.id)),
-          this.buildAltitudeField("gen_id", String(request.genId)),
-          this.buildAltitudeField("encuesta_id", String(request.id)),
-          this.buildAltitudeField("nif", String(request.nif_cliente)),
-          this.buildAltitudeField("codigo_centro", String(codigoCentro)),
-          this.buildAltitudeField("codigo_campanya", String(codigoCampanya)),
-          this.buildAltitudeField(
-            "codigo_oleada",
-            String(request.codigo_oleada),
-          ),
-          this.buildAltitudeField(
-            "codigo_interno_cliente",
-            String(request.codigo_interno_cliente),
-          ),
-          this.buildAltitudeField("codigo_pregunta", String(codigoPregunta)),
-          this.buildAltitudeField(
-            "nombre_centro",
-            String(request.nombre_centro),
-          ),
-          this.buildAltitudeField("idioma", String(request.idioma)),
-          this.buildAltitudeField("skey", String(request.skey)),
-          this.buildAltitudeField("bd", "LEADS"),
-          this.buildAltitudeField("dataload", String(dataload)),
-          this.buildAltitudeField("plc_id", String(request.id)),
-        ],
-      },
-    };
+      };
 
-    await altitudeQueue.add("create-contact", {
-      environment: "onprem",
-      payload,
-      genId: request.genId,
-      repository: "servilusa",
-    });
+      await altitudeQueue.add("create-contact", {
+        environment: "onprem",
+        payload,
+        genId: request.genId,
+        repository: "servilusa",
+      });
+
+      await this.servilusaRepository.updateLeadStatus(request.genId, "LOADED");
+    } catch (err: any) {
+      console.error("Erro inesperado no Servilusa:", err);
+      await this.servilusaRepository.updateLeadStatus(request.genId, "ERROR");
+    }
   }
 }

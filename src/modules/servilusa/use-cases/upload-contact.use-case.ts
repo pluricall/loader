@@ -1,5 +1,4 @@
 import { AltitudeCreateContact } from "../../../shared/infra/providers/altitude/create-contact.service";
-import { altitudeQueue } from "../../../shared/infra/queue/altitude/altitude-queue";
 import { generateDataload } from "../../../shared/utils/generate-dataload";
 import { ServilusaRepository } from "../repositories/servilusa.repository";
 
@@ -111,16 +110,14 @@ export class Servilusa23081UploadContactsUseCase {
         },
       };
 
-      await altitudeQueue.add("create-contact", {
+      await this.altitudeCreateContact.execute({
         environment: "onprem",
         payload,
-        genId: request.genId,
-        repository: "servilusa",
       });
 
       await this.servilusaRepository.updateLeadStatus(request.genId, "LOADED");
     } catch (err: any) {
-      console.error("Erro inesperado no Servilusa:", err);
+      console.error("Erro inesperado no 21121UploadContacts:", err);
       await this.servilusaRepository.updateLeadStatus(request.genId, "ERROR");
     }
   }
