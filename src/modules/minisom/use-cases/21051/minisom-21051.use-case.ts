@@ -5,7 +5,7 @@ import { generateGenId } from "../../../../shared/utils/generate-gen-id";
 import { generateNormalizedPhonePT } from "../../../../shared/utils/generate-normalized-phone";
 import { MinisomRepository } from "../../repositories/minisom.repository";
 import { Minisom21051DTO } from "../../schemas/minisom-21051.schema";
-import { Minisom21051UploadContactsUseCase } from "./upload-contacts.use-case";
+import { Minisom21051UploadContactsUseCase } from "./queue";
 
 export interface Minisom21051Request {
   bodyRequest: Minisom21051DTO;

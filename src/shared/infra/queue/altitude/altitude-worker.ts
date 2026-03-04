@@ -27,26 +27,48 @@ export function startAltitudeWorker() {
           payload,
         });
 
-        if (repository === "agilidade24041") {
-          await agilidadeRepository.updateLeadStatus(genId, "LOADED");
-        }
-
         if (repository === "minisomMeta") {
           await minisomRepository.updateLeadStatus(genId, "LOADED");
         }
 
+        if (repository === "minisom21121") {
+          await minisomRepository.updateLeadStatus(genId, "LOADED");
+        }
+
+        if (repository === "minisom21051") {
+          await minisomRepository.updateLeadStatus(genId, "LOADED");
+        }
+
+        if (repository === "minisomCorporate") {
+          await minisomRepository.updateCorporateLeadStatus(genId, "LOADED");
+        }
+
+        if (repository === "agilidade24041") {
+          await agilidadeRepository.updateLeadStatus(genId, "LOADED");
+        }
         if (repository === "servilusa") {
           await servilusaRepository.updateLeadStatus(genId, "LOADED");
         }
       } catch (err: any) {
         console.error(`Erro no worker ao processar job ${genId}:`, err);
 
-        if (repository === "agilidade24041") {
-          await agilidadeRepository.updateLeadStatus(genId, "ERROR");
-        }
-
         if (repository === "minisomMeta") {
           await minisomRepository.updateLeadStatus(genId, "ERROR");
+        }
+
+        if (repository === "minisom21121") {
+          await minisomRepository.updateLeadStatus(genId, "ERROR");
+        }
+        if (repository === "minisom21051") {
+          await minisomRepository.updateLeadStatus(genId, "ERROR");
+        }
+
+        if (repository === "minisomCorporate") {
+          await minisomRepository.updateCorporateLeadStatus(genId, "ERROR");
+        }
+
+        if (repository === "agilidade24041") {
+          await agilidadeRepository.updateLeadStatus(genId, "ERROR");
         }
 
         if (repository === "servilusa") {

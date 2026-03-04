@@ -4,7 +4,7 @@ import { generateGenId } from "../../../../shared/utils/generate-gen-id";
 import { generateNormalizedPhonePT } from "../../../../shared/utils/generate-normalized-phone";
 import { MinisomRepository } from "../../repositories/minisom.repository";
 import { MinisomMetaDTO } from "../../schemas/minisom-meta.schema";
-import { MinisomMetaUploadContactsUseCase } from "./upload-contacts.use-case";
+import { MinisomMetaUploadContactsUseCase } from "./queue";
 
 export interface MinisomMetaRequest {
   bodyRequest: MinisomMetaDTO;

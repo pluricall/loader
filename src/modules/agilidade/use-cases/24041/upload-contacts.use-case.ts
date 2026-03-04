@@ -22,7 +22,7 @@ export interface AgilidadeUploadContactRequest {
   genId: any;
 }
 
-export class Agilidade24041UploadContactsUseCase {
+export class Agilidade24041UploadContactsUseCaseOld {
   constructor(
     private agilidadeRepository: AgilidadeRepository,
     private altitudeCreateContact: AltitudeCreateContact,

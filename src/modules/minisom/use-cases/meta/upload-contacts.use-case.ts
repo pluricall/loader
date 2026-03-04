@@ -14,7 +14,7 @@ interface UploadContactsMeta {
   leadId: any;
 }
 
-export class MinisomMetaUploadContactsUseCase {
+export class MinisomMetaUploadContactsUseCaseOld {
   constructor(
     private minisomRepository: MinisomRepository,
     private altitudeCreateContact: AltitudeCreateContact,

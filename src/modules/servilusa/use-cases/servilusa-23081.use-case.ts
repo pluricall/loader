@@ -2,7 +2,7 @@ import { generateGenId } from "../../../shared/utils/generate-gen-id";
 import { generateNormalizedPhonePT } from "../../../shared/utils/generate-normalized-phone";
 import { ServilusaEncuestaSchema } from "../http/controllers/23081";
 import { ServilusaRepository } from "../repositories/servilusa.repository";
-import { Servilusa23081UploadContactsUseCase } from "./upload-contact.use-case";
+import { Servilusa23081UploadContactsUseCase } from "./queue";
 
 export class Servilusa23081UseCase {
   constructor(
