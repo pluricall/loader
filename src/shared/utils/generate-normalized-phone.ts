@@ -1,7 +1,7 @@
 export function generateNormalizedPhonePT(phone: any): string {
   try {
     if (typeof phone !== "string" || phone.trim() === "") {
-      return "";
+      return String(phone || "");
     }
 
     let digits = phone.replace(/\D/g, "");
@@ -20,11 +20,25 @@ export function generateNormalizedPhonePT(phone: any): string {
       digits = digits.substring(1);
     }
 
-    if (digits.length !== 9) return "";
-    if (!digits.startsWith("9")) return "";
+    if (digits.startsWith("351")) {
+      digits = digits.substring(3);
+    }
 
-    return digits;
+    if (digits.length === 9 && digits.startsWith("9")) {
+      return digits;
+    }
+
+    let cleanedOriginal = phone.replace(/\D/g, "");
+
+    if (cleanedOriginal.startsWith("351")) {
+      cleanedOriginal = cleanedOriginal.substring(3);
+    }
+    while (cleanedOriginal.startsWith("00")) {
+      cleanedOriginal = cleanedOriginal.substring(2);
+    }
+
+    return cleanedOriginal || phone;
   } catch {
-    return "";
+    return String(phone || "");
   }
 }

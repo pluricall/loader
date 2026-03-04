@@ -18,7 +18,7 @@ interface UploadContacts21051 {
   city: any;
 }
 
-export class Minisom21051UploadContactsUseCase {
+export class Minisom21051UploadContactsUseCaseOld {
   constructor(
     private minisomRepository: MinisomRepository,
     private altitudeCreateContact: AltitudeCreateContact,

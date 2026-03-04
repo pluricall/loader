@@ -20,7 +20,7 @@ interface UploadContactsCorporate {
   origem: any;
 }
 
-export class MinisomCorporateUploadContactsUseCase {
+export class MinisomCorporateUploadContactsUseCaseOld {
   constructor(
     private minisomRepository: MinisomRepository,
     private altitudeCreateContact: AltitudeCreateContact,

@@ -3,7 +3,7 @@ import { generateGenId } from "../../../../shared/utils/generate-gen-id";
 import { generateNormalizedPhonePT } from "../../../../shared/utils/generate-normalized-phone";
 import { AgilidadeRepository } from "../../repositories/agilidade.repository";
 import { Agilidade24041DTO } from "../../schemas/agilidade-24041.schema";
-import { Agilidade24041UploadContactsUseCase } from "./upload-contacts.use-case";
+import { Agilidade24041UploadContactsUseCase } from "./queue";
 
 export interface Agilidade24041Request {
   bodyRequest: Agilidade24041DTO;
