@@ -1,6 +1,5 @@
 import fastify, { FastifyReply, FastifyRequest } from "fastify";
 import { env } from "./env";
-import { appRoutes } from "./migrating/http/route";
 import { ZodError } from "zod";
 import fastifyCors from "@fastify/cors";
 import { AltitudeApiError } from "./shared/errors/altitude-error";
@@ -10,6 +9,7 @@ import { RecordingsJob } from "./migrating/jobs/recordings";
 import { startWebhookServer } from "./webhook-server";
 import { startAltitudeWorker } from "./shared/infra/queue/altitude/altitude-worker";
 import { MssqlPluricallRepository } from "./migrating/repositories/mssql/mssql-pluricall-repository";
+import { appRoutes } from "./router";
 
 export const app = fastify({ requestTimeout: 0 });
 startWebhookServer();

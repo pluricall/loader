@@ -45,8 +45,5 @@ export interface ServilusaRepository {
   insertAtServilusaLeadsRepository: (
     data: InsertAtServilusaLeadsRepository,
   ) => void;
-  updateLeadStatus: (
-    gen_id: string | number,
-    lead_status: string,
-  ) => Promise<void>;
+  updateStatus: (gen_id: string | number, lead_status: string) => Promise<void>;
 }

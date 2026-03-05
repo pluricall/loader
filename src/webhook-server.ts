@@ -3,11 +3,11 @@ import { env } from "./env";
 import { ZodError } from "zod";
 import { AltitudeApiError } from "./shared/errors/altitude-error";
 import { AltitudeAuthError } from "./shared/errors/altitude-auth-error";
-import { webhookRoutes } from "./migrating/http/webhook-routes";
 import formbody from "@fastify/formbody";
 import fastifyCors from "@fastify/cors";
 import { startAltitudeWorker } from "./shared/infra/queue/altitude/altitude-worker";
 import { MssqlPluricallRepository } from "./migrating/repositories/mssql/mssql-pluricall-repository";
+import { linceRoutes } from "./router-lince";
 
 export async function startWebhookServer() {
   const webhook = fastify({ requestTimeout: 0 });
@@ -27,6 +27,7 @@ export async function startWebhookServer() {
     "/ws/minisom/21121/",
     "/ws/minisom/21011/",
     "/ws/agilidade/24041/",
+    "/ws/endesa/22071/v2/",
   ];
 
   webhook.addHook(
@@ -78,7 +79,7 @@ export async function startWebhookServer() {
   );
 
   webhook.register(formbody);
-  webhook.register(webhookRoutes);
+  webhook.register(linceRoutes);
   webhook.register(fastifyCors, {
     origin: "*",
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],

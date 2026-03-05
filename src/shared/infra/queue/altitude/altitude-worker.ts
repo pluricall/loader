@@ -2,9 +2,10 @@ import { Worker } from "bullmq";
 import { AltitudeCreateContact } from "../../providers/altitude/create-contact.service";
 import { altitudeAuthService } from "../../providers/altitude/auth.service";
 import { redisConnection } from "../connection";
-import { MssqlAgilidadeRepository } from "../../../../modules/agilidade/repositories/mssql-agilidade.repository";
 import { MssqlMinisomRepository } from "../../../../modules/minisom/repositories/mssql-minisom.repository";
 import { MssqlServilusaRepository } from "../../../../modules/servilusa/repositories/mssql-servilusa.repository";
+import { AgilidadeMssqlRepository } from "../../../../modules/agilidade/infra/mssql/agilidade-mssql-repository";
+import { EndesaMssqlRepository } from "../../../../modules/endesa/infra/mssql/endesa-mssql-repository";
 
 let worker: Worker | null = null;
 
@@ -12,9 +13,10 @@ export function startAltitudeWorker() {
   if (worker) return worker;
 
   const altitudeCreateContact = new AltitudeCreateContact(altitudeAuthService);
-  const agilidadeRepository = new MssqlAgilidadeRepository();
+  const agilidadeRepository = new AgilidadeMssqlRepository();
   const minisomRepository = new MssqlMinisomRepository();
   const servilusaRepository = new MssqlServilusaRepository();
+  const endesaRepository = new EndesaMssqlRepository();
 
   worker = new Worker(
     "altitude-create-contact",
@@ -28,15 +30,15 @@ export function startAltitudeWorker() {
         });
 
         if (repository === "minisomMeta") {
-          await minisomRepository.updateLeadStatus(genId, "LOADED");
+          await minisomRepository.updateStatus(genId, "LOADED");
         }
 
         if (repository === "minisom21121") {
-          await minisomRepository.updateLeadStatus(genId, "LOADED");
+          await minisomRepository.updateStatus(genId, "LOADED");
         }
 
         if (repository === "minisom21051") {
-          await minisomRepository.updateLeadStatus(genId, "LOADED");
+          await minisomRepository.updateStatus(genId, "LOADED");
         }
 
         if (repository === "minisomCorporate") {
@@ -44,23 +46,26 @@ export function startAltitudeWorker() {
         }
 
         if (repository === "agilidade24041") {
-          await agilidadeRepository.updateLeadStatus(genId, "LOADED");
+          await agilidadeRepository.updateStatus(genId, "LOADED");
         }
         if (repository === "servilusa") {
-          await servilusaRepository.updateLeadStatus(genId, "LOADED");
+          await servilusaRepository.updateStatus(genId, "LOADED");
+        }
+        if (repository === "endesa22071") {
+          await endesaRepository.updateStatus(genId, "LOADED");
         }
       } catch (err: any) {
         console.error(`Erro no worker ao processar job ${genId}:`, err);
 
         if (repository === "minisomMeta") {
-          await minisomRepository.updateLeadStatus(genId, "ERROR");
+          await minisomRepository.updateStatus(genId, "ERROR");
         }
 
         if (repository === "minisom21121") {
-          await minisomRepository.updateLeadStatus(genId, "ERROR");
+          await minisomRepository.updateStatus(genId, "ERROR");
         }
         if (repository === "minisom21051") {
-          await minisomRepository.updateLeadStatus(genId, "ERROR");
+          await minisomRepository.updateStatus(genId, "ERROR");
         }
 
         if (repository === "minisomCorporate") {
@@ -68,11 +73,15 @@ export function startAltitudeWorker() {
         }
 
         if (repository === "agilidade24041") {
-          await agilidadeRepository.updateLeadStatus(genId, "ERROR");
+          await agilidadeRepository.updateStatus(genId, "ERROR");
         }
 
         if (repository === "servilusa") {
-          await servilusaRepository.updateLeadStatus(genId, "ERROR");
+          await servilusaRepository.updateStatus(genId, "ERROR");
+        }
+
+        if (repository === "endesa22071") {
+          await endesaRepository.updateStatus(genId, "ERROR");
         }
 
         throw err;
