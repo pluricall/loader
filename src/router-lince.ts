@@ -1,15 +1,16 @@
-import type { FastifyInstance } from "fastify";
-import { saveLinceRequest } from "../../shared/utils/save-lince-request";
-import { minisomRoutes } from "../../modules/minisom/http/routes";
-import { leadRoutes } from "../../modules/leads/http/routes";
-import { agilidadeRoutes } from "../../modules/agilidade/http/routes";
-import { servilusa23081 } from "../../modules/servilusa/http/controllers/servilusa-23081.controller";
+import { minisomRoutes } from "./modules/minisom/http/routes";
+import { leadRoutes } from "./modules/leads/http/routes";
+import { agilidadeRoutes } from "./modules/agilidade/http/routes";
+import { saveLinceRequest } from "./shared/utils/save-lince-request";
+import { endesaRoutes } from "./modules/endesa/http/routes";
+import { FastifyInstance } from "fastify";
 
-export function webhookRoutes(webhook: FastifyInstance) {
-  webhook.register(minisomRoutes);
-  webhook.register(leadRoutes);
-  webhook.register(agilidadeRoutes);
-  webhook.post(`/ws/servilusa/23081/`, async (request, reply) => {
+export function linceRoutes(app: FastifyInstance) {
+  app.register(minisomRoutes);
+  app.register(leadRoutes);
+  app.register(agilidadeRoutes);
+  app.register(endesaRoutes);
+  app.post(`/ws/servilusa/23081/`, async (request, reply) => {
     let xmlString: string;
 
     if (typeof request.body === "string") {
@@ -31,7 +32,7 @@ export function webhookRoutes(webhook: FastifyInstance) {
 
     return servilusa23081({ ...request, body: xmlString }, reply);
   });
-  webhook.route({
+  app.route({
     method: ["GET", "POST", "PUT", "PATCH", "DELETE"],
     url: "/*",
     handler: async (req, reply) => {

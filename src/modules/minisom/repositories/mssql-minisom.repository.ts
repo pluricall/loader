@@ -36,7 +36,7 @@ export class MssqlMinisomRepository implements MinisomRepository {
     return result.recordset[0];
   }
 
-  async updateLeadStatus(
+  async updateStatus(
     genId: string | number,
     leadStatus: string,
   ): Promise<void> {

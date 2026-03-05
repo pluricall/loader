@@ -71,10 +71,10 @@ export class MinisomMetaUploadContactsUseCaseOld {
         payload,
       });
 
-      await this.minisomRepository.updateLeadStatus(genId, "LOADED");
+      await this.minisomRepository.updateStatus(genId, "LOADED");
     } catch (err: any) {
       console.error("Erro inesperado no MetaUploadContacts:", err);
-      await this.minisomRepository.updateLeadStatus(genId, "ERROR");
+      await this.minisomRepository.updateStatus(genId, "ERROR");
     }
   }
 }

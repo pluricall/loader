@@ -74,10 +74,7 @@ export interface MinisomRepository {
   insertAtLeadsCorporateRepository: (
     data: InsertAtLeadsCorporateRepository,
   ) => void;
-  updateLeadStatus: (
-    gen_id: string | number,
-    lead_status: string,
-  ) => Promise<void>;
+  updateStatus: (gen_id: string | number, lead_status: string) => Promise<void>;
   updateCorporateLeadStatus: (
     gen_id: string | number,
     lead_status: string,

@@ -86,10 +86,10 @@ export class Minisom21121UploadContactsUseCaseOld {
         payload,
       });
 
-      await this.minisomRepository.updateLeadStatus(genId, "LOADED");
+      await this.minisomRepository.updateStatus(genId, "LOADED");
     } catch (err: any) {
       console.error("Erro inesperado no 21121UploadContacts:", err);
-      await this.minisomRepository.updateLeadStatus(genId, "ERROR");
+      await this.minisomRepository.updateStatus(genId, "ERROR");
     }
   }
 }

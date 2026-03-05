@@ -148,7 +148,7 @@ export class MssqlServilusaRepository implements ServilusaRepository {
   `);
   }
 
-  async updateLeadStatus(
+  async updateStatus(
     genId: string | number,
     leadStatus: string,
   ): Promise<void> {

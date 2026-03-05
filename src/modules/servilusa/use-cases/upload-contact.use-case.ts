@@ -115,10 +115,10 @@ export class Servilusa23081UploadContactsUseCase {
         payload,
       });
 
-      await this.servilusaRepository.updateLeadStatus(request.genId, "LOADED");
+      await this.servilusaRepository.updateStatus(request.genId, "LOADED");
     } catch (err: any) {
       console.error("Erro inesperado no 21121UploadContacts:", err);
-      await this.servilusaRepository.updateLeadStatus(request.genId, "ERROR");
+      await this.servilusaRepository.updateStatus(request.genId, "ERROR");
     }
   }
 }
