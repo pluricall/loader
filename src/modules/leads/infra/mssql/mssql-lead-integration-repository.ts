@@ -59,6 +59,23 @@ export class MssqlLeadIntegrationRepository
     return LeadIntegrationMapper.toDomain(result.recordset[0]);
   }
 
+  async findById(id: number): Promise<LeadIntegration | null> {
+    const pool = await this.getPool();
+
+    const result = await pool.request().input("id", id)
+      .query<LeadIntegrationRow>(`
+    SELECT *
+    FROM leads_config
+    WHERE id = @id
+      AND is_active = 1
+  `);
+
+    const record = result.recordset[0];
+    if (!record) return null;
+
+    return LeadIntegrationMapper.toDomain(record);
+  }
+
   async findByNameAndContactList(
     campaignName: string,
     contactList: string,

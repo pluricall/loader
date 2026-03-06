@@ -13,11 +13,11 @@ interface UploadContactParams {
 }
 
 export class AltitudeUploadContact {
-  constructor(private authService: AltitudeAuthService) {}
+  constructor(private altitudeAuthService: AltitudeAuthService) {}
 
   async execute({ payload, environment }: UploadContactParams) {
     const config = resolveAltitudeConfig(environment);
-    const token = await this.authService.getToken(environment);
+    const token = await this.altitudeAuthService.getToken(environment);
 
     try {
       const resp = await axios.post(
@@ -28,13 +28,18 @@ export class AltitudeUploadContact {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
+          httpsAgent: new https.Agent({
+            rejectUnauthorized: false,
+          }),
         },
       );
 
       return resp.data;
     } catch (error: any) {
       if (error.response?.status === 401) {
-        const newToken = await this.authService.getToken(environment);
+        this.altitudeAuthService.invalidateToken(environment);
+
+        const newToken = await this.altitudeAuthService.getToken(environment);
 
         const retry = await axios.post(
           `${config.baseUrl}/api/instance/campaignManager/uploadContacts`,
@@ -66,7 +71,6 @@ export class AltitudeUploadContact {
         );
       }
 
-      // erro de rede / timeout
       throw new AltitudeApiError("Altitude unreachable");
     }
   }
