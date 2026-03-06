@@ -4,6 +4,7 @@ import { agilidadeRoutes } from "./modules/agilidade/http/routes";
 import { saveLinceRequest } from "./shared/utils/save-lince-request";
 import { endesaRoutes } from "./modules/endesa/http/routes";
 import { FastifyInstance } from "fastify";
+import { servilusa23081 } from "./modules/servilusa/http/controllers/servilusa-23081.controller";
 
 export function linceRoutes(app: FastifyInstance) {
   app.register(minisomRoutes);
