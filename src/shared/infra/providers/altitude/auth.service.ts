@@ -18,30 +18,33 @@ interface AltitudeAuthErrorResponse {
 }
 
 export class AltitudeAuthService {
-  private token: string | null = null;
-  private expiresAt = 0;
-  private loginPromise: Promise<string> | null = null;
+  private tokens: Map<
+    AltitudeEnvironment,
+    { token: string; expiresAt: number }
+  > = new Map();
+
+  private loginPromises: Map<AltitudeEnvironment, Promise<string>> = new Map();
 
   async getToken(environment: AltitudeEnvironment): Promise<string> {
-    if (this.token && Date.now() < this.expiresAt) {
-      return this.token;
+    const cached = this.tokens.get(environment);
+
+    if (cached && Date.now() < cached.expiresAt) {
+      return cached.token;
     }
 
-    if (this.loginPromise) {
-      return this.loginPromise;
-    }
+    const existing = this.loginPromises.get(environment);
+    if (existing) return existing;
 
-    this.loginPromise = this.login(environment);
+    const promise = this.login(environment);
+    this.loginPromises.set(environment, promise);
 
-    const token = await this.loginPromise;
-    this.loginPromise = null;
+    const token = await promise;
+    this.loginPromises.delete(environment);
 
     return token;
   }
 
-  private async login(
-    environment: "cloud" | "onprem" | "pre",
-  ): Promise<string> {
+  private async login(environment: AltitudeEnvironment): Promise<string> {
     try {
       const config = resolveAltitudeConfig(environment);
       const payload = new URLSearchParams({
@@ -59,24 +62,21 @@ export class AltitudeAuthService {
         `${config.baseUrl}/token`,
         payload,
         {
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-          },
-          httpsAgent: new https.Agent({
-            rejectUnauthorized: false,
-          }),
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          httpsAgent: new https.Agent({ rejectUnauthorized: false }),
           timeout: 10000,
         },
       );
 
-      this.token = resp.data.access_token;
-      this.expiresAt = Date.now() + (resp.data.expires_in - 60) * 1000;
+      const token = resp.data.access_token;
+      const expiresAt = Date.now() + (resp.data.expires_in - 60) * 1000;
 
-      return this.token;
+      this.tokens.set(environment, { token, expiresAt });
+
+      return token;
     } catch (err: any) {
       if (axios.isAxiosError<AltitudeAuthErrorResponse>(err)) {
         const data = err.response?.data;
-
         throw new AltitudeAuthError(
           err.response?.status ?? 500,
           data?.error,
@@ -84,9 +84,13 @@ export class AltitudeAuthService {
           data,
         );
       }
-
       throw new AltitudeAuthError(500, "unknown", err.message, err);
     }
   }
+
+  invalidateToken(environment: AltitudeEnvironment): void {
+    this.tokens.delete(environment);
+  }
 }
+
 export const altitudeAuthService = new AltitudeAuthService();

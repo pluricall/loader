@@ -10,4 +10,5 @@ export interface LeadIntegrationRepository {
     contactList: string,
     environment: AltitudeEnvironment,
   ): Promise<LeadIntegration | null>;
+  findById(id: number): Promise<LeadIntegration | null>;
 }

@@ -37,6 +37,8 @@ export class AltitudeCreateContact {
       return resp.data;
     } catch (error: any) {
       if (error.response?.status === 401) {
+        this.altitudeAuthService.invalidateToken(environment);
+
         const newToken = await this.altitudeAuthService.getToken(environment);
 
         const retry = await axios.post(
