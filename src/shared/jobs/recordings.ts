@@ -1,7 +1,7 @@
 import cron from "node-cron";
 import { sendEmail } from "../../shared/utils/send-email";
-import { GetClientRecordingsUseCase } from "../use-cases/recordings/get-client-recordings";
-import { UploadRecordingsUseCase } from "../use-cases/recordings/upload-recordings";
+import { GetClientRecordingsUseCase } from "../../migrating/use-cases/recordings/get-client-recordings";
+import { UploadRecordingsUseCase } from "../../migrating/use-cases/recordings/upload-recordings";
 
 const getClientRecordingsUseCase = new GetClientRecordingsUseCase();
 const downloadRecordingsUseCase = new UploadRecordingsUseCase();
