@@ -1,4 +1,4 @@
-import client from "../../../../../shared/infra/db/sharePointConnection";
+import client from "../../../shared/infra/services/sharePointClient";
 import { folderHierarchy } from "./folder-hierarchy";
 
 type SendRecordingsToSharepointProps = {

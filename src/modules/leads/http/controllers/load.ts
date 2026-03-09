@@ -36,8 +36,8 @@ export async function loadLeadController(
     if (error instanceof NotFoundError) {
       return reply.status(404).send({ message: error.message });
     }
-    return reply.status(500).send({
-      error: `Não foi possível carregar o lead o cliente. Contacte o administrador de IT: ${error}`,
-    });
+
+    console.error("Erro carregar lead:", error);
+    throw error;
   }
 }

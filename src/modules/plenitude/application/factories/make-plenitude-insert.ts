@@ -1,6 +1,6 @@
-import { MssqlPluricallRepository } from "../../../repositories/mssql/mssql-pluricall-repository";
-import { PlenitudeAuthService } from "../authenticate";
-import { PlenitudeInsert } from "../insert";
+import { MssqlPluricallRepository } from "../../../../migrating/repositories/mssql/mssql-pluricall-repository";
+import { PlenitudeAuthService } from "../use-cases/authenticate";
+import { PlenitudeInsert } from "../use-cases/insert";
 
 export function makePlenitudeInsert(environment?: "prod" | "test") {
   const mssqlRepository = new MssqlPluricallRepository();

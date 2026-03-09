@@ -35,8 +35,6 @@ export async function minisom21121(
     } else if (error instanceof FieldRequiredError) {
       return reply.status(400).send({ error: error.message });
     }
-    return reply.status(500).send({
-      error: "Internal server error",
-    });
+    throw error;
   }
 }

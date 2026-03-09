@@ -1,6 +1,6 @@
 import axios from "axios";
 import { PlenitudeAuthService } from "./authenticate";
-import { PluricallRepository } from "../../repositories/pluricall-repository";
+import { PluricallRepository } from "../../../../migrating/repositories/pluricall-repository";
 
 export class PlenitudeInsert {
   constructor(

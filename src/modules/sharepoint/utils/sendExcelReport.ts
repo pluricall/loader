@@ -2,11 +2,12 @@ import ExcelJS from "exceljs";
 import { sanitizeForSharePoint } from "./sanitize-for-sharepoint";
 import path from "path";
 import fs from "fs/promises";
+
+import { sendRecordingsToSharepoint } from "./send-file";
 import {
   DownloadRecordingsRequest,
   RecordingWithFolderInfo,
-} from "../../../../use-cases/recordings/upload-recordings";
-import { sendRecordingsToSharepoint } from "./send-file";
+} from "../../../migrating/use-cases/recordings/upload-recordings";
 
 export async function generateAndSendExcelReport(
   recordings: RecordingWithFolderInfo[],
@@ -15,7 +16,6 @@ export async function generateAndSendExcelReport(
   const workbook = new ExcelJS.Workbook();
   const worksheet = workbook.addWorksheet("Chamadas Enviadas");
 
-  // Definir cabeçalhos
   worksheet.columns = [
     { header: "EASYCODE", key: "easycode", width: 20 },
     { header: "RESULTADO", key: "resultado", width: 15 },

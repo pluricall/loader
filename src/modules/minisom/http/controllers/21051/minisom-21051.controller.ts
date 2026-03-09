@@ -36,8 +36,6 @@ export async function minisom21051(
       return reply.status(400).send({ error: error.message });
     }
 
-    return reply.status(500).send({
-      error: "Internal server error",
-    });
+    throw error;
   }
 }

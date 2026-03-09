@@ -24,8 +24,6 @@ export async function minisomCorporate(
   } catch (error: any) {
     console.error("Error in minisomCorporate controller:", error);
 
-    return reply.status(500).send({
-      error: "Internal server error",
-    });
+    throw error;
   }
 }

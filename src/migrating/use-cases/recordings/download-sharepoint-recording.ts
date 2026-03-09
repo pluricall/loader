@@ -1,4 +1,5 @@
-import { downloadFromSharepoint } from "../../http/controllers/sharepoint/download";
+import { ISharepointRepository } from "../../../modules/sharepoint/domain/repositories/sharepoint-repository";
+import { SharepointRepository } from "../../../modules/sharepoint/infra/repositories/sharepoint-repository";
 import { MssqlPluricallRepository } from "../../repositories/mssql/mssql-pluricall-repository";
 import { PluricallRepository } from "../../repositories/pluricall-repository";
 
@@ -11,6 +12,7 @@ export interface DownloadedRecording {
 export class DownloadSharepointRecordingUseCase {
   constructor(
     private mssqlRepository: PluricallRepository = new MssqlPluricallRepository(),
+    private sharepointRepository: ISharepointRepository = new SharepointRepository(),
   ) {}
 
   async execute(
@@ -39,7 +41,7 @@ export class DownloadSharepointRecordingUseCase {
         continue;
       }
 
-      const buffer = await downloadFromSharepoint(
+      const buffer = await this.sharepointRepository.downloadFile(
         drive_id,
         sharepoint_location,
       );
