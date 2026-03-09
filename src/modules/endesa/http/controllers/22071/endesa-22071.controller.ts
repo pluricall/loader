@@ -29,6 +29,6 @@ export async function endesa22071Controller(
     });
   } catch (error: any) {
     console.error("Error in endesa22071Controller:", error);
-    return reply.status(500).send({ error: "Internal Server Error" });
+    throw error;
   }
 }

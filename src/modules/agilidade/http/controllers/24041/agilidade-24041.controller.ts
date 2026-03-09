@@ -44,6 +44,6 @@ export async function agilidade24041Controller(
       return reply.status(401).send({ error: error.message });
     }
 
-    return reply.status(500).send({ error: "Internal Server Error" });
+    throw error;
   }
 }

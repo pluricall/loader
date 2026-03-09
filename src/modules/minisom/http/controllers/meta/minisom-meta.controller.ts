@@ -33,8 +33,6 @@ export async function minisomMeta(
       return reply.status(404).send({ error: error.message });
     }
 
-    return reply.status(500).send({
-      error: "Internal server error",
-    });
+    throw error;
   }
 }

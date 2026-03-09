@@ -79,27 +79,36 @@ export class MssqlMinisomRepository implements MinisomRepository {
     await conn
       .request()
       .input("timestamp", timestamp)
-      .input("request_ip", data.request_ip)
-      .input("request_url", data.request_url)
-      .input("gen_id", data.gen_id)
-      .input("campanha_easy", data.campaignName)
-      .input("contact_list_easy", data.contactList)
-      .input("bd_easy", data.bd)
-      .input("raw_phone_number", data.raw_phone_number)
-      .input("phone_number", data.phone_number)
-      .input("lead_status", data.lead_status)
-      .input("name", data.name)
-      .input("surname", data.surname)
-      .input("email", data.email)
-      .input("address", data.address)
-      .input("type_of_request", data.type_of_request)
-      .input("free_message", data.free_message)
-      .input("privacy_consensus_flag", data.privacy_consensus_flag)
-      .input("marketing_consensus_flag", data.marketing_consensus_flag)
-      .input("form_title", data.form_title)
-      .input("language", data.language)
-      .input("adobe_campaign_code", data.adobe_campaign_code)
-      .input("origem", data.origem)
+      .input("request_ip", this.truncate(data.request_ip, 50))
+      .input("request_url", this.truncate(data.request_url, 300))
+      .input("gen_id", this.truncate(data.gen_id, 70))
+      .input("campanha_easy", this.truncate(data.campaignName, 30))
+      .input("contact_list_easy", this.truncate(data.contactList, 50))
+      .input("bd_easy", this.truncate(data.bd, 30))
+      .input("raw_phone_number", this.truncate(data.raw_phone_number, 50))
+      .input("phone_number", this.truncate(data.phone_number, 14))
+      .input("lead_status", this.truncate(data.lead_status, 100))
+      .input("name", this.truncate(data.name, 80))
+      .input("surname", this.truncate(data.surname, 80))
+      .input("email", this.truncate(data.email, 180))
+      .input("address", this.truncate(data.address, 250))
+      .input("type_of_request", this.truncate(data.type_of_request, 50))
+      .input("free_message", this.truncate(data.free_message, 500))
+      .input(
+        "privacy_consensus_flag",
+        this.truncate(data.privacy_consensus_flag, 1),
+      )
+      .input(
+        "marketing_consensus_flag",
+        this.truncate(data.marketing_consensus_flag, 1),
+      )
+      .input("form_title", this.truncate(data.form_title, 250))
+      .input("language", this.truncate(data.language, 20))
+      .input(
+        "adobe_campaign_code",
+        this.truncate(data.adobe_campaign_code, 500),
+      )
+      .input("origem", this.truncate(data.origem, 50))
       .input("formdata", JSON.stringify(data.formData)).query(`
       INSERT INTO minisom_corporate_leads_repository (
         timestamp,

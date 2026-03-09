@@ -127,6 +127,13 @@ export async function startWebhookServer() {
       console.error(error);
     }
 
+    if (error.code === "FST_ERR_CTP_EMPTY_JSON_BODY") {
+      return reply.status(400).send({
+        error: "empty_json_body",
+        message: "Body cannot be empty when Content-Type is application/json",
+      });
+    }
+
     return reply.status(500).send({
       error: "internal_error",
     });

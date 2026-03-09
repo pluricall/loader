@@ -1,11 +1,8 @@
 import { FastifyInstance } from "fastify";
 import { servilusa23081 } from "./controllers/servilusa-23081.controller";
 
-const basePath =
-  process.env.NODE_ENV === "pre" ? "/preinsight360api" : "/Insight360api";
-
 export function servilusaRoutes(app: FastifyInstance) {
-  app.post(`${basePath}/ws/servilusa/23081/`, async (request, reply) => {
+  app.post(`/ws/servilusa/23081/`, async (request, reply) => {
     let xmlString: string;
 
     if (typeof request.body === "string") {

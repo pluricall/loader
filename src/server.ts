@@ -5,11 +5,11 @@ import fastifyCors from "@fastify/cors";
 import { AltitudeApiError } from "./shared/errors/altitude-error";
 import { AltitudeAuthError } from "./shared/errors/altitude-auth-error";
 import formbody from "@fastify/formbody";
-import { RecordingsJob } from "./migrating/jobs/recordings";
 import { startWebhookServer } from "./webhook-server";
 import { startAltitudeWorker } from "./shared/infra/queue/altitude/altitude-worker";
 import { MssqlPluricallRepository } from "./migrating/repositories/mssql/mssql-pluricall-repository";
 import { appRoutes } from "./router";
+import { RecordingsJob } from "./shared/jobs/recordings";
 
 export const app = fastify({ requestTimeout: 0 });
 startWebhookServer();
@@ -113,6 +113,13 @@ app.setErrorHandler((error, _request, reply: FastifyReply) => {
       source: "altitude-auth",
       code: error.code,
       message: error.description,
+    });
+  }
+
+  if (error.code === "FST_ERR_CTP_EMPTY_JSON_BODY") {
+    return reply.status(400).send({
+      error: "empty_json_body",
+      message: "Body cannot be empty when Content-Type is application/json",
     });
   }
 

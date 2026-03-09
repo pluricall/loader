@@ -16,8 +16,8 @@ export async function iberdrolaSms(
 
     await iberdrolaWebhookSmsUseCase.execute(data);
     return reply.status(200).send({ success: true });
-  } catch (err: any) {
-    console.error("Erro ao processar SMS webhook:", err);
-    return reply.status(500).send({ success: false, error: err.message });
+  } catch (error: any) {
+    console.error("Erro ao processar SMS webhook:", error);
+    throw error;
   }
 }

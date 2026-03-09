@@ -2,9 +2,9 @@ import fs from "fs/promises";
 import { makeFetchRecordingsUseCase } from "../factories/make-fetch-records-use-case";
 import { RecordingResult } from "./fetch-recordings";
 import { MssqlPluricallRepository } from "../../repositories/mssql/mssql-pluricall-repository";
-import { sanitizeForSharePoint } from "../../http/controllers/sharepoint/utils/sanitize-for-sharepoint";
-import { sendRecordingsToSharepoint } from "../../http/controllers/sharepoint/utils/send-file";
 import { sendEmail } from "../../../shared/utils/send-email";
+import { sanitizeForSharePoint } from "../../../modules/sharepoint/utils/sanitize-for-sharepoint";
+import { sendRecordingsToSharepoint } from "../../../modules/sharepoint/utils/send-file";
 
 export interface DownloadRecordingsRequest {
   ctName: string;

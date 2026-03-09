@@ -16,8 +16,8 @@ export async function iberdrolaPdf(
 
     await iberdrolaWebhookPdfUseCase.execute(data);
     return reply.status(200).send({ success: true });
-  } catch (err: any) {
-    console.error("Erro ao processar Pdf webhook:", err);
-    return reply.status(500).send({ success: false, error: err.message });
+  } catch (error: any) {
+    console.error("Erro ao processar Pdf webhook:", error);
+    throw error;
   }
 }
