@@ -73,6 +73,10 @@ const envSchema = z.object({
   REDIS_PASSWORD: z.string(),
   REDIS_HOST: z.string(),
   REDIS_PORT: z.coerce.number(),
+
+  PLENITUDE_USER: z.string(),
+  PLENITUDE_PASS: z.string(),
+  PLENITUDE_VERSION: z.string(),
 });
 
 const _env = envSchema.safeParse(process.env);

@@ -1,5 +1,6 @@
 import axios from "axios";
 import { PlenitudeLoginError } from "../../domain/errors/plenitude-login-error";
+import { env } from "../../../../env";
 
 interface PlenitudeLoginResponse {
   IdError: number;
@@ -22,7 +23,7 @@ export class PlenitudeAuthService {
   private tokenExpiresAt = 0;
   private idDistribuidor: string | null = null;
 
-  constructor(private environment: "prod" | "test" = "prod") {}
+  constructor(private environment: "prod" | "test" = "test") {}
 
   private getBaseUrl() {
     return this.environment === "test"
@@ -30,7 +31,7 @@ export class PlenitudeAuthService {
       : "https://wsd.eniplenitude.es/webservice";
   }
 
-  async getToken(usuario: string, pass: string, version: string = "3.0.0") {
+  async getToken() {
     if (this.token && Date.now() < this.tokenExpiresAt && this.idDistribuidor) {
       return { token: this.token, idDistribuidor: this.idDistribuidor };
     }
@@ -39,9 +40,9 @@ export class PlenitudeAuthService {
 
     try {
       const resp = await axios.post<PlenitudeLoginResponse>(loginUrl, {
-        usuario,
-        pass,
-        version,
+        usuario: env.PLENITUDE_USER,
+        pass: env.PLENITUDE_PASS,
+        version: env.PLENITUDE_VERSION || "3.0.0",
       });
 
       if (resp.data.IdError !== 0) {

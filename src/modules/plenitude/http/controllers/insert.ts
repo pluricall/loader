@@ -8,16 +8,10 @@ export async function plenitudeInsert(
   reply: FastifyReply,
 ) {
   try {
-    const { usuario, pass, version, environment, digitalData } =
-      plenitudeBodySchema.parse(request.body);
+    const { digitalData } = plenitudeBodySchema.parse(request.body);
 
-    const plenitudeInsert = makePlenitudeInsert(environment);
-    const result = await plenitudeInsert.execute(
-      usuario,
-      pass,
-      digitalData,
-      version,
-    );
+    const plenitudeInsert = makePlenitudeInsert();
+    const result = await plenitudeInsert.execute(digitalData);
 
     return reply.send(result);
   } catch (error: any) {

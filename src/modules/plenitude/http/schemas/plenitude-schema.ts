@@ -1,10 +1,7 @@
 import { z } from "zod";
 
 export const plenitudeBodySchema = z.object({
-  usuario: z.string().nonempty().min(1, "Deve enviar o usuário"),
-  pass: z.string().nonempty().min(1, "Deve enviar a password"),
-  version: z.string().default("3.0.0"),
-  environment: z.enum(["prod", "test"]).default("prod"),
+  environment: z.enum(["prod", "test"]).default("test"),
   digitalData: z.object({
     pais: z.string(),
     fecha_entrada: z.string(),
