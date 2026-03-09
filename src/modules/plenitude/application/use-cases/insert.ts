@@ -1,6 +1,7 @@
 import axios from "axios";
 import { PlenitudeAuthService } from "./authenticate";
 import { PluricallRepository } from "../../../../migrating/repositories/pluricall-repository";
+import { env } from "../../../../env";
 
 export class PlenitudeInsert {
   constructor(
@@ -8,12 +9,7 @@ export class PlenitudeInsert {
     private mssqlRepository: PluricallRepository,
   ) {}
 
-  async execute(
-    usuario: string,
-    pass: string,
-    digitalData: any,
-    version: string = "3.0.0",
-  ) {
+  async execute(digitalData: any) {
     const endpoint = "/insertar/digital";
     let responsePayload = null;
     let statusCode = 200;
@@ -21,7 +17,7 @@ export class PlenitudeInsert {
 
     try {
       const { token, idDistribuidor } =
-        await this.plenitudeAuthService.getToken(usuario, pass, version);
+        await this.plenitudeAuthService.getToken();
 
       const payload = {
         accessToken: token,
@@ -49,7 +45,7 @@ export class PlenitudeInsert {
       throw err;
     } finally {
       await this.mssqlRepository.logPlenitudeCallCloud({
-        usuario,
+        usuario: env.PLENITUDE_USER,
         endpoint,
         requestPayload: digitalData,
         responsePayload,
