@@ -8,7 +8,7 @@ export async function getFoldersController(
   reply: FastifyReply,
 ) {
   try {
-    const { driveId, folderPath } = request.query as {
+    const { driveId, folderPath } = request.params as {
       driveId: string;
       folderPath?: string;
     };
