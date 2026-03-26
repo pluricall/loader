@@ -22,23 +22,11 @@ export async function startWebhookServer() {
 
   const pluricallRepository = new MssqlPluricallRepository();
 
-  const allowedRoutes = [
-    "/ws/minisom/21051/",
-    "/ws/minisom/21121/",
-    "/ws/minisom/21011/",
-    "/ws/agilidade/24041/",
-    "/ws/endesa/22071/v2/",
-  ];
-
   webhook.addHook(
     "onResponse",
     async (request: FastifyRequest, reply: FastifyReply) => {
       try {
         const routeUrl = request.routeOptions?.url ?? request.url;
-
-        if (!allowedRoutes.includes(routeUrl)) {
-          return;
-        }
 
         let safeBody: string;
         const body = request.body ?? {};
