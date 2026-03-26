@@ -7,6 +7,11 @@ import { servilusaRoutes } from "./modules/servilusa/http/routes";
 import { iberdrolaRoutes } from "./modules/iberdrola/http/route";
 import { sharepointRoutes } from "./modules/sharepoint/http/routes";
 import { plenitudeRoutes } from "./modules/plenitude/http/routes";
+import { getClientsRecordings } from "./migrating/http/controllers/recordings/get-clients";
+import { createClientRecordings } from "./migrating/http/controllers/recordings/create-client";
+import { updateClientRecordings } from "./migrating/http/controllers/recordings/update-client";
+import { getRecordingsMetadatas } from "./migrating/http/controllers/recordings/get-metadatas";
+import { downloadRecording } from "./migrating/http/controllers/recordings/download-from-sharepoint";
 
 export function linceRoutes(app: FastifyInstance) {
   app.register(minisomRoutes);
@@ -17,4 +22,10 @@ export function linceRoutes(app: FastifyInstance) {
   app.register(iberdrolaRoutes);
   app.register(sharepointRoutes);
   app.register(plenitudeRoutes);
+
+  app.get("/clients/records", getClientsRecordings);
+  app.post("/clients/records", createClientRecordings);
+  app.patch("/clients/records/:clientName", updateClientRecordings);
+  app.get(`/recordings/search`, getRecordingsMetadatas);
+  app.get(`/recordings/download`, downloadRecording);
 }
