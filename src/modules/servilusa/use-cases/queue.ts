@@ -39,6 +39,11 @@ export class Servilusa23081UploadContactsUseCase {
     if (Name === "FirstName" && typeof Value === "string") {
       Value = Value.substring(0, 100);
     }
+
+    if (Name === "MobilePhone" || Name === "HomePhone") {
+      Value = String(Value ?? "").slice(-9);
+    }
+
     return {
       discriminator: "DatabaseFields",
       Name,
