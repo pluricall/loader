@@ -8,6 +8,7 @@ import fastifyCors from "@fastify/cors";
 import { startAltitudeWorker } from "./shared/infra/queue/altitude/altitude-worker";
 import { MssqlPluricallRepository } from "./migrating/repositories/mssql/mssql-pluricall-repository";
 import { linceRoutes } from "./router-lince";
+// import { vmOutCron } from "./shared/jobs/vm-out";
 
 export async function startWebhookServer() {
   const webhook = fastify({ requestTimeout: 0 });
@@ -21,6 +22,10 @@ export async function startWebhookServer() {
   );
 
   const pluricallRepository = new MssqlPluricallRepository();
+
+  // webhook.register(async () => {
+  // vmOutCron();
+  // });
 
   webhook.addHook(
     "onResponse",

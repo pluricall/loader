@@ -12,6 +12,7 @@ import { createClientRecordings } from "./migrating/http/controllers/recordings/
 import { updateClientRecordings } from "./migrating/http/controllers/recordings/update-client";
 import { getRecordingsMetadatas } from "./migrating/http/controllers/recordings/get-metadatas";
 import { downloadRecording } from "./migrating/http/controllers/recordings/download-from-sharepoint";
+import { vmOutRoutes } from "./modules/vm-out/http/routes";
 
 export function linceRoutes(app: FastifyInstance) {
   app.register(minisomRoutes);
@@ -22,6 +23,7 @@ export function linceRoutes(app: FastifyInstance) {
   app.register(iberdrolaRoutes);
   app.register(sharepointRoutes);
   app.register(plenitudeRoutes);
+  app.register(vmOutRoutes);
 
   app.get("/clients/records", getClientsRecordings);
   app.post("/clients/records", createClientRecordings);
