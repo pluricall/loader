@@ -3,8 +3,7 @@ import { makeVmOutUseCase } from "../../modules/vm-out/application/use-cases/fac
 
 export function vmOutCron() {
   const useCase = makeVmOutUseCase();
-
-  cron.schedule("5 * * * *", async () => {
+  cron.schedule("*/5 * * * *", async () => {
     try {
       console.log("Iniciando cron job VM OUT");
       await useCase.execute();
