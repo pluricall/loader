@@ -3,6 +3,7 @@ import fs from "fs";
 import path from "path";
 import csv from "csv-parser";
 import iconv from "iconv-lite";
+import { execSync } from "child_process";
 
 export class FileService implements IFileService {
   private detectEncoding(filePath: string): "utf-8" | "utf-16le" {
@@ -64,18 +65,12 @@ export class FileService implements IFileService {
 
   async moveFile(from: string, to: string): Promise<void> {
     const destFolder = path.dirname(to);
-
     await this.createFolder(destFolder);
+    fs.copyFileSync(from, to);
+    fs.unlinkSync(from);
+  }
 
-    try {
-      fs.renameSync(from, to);
-    } catch (err: any) {
-      if (err.code === "EXDEV") {
-        fs.copyFileSync(from, to);
-        fs.unlinkSync(from);
-      } else {
-        throw err;
-      }
-    }
+  async deleteFile(filePath: string): Promise<void> {
+    execSync(`del "${filePath}"`, { shell: "cmd.exe" });
   }
 }

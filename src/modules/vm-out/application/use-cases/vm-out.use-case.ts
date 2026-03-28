@@ -1,11 +1,11 @@
 import path from "path";
-import { altitudeQueue } from "../../../../shared/infra/queue/altitude/altitude-queue";
 import { FileService } from "../../../../shared/infra/services/file.service";
 import { generateDataload } from "../../../../shared/utils/generate-dataload";
 import { generateGenId } from "../../../../shared/utils/generate-gen-id";
 import { generateNormalizedPhonePT } from "../../../../shared/utils/generate-normalized-phone";
 import { sendEmail } from "../../../../shared/utils/send-email";
 import { IVmOutRepository } from "../../domain/repositories/vm-out.repository";
+import { vmOutQueue } from "../../../../shared/infra/queue/vm-out/vm-out-queue";
 
 export class VmOutUseCase {
   constructor(
@@ -13,7 +13,7 @@ export class VmOutUseCase {
     private vmOutRepository: IVmOutRepository,
   ) {}
 
-  private readonly CONTACT_LIST = "Outbound_Test";
+  private readonly CONTACT_LIST = "Out";
   private readonly CAMPAIGN = "VM_OUT";
 
   private buildField(Name: string, Value: any) {
@@ -36,15 +36,20 @@ export class VmOutUseCase {
     const folder = String.raw`\\hercules\Supervisao\Campanhas\rerun_natura`;
     const fileName = "carregar.csv";
     const filePath = path.join(folder, fileName);
-    const processedFolder = path.join(folder, "carregado");
-    const newFileName = `${new Date().toISOString()}_carregado.csv`;
-    const destPath = path.join(processedFolder, newFileName);
 
     const exists = await this.fileService.exists(filePath);
 
     if (!exists) {
       return await sendEmail({
-        to: ["ryan.martins@pluricall.pt"],
+        to: [
+          "ryan.martins@pluricall.pt",
+          "margarida.pinto@pluricall.pt",
+          "rita.carvalho@pluricall.pt",
+          "raul.neto@pluricall.pt",
+          "jorge.rodrigues@pluricall.pt",
+          "beatriz.contreras@pluricall.pt",
+          "susana.silva@pluricall.pt",
+        ],
         subject: "VM OUT - ficheiro não encontrado",
         html: `Processo executado às ${new Date().toLocaleString("pt-PT")} sem ficheiro.`,
       });
@@ -54,7 +59,15 @@ export class VmOutUseCase {
 
     if (!rows.length) {
       return await sendEmail({
-        to: ["ryan.martins@pluricall.pt"],
+        to: [
+          "ryan.martins@pluricall.pt",
+          "margarida.pinto@pluricall.pt",
+          "rita.carvalho@pluricall.pt",
+          "raul.neto@pluricall.pt",
+          "jorge.rodrigues@pluricall.pt",
+          "beatriz.contreras@pluricall.pt",
+          "susana.silva@pluricall.pt",
+        ],
         subject: "VM OUT - ficheiro vazio",
         html: `Ficheiro encontrado mas sem dados.`,
       });
@@ -122,7 +135,7 @@ export class VmOutUseCase {
             ],
           },
         };
-        await altitudeQueue.add("create-contact", {
+        await vmOutQueue.add("create-contact", {
           environment: "cloud",
           payload,
           genId,
@@ -139,7 +152,15 @@ export class VmOutUseCase {
     const totalAttended = leads.filter((l) => attendedSet.has(l.phone)).length;
 
     await sendEmail({
-      to: ["ryan.martins@pluricall.pt"],
+      to: [
+        "ryan.martins@pluricall.pt",
+        "margarida.pinto@pluricall.pt",
+        "rita.carvalho@pluricall.pt",
+        "raul.neto@pluricall.pt",
+        "jorge.rodrigues@pluricall.pt",
+        "beatriz.contreras@pluricall.pt",
+        "susana.silva@pluricall.pt",
+      ],
       subject: `VM OUT - carregada com sucesso`,
       html: `
      <h2>VM OUT - Recebidos</h2>
@@ -154,6 +175,6 @@ export class VmOutUseCase {
       <p><strong>Já contactados hoje:</strong> ${totalAttended}</p>
   `,
     });
-    await this.fileService.moveFile(filePath, destPath);
+    await this.fileService.deleteFile(filePath);
   }
 }

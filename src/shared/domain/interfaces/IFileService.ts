@@ -3,4 +3,5 @@ export interface IFileService {
   parseCSV(path: string): Promise<any[]>;
   createFolder(path: string): Promise<void>;
   moveFile(from: string, to: string): Promise<void>;
+  deleteFile(filePath: string): Promise<void>;
 }

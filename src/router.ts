@@ -22,6 +22,7 @@ import { createTyp } from "./migrating/http/controllers/typs/create";
 import { iberdrolaSenderSms } from "./modules/iberdrola/http/controllers/iberdrola-sender-sms.controller";
 import { iberdrolaSms } from "./modules/iberdrola/http/controllers/iberdrola-webhook-sms.controller";
 import { iberdrolaPdf } from "./modules/iberdrola/http/controllers/iberdrola-webhook-pdf.controller";
+import { vmOutController } from "./modules/vm-out/http/controllers/vm-out.controller";
 
 const basePath =
   process.env.NODE_ENV === "pre" ? "/preinsight360api" : "/Insight360api";
@@ -50,6 +51,7 @@ export function appRoutes(app: FastifyInstance) {
   app.get("/typ/:id", typDetails);
   app.put("/typ/:id", updateTyp);
   app.delete("/typ/:id", removeTyp);
+  app.post(`${basePath}/ws/vm-out`, vmOutController);
 
   /* Records */
   app.get("/clients/records", getClientsRecordings);

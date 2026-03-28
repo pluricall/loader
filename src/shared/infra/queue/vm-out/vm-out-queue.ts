@@ -1,7 +1,7 @@
 import { Queue } from "bullmq";
 import { redisConnection } from "../connection";
 
-export const altitudeQueue = new Queue("altitude-create-contact", {
+export const vmOutQueue = new Queue("vm-out-create-contact", {
   connection: redisConnection,
   defaultJobOptions: {
     attempts: 5,

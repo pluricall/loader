@@ -19,12 +19,12 @@ export class MssqlVmOutRepository implements IVmOutRepository {
     const pool = await connectPluricallDb("onprem");
 
     const result = await pool.request().query(`
-    SELECT telefone1
-    FROM ct_vm_out
+    SELECT telefone2_
+    FROM vm_out_all
     WHERE CAST(dataload AS DATE) = CAST(GETDATE() AS DATE)
   `);
 
-    return result.recordset.map((r: any) => r.telefone1);
+    return result.recordset.map((r: any) => r.telefone2_);
   }
 
   async save(data: SaveVMOutData) {
