@@ -3,8 +3,9 @@ import { generateDataload } from "../../../../shared/utils/generate-dataload";
 import { generateGenId } from "../../../../shared/utils/generate-gen-id";
 import { sendEmail } from "../../../../shared/utils/send-email";
 import { IVmOutRepository } from "../../domain/repositories/vm-out.repository";
-import { vmOutQueue } from "../../../../shared/infra/queue/vm-out/vm-out-queue";
 import { generateNormalizedPhonePT } from "../../../../shared/utils/generate-normalized-phone";
+import { AltitudeCreateContact } from "../../../../shared/infra/providers/altitude/create-contact.service";
+import { altitudeAuthService } from "../../../../shared/infra/providers/altitude/auth.service";
 
 export class VmOutUseCase {
   constructor(
@@ -26,6 +27,10 @@ export class VmOutUseCase {
       Value: Value ?? "",
       IsAnonymized: false,
     };
+  }
+
+  private sleep(ms: number) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   async execute() {
@@ -101,12 +106,12 @@ export class VmOutUseCase {
       .filter((l) => !alreadyLoaded.has(l.phone))
       .filter((l) => !blacklistSet.has(l.phone));
 
+    const altitudeCreateContact = new AltitudeCreateContact(
+      altitudeAuthService,
+    );
+
     const executionId = crypto.randomUUID();
-    const BATCH_SIZE = 10;
-    const BATCH_DELAY_MS = 5000;
-    let jobIndex = 0;
     for (const lead of finalLeads) {
-      const batchNumber = Math.floor(jobIndex / BATCH_SIZE);
       const genId = generateGenId();
       let status = "PENDING";
       let reason = "";
@@ -154,19 +159,25 @@ export class VmOutUseCase {
             ],
           },
         };
-        await vmOutQueue.add(
-          "create-contact",
-          {
+
+        try {
+          const response = await altitudeCreateContact.execute({
             environment: "cloud",
             payload,
+          });
+
+          await this.vmOutRepository.updateStatus(
             genId,
-            repository: "vm-out",
-          },
-          {
-            delay: batchNumber * BATCH_DELAY_MS,
-          },
-        );
-        jobIndex++;
+            "LOADED",
+            undefined,
+            JSON.stringify(response),
+          );
+        } catch (err: any) {
+          await this.vmOutRepository.updateStatus(genId, "ERROR", err.message);
+          console.error(`[VM_OUT] Erro ao enviar contato ${lead.phone}:`, err);
+        }
+
+        await this.sleep(3000);
       }
     }
     const totalEnviados = finalLeads.length;

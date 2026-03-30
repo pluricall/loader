@@ -33,18 +33,12 @@ export function startAltitudeVmOutWorker() {
           );
         }
       } catch (err: any) {
-        const isLastAttempt = job.attemptsMade >= (job.opts.attempts ?? 1) - 1;
-
-        if (repository === "vm-out") {
-          if (isLastAttempt) {
-            await vmOutRepository.updateStatus(genId, "ERROR", err.message);
-            await sendEmail({
-              to: ["ryan.martins@pluricall.pt"],
-              subject: "Erro no worker VM_OUT",
-              html: `Erro: ${err.message} <br><br> GenId: ${genId}`,
-            });
-          }
-        }
+        console.error(`Erro no worker ao processar job VM_OUT ${genId}:`, err);
+        await sendEmail({
+          to: ["ryan.martins@pluricall.pt"],
+          subject: "Erro no worker VM_OUT",
+          html: `Erro: ${err.message} <br><br> GenId: ${genId}`,
+        });
         if (repository === "vm-out") {
           await vmOutRepository.updateStatus(genId, "ERROR", err.message);
         }
@@ -56,7 +50,7 @@ export function startAltitudeVmOutWorker() {
       concurrency: 1,
       limiter: {
         max: 1,
-        duration: 3000,
+        duration: 3000, // máximo 1 job a cada 3s
       },
     },
   );

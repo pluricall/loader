@@ -15,5 +15,10 @@ export interface IVmOutRepository {
   getBlacklist(): Promise<string[]>;
   getAttendedToday(): Promise<string[]>;
   save(data: SaveVMOutData): Promise<void>;
-  updateStatus(genId: string, status: string, error?: string): Promise<void>;
+  updateStatus(
+    genId: string,
+    status: string,
+    error?: string,
+    response?: string,
+  ): Promise<void>;
 }
