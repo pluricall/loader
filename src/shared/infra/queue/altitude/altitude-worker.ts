@@ -6,7 +6,6 @@ import { MssqlMinisomRepository } from "../../../../modules/minisom/repositories
 import { MssqlServilusaRepository } from "../../../../modules/servilusa/repositories/mssql-servilusa.repository";
 import { AgilidadeMssqlRepository } from "../../../../modules/agilidade/infra/mssql/agilidade-mssql-repository";
 import { EndesaMssqlRepository } from "../../../../modules/endesa/infra/mssql/endesa-mssql-repository";
-import { MssqlVmOutRepository } from "../../../../modules/vm-out/infra/mssql/vm-out-mssql-repository";
 
 let worker: Worker | null = null;
 
@@ -18,7 +17,6 @@ export function startAltitudeWorker() {
   const minisomRepository = new MssqlMinisomRepository();
   const servilusaRepository = new MssqlServilusaRepository();
   const endesaRepository = new EndesaMssqlRepository();
-  const vmOutRepository = new MssqlVmOutRepository();
 
   worker = new Worker(
     "altitude-create-contact",
@@ -26,7 +24,7 @@ export function startAltitudeWorker() {
       const { payload, environment, genId, repository } = job.data;
 
       try {
-        const response = await altitudeCreateContact.execute({
+        await altitudeCreateContact.execute({
           environment,
           payload,
         });
@@ -37,15 +35,6 @@ export function startAltitudeWorker() {
 
         if (repository === "minisom21121") {
           await minisomRepository.updateStatus(genId, "LOADED");
-        }
-
-        if (repository === "vm-out") {
-          await vmOutRepository.updateStatus(
-            genId,
-            "LOADED",
-            undefined,
-            response ? JSON.stringify(response) : undefined,
-          );
         }
 
         if (repository === "minisom21051") {
@@ -70,10 +59,6 @@ export function startAltitudeWorker() {
 
         if (repository === "minisomMeta") {
           await minisomRepository.updateStatus(genId, "ERROR");
-        }
-
-        if (repository === "vm-out") {
-          await vmOutRepository.updateStatus(genId, "ERROR", err.message);
         }
 
         if (repository === "minisom21121") {

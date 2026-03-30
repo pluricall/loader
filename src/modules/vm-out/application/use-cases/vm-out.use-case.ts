@@ -1,11 +1,10 @@
-import path from "path";
 import { FileService } from "../../../../shared/infra/services/file.service";
 import { generateDataload } from "../../../../shared/utils/generate-dataload";
 import { generateGenId } from "../../../../shared/utils/generate-gen-id";
-import { generateNormalizedPhonePT } from "../../../../shared/utils/generate-normalized-phone";
 import { sendEmail } from "../../../../shared/utils/send-email";
 import { IVmOutRepository } from "../../domain/repositories/vm-out.repository";
 import { vmOutQueue } from "../../../../shared/infra/queue/vm-out/vm-out-queue";
+import { generateNormalizedPhonePT } from "../../../../shared/utils/generate-normalized-phone";
 
 export class VmOutUseCase {
   constructor(
@@ -13,7 +12,7 @@ export class VmOutUseCase {
     private vmOutRepository: IVmOutRepository,
   ) {}
 
-  private readonly CONTACT_LIST = "Out";
+  private readonly CONTACT_LIST = "Out teste";
   private readonly CAMPAIGN = "VM_OUT";
 
   private buildField(Name: string, Value: any) {
@@ -33,9 +32,9 @@ export class VmOutUseCase {
     const executionDate = new Date();
     const dataload = generateDataload();
 
-    const folder = String.raw`\\hercules\Supervisao\Campanhas\rerun_natura`;
+    const folder = "\\\\hercules\\Supervisao\\Campanhas\\rerun_natura";
     const fileName = "carregar.csv";
-    const filePath = path.join(folder, fileName);
+    const filePath = `${folder}\\${fileName}`;
 
     const exists = await this.fileService.exists(filePath);
 
@@ -86,15 +85,28 @@ export class VmOutUseCase {
     const attendedToday = await this.vmOutRepository.getAttendedToday();
 
     const blacklistSet = new Set(blacklist);
-    const attendedSet = new Set(attendedToday);
+    const alreadyLoaded = new Set(attendedToday);
 
-    const finalLeads = leads
-      .filter((l) => !attendedSet.has(l.phone))
+    const uniqueLeadsMap = new Map<string, (typeof leads)[0]>();
+
+    for (const lead of leads) {
+      if (!uniqueLeadsMap.has(lead.phone)) {
+        uniqueLeadsMap.set(lead.phone, lead);
+      }
+    }
+
+    const uniqueLeads = Array.from(uniqueLeadsMap.values());
+
+    const finalLeads = uniqueLeads
+      .filter((l) => !alreadyLoaded.has(l.phone))
       .filter((l) => !blacklistSet.has(l.phone));
 
     const executionId = crypto.randomUUID();
-
-    for (const lead of leads) {
+    const BATCH_SIZE = 10;
+    const BATCH_DELAY_MS = 5000;
+    let jobIndex = 0;
+    for (const lead of finalLeads) {
+      const batchNumber = Math.floor(jobIndex / BATCH_SIZE);
       const genId = generateGenId();
       let status = "PENDING";
       let reason = "";
@@ -102,23 +114,30 @@ export class VmOutUseCase {
       if (blacklistSet.has(lead.phone)) {
         status = "FILTERED";
         reason = "BLACKLIST";
-      } else if (attendedSet.has(lead.phone)) {
+      } else if (alreadyLoaded.has(lead.phone)) {
         status = "FILTERED";
         reason = "ATTENDED";
       }
 
-      await this.vmOutRepository.save({
-        executionId,
-        genId,
-        phone: lead.phone,
-        calls: lead.calls,
-        lastCall: lead.lastCall ?? "",
-        status,
-        campanha: this.CAMPAIGN,
-        contactList: this.CONTACT_LIST,
-        rawPhone: lead.phone,
-        reason,
-      });
+      try {
+        await this.vmOutRepository.save({
+          executionId,
+          genId,
+          phone: lead.phone,
+          calls: lead.calls,
+          lastCall: lead.lastCall ?? "",
+          status,
+          campanha: this.CAMPAIGN,
+          contactList: this.CONTACT_LIST,
+          rawPhone: lead.phone,
+          reason,
+        });
+      } catch (err: any) {
+        if (err?.number === 2601 || err?.number === 2627) {
+          continue;
+        }
+        throw err;
+      }
 
       if (status === "PENDING") {
         const payload = {
@@ -135,21 +154,25 @@ export class VmOutUseCase {
             ],
           },
         };
-        await vmOutQueue.add("create-contact", {
-          environment: "cloud",
-          payload,
-          genId,
-          repository: "vm-out",
-        });
+        await vmOutQueue.add(
+          "create-contact",
+          {
+            environment: "cloud",
+            payload,
+            genId,
+            repository: "vm-out",
+          },
+          {
+            delay: batchNumber * BATCH_DELAY_MS,
+          },
+        );
+        jobIndex++;
       }
     }
-
-    const totalCsv = leads.length;
     const totalEnviados = finalLeads.length;
-    const totalBlacklist = leads.filter((l) =>
+    const totalBlacklist = uniqueLeads.filter((l) =>
       blacklistSet.has(l.phone),
     ).length;
-    const totalAttended = leads.filter((l) => attendedSet.has(l.phone)).length;
 
     await sendEmail({
       to: [
@@ -163,16 +186,11 @@ export class VmOutUseCase {
       ],
       subject: `VM OUT - carregada com sucesso`,
       html: `
-     <h2>VM OUT - Recebidos</h2>
-      <p><strong>Total:</strong> ${totalCsv}</p>
-      <br/>
-    <br/>
       <h2>VM OUT - Carregados</h2>
       <p><strong>Total carregados:</strong> ${totalEnviados}</p>
     <br/>
       <h2>VM OUT - Não carregados</h2>
       <p><strong>Blacklist:</strong> ${totalBlacklist}</p>
-      <p><strong>Já contactados hoje:</strong> ${totalAttended}</p>
   `,
     });
     await this.fileService.deleteFile(filePath);

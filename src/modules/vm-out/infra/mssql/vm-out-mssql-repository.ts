@@ -16,15 +16,15 @@ export class MssqlVmOutRepository implements IVmOutRepository {
   }
 
   async getAttendedToday(): Promise<string[]> {
-    const pool = await connectPluricallDb("onprem");
+    const poolOnprem = await connectPluricallDb("onprem");
 
-    const result = await pool.request().query(`
-    SELECT telefone2_
-    FROM vm_out_all
-    WHERE CAST(dataload AS DATE) = CAST(GETDATE() AS DATE)
+    const remoteResult = await poolOnprem.request().query(`
+    SELECT DISTINCT 
+RIGHT(REPLACE(REPLACE(COALESCE(telefone2_, telefone1_), '+351', ''), ' ', ''), 9) AS telefone
+FROM ct_vm_out_cloud
+WHERE CAST(dataload AS DATE) = CAST(GETDATE() AS DATE);
   `);
-
-    return result.recordset.map((r: any) => r.telefone2_);
+    return remoteResult.recordset.map((r: any) => r.telefone);
   }
 
   async save(data: SaveVMOutData) {

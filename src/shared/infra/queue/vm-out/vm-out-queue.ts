@@ -4,7 +4,7 @@ import { redisConnection } from "../connection";
 export const vmOutQueue = new Queue("vm-out-create-contact", {
   connection: redisConnection,
   defaultJobOptions: {
-    attempts: 5,
+    attempts: 2,
     backoff: {
       type: "exponential",
       delay: 5000,
