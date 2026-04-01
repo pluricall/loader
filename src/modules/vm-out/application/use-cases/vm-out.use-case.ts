@@ -5,7 +5,7 @@ import { sendEmail } from "../../../../shared/utils/send-email";
 import { IVmOutRepository } from "../../domain/repositories/vm-out.repository";
 import { generateNormalizedPhonePT } from "../../../../shared/utils/generate-normalized-phone";
 import { AltitudeCreateContact } from "../../../../shared/infra/providers/altitude/create-contact.service";
-import { altitudeAuthService } from "../../../../shared/infra/providers/altitude/auth.service";
+import { AltitudeAuthService } from "../../../../shared/infra/providers/altitude/auth.service";
 
 export class VmOutUseCase {
   constructor(
@@ -47,14 +47,15 @@ export class VmOutUseCase {
       return await sendEmail({
         to: [
           "ryan.martins@pluricall.pt",
-          "margarida.pinto@pluricall.pt",
+          "margarida.raposo@pluricall.pt",
           "rita.carvalho@pluricall.pt",
           "raul.neto@pluricall.pt",
           "jorge.rodrigues@pluricall.pt",
           "beatriz.contreras@pluricall.pt",
           "susana.silva@pluricall.pt",
+          "nuno.rainha@pluricall.pt",
         ],
-        subject: "VM OUT - ficheiro não encontrado",
+        subject: `VM OUT - ficheiro não encontrado ${new Date().toLocaleString("pt-PT")} `,
         html: `Processo executado às ${new Date().toLocaleString("pt-PT")} sem ficheiro.`,
       });
     }
@@ -65,14 +66,15 @@ export class VmOutUseCase {
       return await sendEmail({
         to: [
           "ryan.martins@pluricall.pt",
-          "margarida.pinto@pluricall.pt",
+          "margarida.raposo@pluricall.pt",
           "rita.carvalho@pluricall.pt",
           "raul.neto@pluricall.pt",
           "jorge.rodrigues@pluricall.pt",
           "beatriz.contreras@pluricall.pt",
           "susana.silva@pluricall.pt",
+          "nuno.rainha@pluricall.pt",
         ],
-        subject: "VM OUT - ficheiro vazio",
+        subject: `VM OUT - ficheiro vazio ${new Date().toLocaleString("pt-PT")} `,
         html: `Ficheiro encontrado mas sem dados.`,
       });
     }
@@ -107,7 +109,7 @@ export class VmOutUseCase {
       .filter((l) => !blacklistSet.has(l.phone));
 
     const altitudeCreateContact = new AltitudeCreateContact(
-      altitudeAuthService,
+      new AltitudeAuthService(),
     );
 
     const executionId = crypto.randomUUID();
@@ -177,7 +179,7 @@ export class VmOutUseCase {
           console.error(`[VM_OUT] Erro ao enviar contato ${lead.phone}:`, err);
         }
 
-        await this.sleep(3000);
+        await this.sleep(1000);
       }
     }
     const totalEnviados = finalLeads.length;
@@ -188,14 +190,15 @@ export class VmOutUseCase {
     await sendEmail({
       to: [
         "ryan.martins@pluricall.pt",
-        "margarida.pinto@pluricall.pt",
+        "margarida.raposo@pluricall.pt",
         "rita.carvalho@pluricall.pt",
         "raul.neto@pluricall.pt",
         "jorge.rodrigues@pluricall.pt",
         "beatriz.contreras@pluricall.pt",
         "susana.silva@pluricall.pt",
+        "nuno.rainha@pluricall.pt",
       ],
-      subject: `VM OUT - carregada com sucesso`,
+      subject: `VM OUT - carregada com sucesso ${new Date().toLocaleString("pt-PT")}`,
       html: `
       <h2>VM OUT - Carregados</h2>
       <p><strong>Total carregados:</strong> ${totalEnviados}</p>

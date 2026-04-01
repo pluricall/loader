@@ -129,6 +129,12 @@ export async function startWebhookServer() {
       });
     }
 
+    console.error("❌ Unhandled error:", {
+      message: error.message,
+      stack: error.stack,
+      code: error.code,
+    });
+
     return reply.status(500).send({
       error: "internal_error",
     });
