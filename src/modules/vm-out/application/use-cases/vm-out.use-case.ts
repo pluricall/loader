@@ -4,8 +4,8 @@ import { generateGenId } from "../../../../shared/utils/generate-gen-id";
 import { sendEmail } from "../../../../shared/utils/send-email";
 import { IVmOutRepository } from "../../domain/repositories/vm-out.repository";
 import { generateNormalizedPhonePT } from "../../../../shared/utils/generate-normalized-phone";
-import { AltitudeCreateContact } from "../../../../shared/infra/providers/altitude/create-contact.service";
 import { AltitudeAuthService } from "../../../../shared/infra/providers/altitude/auth.service";
+import { AltitudeUploadContact } from "../../../../shared/infra/providers/altitude/upload-contact.service";
 
 export class VmOutUseCase {
   constructor(
@@ -13,8 +13,9 @@ export class VmOutUseCase {
     private vmOutRepository: IVmOutRepository,
   ) {}
 
-  private readonly CONTACT_LIST = "Out teste";
+  private readonly CONTACT_LIST = "Out teste Bulk";
   private readonly CAMPAIGN = "VM_OUT";
+  private readonly BATCH_SIZE = 500;
 
   private buildField(Name: string, Value: any) {
     if (Name === "MobilePhone" || Name === "HomePhone") {
@@ -29,16 +30,14 @@ export class VmOutUseCase {
     };
   }
 
-  private sleep(ms: number) {
-    return new Promise((resolve) => setTimeout(resolve, ms));
-  }
-
   async execute() {
+    const campaign = this.CAMPAIGN;
+    const contactList = this.CONTACT_LIST;
     const executionDate = new Date();
     const dataload = generateDataload();
 
     const folder = "\\\\hercules\\Supervisao\\Campanhas\\rerun_natura";
-    const fileName = "carregar.csv";
+    const fileName = "carregarx.csv";
     const filePath = `${folder}\\${fileName}`;
 
     const exists = await this.fileService.exists(filePath);
@@ -55,8 +54,8 @@ export class VmOutUseCase {
           "susana.silva@pluricall.pt",
           "nuno.rainha@pluricall.pt",
         ],
-        subject: `VM OUT - ficheiro não encontrado ${new Date().toLocaleString("pt-PT")} `,
-        html: `Processo executado às ${new Date().toLocaleString("pt-PT")} sem ficheiro.`,
+        subject: `VM OUT - ficheiro não encontrado ${new Date().toLocaleString("pt-PT")}`,
+        html: `Processo executado sem ficheiro.`,
       });
     }
 
@@ -74,8 +73,8 @@ export class VmOutUseCase {
           "susana.silva@pluricall.pt",
           "nuno.rainha@pluricall.pt",
         ],
-        subject: `VM OUT - ficheiro vazio ${new Date().toLocaleString("pt-PT")} `,
-        html: `Ficheiro encontrado mas sem dados.`,
+        subject: `VM OUT - ficheiro vazio`,
+        html: `Ficheiro sem dados.`,
       });
     }
 
@@ -94,27 +93,15 @@ export class VmOutUseCase {
     const blacklistSet = new Set(blacklist);
     const alreadyLoaded = new Set(attendedToday);
 
-    const uniqueLeadsMap = new Map<string, (typeof leads)[0]>();
-
-    for (const lead of leads) {
-      if (!uniqueLeadsMap.has(lead.phone)) {
-        uniqueLeadsMap.set(lead.phone, lead);
-      }
-    }
-
-    const uniqueLeads = Array.from(uniqueLeadsMap.values());
-
-    const finalLeads = uniqueLeads
-      .filter((l) => !alreadyLoaded.has(l.phone))
-      .filter((l) => !blacklistSet.has(l.phone));
-
-    const altitudeCreateContact = new AltitudeCreateContact(
-      new AltitudeAuthService(),
+    const uniqueLeads = Array.from(
+      new Map(leads.map((l) => [l.phone, l])).values(),
     );
 
     const executionId = crypto.randomUUID();
-    for (const lead of finalLeads) {
+
+    const leadsWithMeta = uniqueLeads.map((lead) => {
       const genId = generateGenId();
+
       let status = "PENDING";
       let reason = "";
 
@@ -126,65 +113,92 @@ export class VmOutUseCase {
         reason = "ATTENDED";
       }
 
-      try {
-        await this.vmOutRepository.save({
+      return { ...lead, genId, status, reason };
+    });
+
+    const CHUNK_SIZE = 200;
+
+    for (let i = 0; i < leadsWithMeta.length; i += CHUNK_SIZE) {
+      const chunk = leadsWithMeta.slice(i, i + CHUNK_SIZE);
+
+      await this.vmOutRepository.saveBulk(
+        chunk.map((lead) => ({
           executionId,
-          genId,
+          genId: lead.genId,
           phone: lead.phone,
           calls: lead.calls,
           lastCall: lead.lastCall ?? "",
-          status,
-          campanha: this.CAMPAIGN,
-          contactList: this.CONTACT_LIST,
+          status: lead.status,
+          campanha: campaign,
+          contactList,
           rawPhone: lead.phone,
-          reason,
-        });
-      } catch (err: any) {
-        if (err?.number === 2601 || err?.number === 2627) {
-          continue;
-        }
-        throw err;
-      }
+          reason: lead.reason,
+        })),
+      );
+    }
 
-      if (status === "PENDING") {
-        const payload = {
-          campaignName: this.CAMPAIGN,
-          contactCreateRequest: {
-            Status: "Started",
+    const pendingLeads = leadsWithMeta.filter((l) => l.status === "PENDING");
+
+    const altitudeUpload = new AltitudeUploadContact(new AltitudeAuthService());
+
+    const uploadBatches: { lead: any; request: any }[][] = [];
+
+    for (let i = 0; i < pendingLeads.length; i += this.BATCH_SIZE) {
+      const chunk = pendingLeads.slice(i, i + this.BATCH_SIZE);
+
+      const batch = chunk.map((lead) => ({
+        lead,
+        request: {
+          RequestType: "Insert",
+          Value: {
+            discriminator: "ContactUploadRequest",
+            ContactStatus: { Value: "Started" },
             ContactListName: {
               RequestType: "Set",
-              Value: this.CONTACT_LIST,
+              Value: contactList,
             },
             Attributes: [
               this.buildField("HomePhone", lead.phone),
               this.buildField("dataload", dataload),
             ],
           },
-        };
+        },
+      }));
 
-        try {
-          const response = await altitudeCreateContact.execute({
-            environment: "cloud",
-            payload,
-          });
+      uploadBatches.push(batch);
+    }
 
-          await this.vmOutRepository.updateStatus(
-            genId,
-            "LOADED",
-            undefined,
-            JSON.stringify(response),
-          );
-        } catch (err: any) {
-          await this.vmOutRepository.updateStatus(genId, "ERROR", err.message);
-          console.error(`[VM_OUT] Erro ao enviar contato ${lead.phone}:`, err);
-        }
+    for (const batch of uploadBatches) {
+      const genIds = batch.map((item) => item.lead.genId);
+      try {
+        const response = await altitudeUpload.execute({
+          environment: "cloud",
+          payload: {
+            campaignName: campaign,
+            requests: batch.map((r) => r.request),
+          },
+        });
 
-        await this.sleep(1000);
+        await this.vmOutRepository.updateStatusBulk(
+          genIds,
+          "LOADED",
+          undefined,
+          JSON.stringify(response),
+        );
+      } catch (err: any) {
+        await this.vmOutRepository.updateStatusBulk(
+          genIds,
+          "ERROR",
+          err.message,
+        );
+
+        console.error("[VM_OUT] Batch error:", err);
       }
     }
-    const totalEnviados = finalLeads.length;
-    const totalBlacklist = uniqueLeads.filter((l) =>
-      blacklistSet.has(l.phone),
+
+    const totalEnviados = pendingLeads.length;
+    const totalBlacklist = leadsWithMeta.filter(
+      (l) => l.reason === "BLACKLIST",
     ).length;
 
     await sendEmail({
@@ -198,15 +212,15 @@ export class VmOutUseCase {
         "susana.silva@pluricall.pt",
         "nuno.rainha@pluricall.pt",
       ],
-      subject: `VM OUT - carregada com sucesso ${new Date().toLocaleString("pt-PT")}`,
+      subject: `VM OUT - sucesso`,
       html: `
-      <h2>VM OUT - Carregados</h2>
-      <p><strong>Total carregados:</strong> ${totalEnviados}</p>
-    <br/>
-      <h2>VM OUT - Não carregados</h2>
-      <p><strong>Blacklist:</strong> ${totalBlacklist}</p>
-  `,
+        <h2>Carregados</h2>
+        <p>${totalEnviados}</p>
+        <h2>Blacklist</h2>
+        <p>${totalBlacklist}</p>
+      `,
     });
+
     await this.fileService.deleteFile(filePath);
   }
 }
