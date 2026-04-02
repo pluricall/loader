@@ -41,7 +41,6 @@ export class VmOutUseCase {
     const filePath = `${folder}\\${fileName}`;
 
     const exists = await this.fileService.exists(filePath);
-
     if (!exists) {
       return await sendEmail({
         to: [
@@ -60,7 +59,6 @@ export class VmOutUseCase {
     }
 
     const rows = await this.fileService.parseCSV(filePath);
-
     if (!rows.length) {
       return await sendEmail({
         to: [
@@ -73,7 +71,7 @@ export class VmOutUseCase {
           "susana.silva@pluricall.pt",
           "nuno.rainha@pluricall.pt",
         ],
-        subject: `VM OUT - ficheiro vazio`,
+        subject: `VM OUT - ficheiro vazio ${new Date().toLocaleString("pt-PT")}`,
         html: `Ficheiro sem dados.`,
       });
     }
@@ -83,65 +81,56 @@ export class VmOutUseCase {
       .map((r) => ({
         phone: generateNormalizedPhonePT(Object.values(r)[0]),
         calls: Number(String(Object.values(r)[1] || 0).trim()),
-        lastCall: String(Object.values(r)[2]),
+        lastCall: String(Object.values(r)[2] ?? ""),
         executionDate,
       }));
 
     const blacklist = await this.vmOutRepository.getBlacklist();
     const attendedToday = await this.vmOutRepository.getAttendedToday();
-
     const blacklistSet = new Set(blacklist);
     const alreadyLoaded = new Set(attendedToday);
 
-    const uniqueLeads = Array.from(
-      new Map(leads.map((l) => [l.phone, l])).values(),
-    );
-
-    const executionId = crypto.randomUUID();
-
-    const leadsWithMeta = uniqueLeads.map((lead) => {
-      const genId = generateGenId();
-
-      let status = "PENDING";
-      let reason = "";
-
-      if (blacklistSet.has(lead.phone)) {
-        status = "FILTERED";
-        reason = "BLACKLIST";
-      } else if (alreadyLoaded.has(lead.phone)) {
-        status = "FILTERED";
-        reason = "ATTENDED";
-      }
-
-      return { ...lead, genId, status, reason };
-    });
-
-    const uniqueLeadsMap = new Map<string, (typeof leadsWithMeta)[0]>();
-    for (const lead of leadsWithMeta) {
-      if (!alreadyLoaded.has(lead.phone) && !uniqueLeadsMap.has(lead.phone)) {
+    const uniqueLeadsMap = new Map<string, (typeof leads)[0]>();
+    for (const lead of leads) {
+      if (!uniqueLeadsMap.has(lead.phone)) {
         uniqueLeadsMap.set(lead.phone, lead);
       }
     }
-    const leadsToSave = Array.from(uniqueLeadsMap.values());
+    const uniqueLeads = Array.from(uniqueLeadsMap.values());
+
+    const leadsWithMeta = Array.from(
+      new Map(
+        leads.map((lead) => {
+          const genId = generateGenId();
+          let status = "PENDING";
+          let reason = "";
+
+          if (blacklistSet.has(lead.phone)) {
+            status = "FILTERED";
+            reason = "BLACKLIST";
+          } else if (alreadyLoaded.has(lead.phone)) {
+            status = "FILTERED";
+            reason = "ATTENDED";
+          }
+
+          return [lead.phone, { ...lead, genId, status, reason }];
+        }),
+      ).values(),
+    );
 
     const CHUNK_SIZE = 200;
-
-    for (let i = 0; i < leadsToSave.length; i += CHUNK_SIZE) {
-      const chunk = leadsToSave.slice(i, i + CHUNK_SIZE);
-
-      const filteredChunk = chunk.filter(
-        (lead) => !alreadyLoaded.has(lead.phone),
-      );
+    for (let i = 0; i < leadsWithMeta.length; i += CHUNK_SIZE) {
+      const chunk = leadsWithMeta.slice(i, i + CHUNK_SIZE);
 
       await this.vmOutRepository.saveBulk(
-        filteredChunk.map((lead) => ({
-          executionId,
+        chunk.map((lead) => ({
+          executionId: crypto.randomUUID(),
           genId: lead.genId,
           phone: lead.phone,
           calls: lead.calls,
           lastCall: lead.lastCall ?? "",
           status: lead.status,
-          campanha: campaign,
+          campanha: this.CAMPAIGN,
           contactList,
           rawPhone: lead.phone,
           reason: lead.reason,
@@ -149,26 +138,17 @@ export class VmOutUseCase {
       );
     }
 
-    const pendingLeads = leadsToSave.filter((l) => l.status === "PENDING");
-
-    const altitudeUpload = new AltitudeUploadContact(new AltitudeAuthService());
-
-    const uploadBatches: { lead: any; request: any }[][] = [];
+    const pendingLeads = leadsWithMeta.filter((l) => l.status === "PENDING");
 
     for (let i = 0; i < pendingLeads.length; i += this.BATCH_SIZE) {
-      const chunk = pendingLeads.slice(i, i + this.BATCH_SIZE);
-
-      const batch = chunk.map((lead) => ({
+      const batch = pendingLeads.slice(i, i + this.BATCH_SIZE).map((lead) => ({
         lead,
         request: {
           RequestType: "Insert",
           Value: {
             discriminator: "ContactUploadRequest",
             ContactStatus: { Value: "Started" },
-            ContactListName: {
-              RequestType: "Set",
-              Value: contactList,
-            },
+            ContactListName: { RequestType: "Set", Value: contactList },
             Attributes: [
               this.buildField("HomePhone", lead.phone),
               this.buildField("dataload", dataload),
@@ -177,20 +157,18 @@ export class VmOutUseCase {
         },
       }));
 
-      uploadBatches.push(batch);
-    }
-
-    for (const batch of uploadBatches) {
       const genIds = batch.map((item) => item.lead.genId);
+
       try {
-        const response = await altitudeUpload.execute({
+        const response = await new AltitudeUploadContact(
+          new AltitudeAuthService(),
+        ).execute({
           environment: "cloud",
           payload: {
             campaignName: campaign,
             requests: batch.map((r) => r.request),
           },
         });
-
         await this.vmOutRepository.updateStatusBulk(
           genIds,
           "LOADED",
@@ -203,14 +181,12 @@ export class VmOutUseCase {
           "ERROR",
           err.message,
         );
-
         console.error("[VM_OUT] Batch error:", err);
       }
     }
-
     const totalEnviados = pendingLeads.length;
-    const totalBlacklist = leadsToSave.filter(
-      (l) => l.reason === "BLACKLIST",
+    const totalBlacklist = uniqueLeads.filter((l) =>
+      blacklistSet.has(l.phone),
     ).length;
 
     await sendEmail({
@@ -224,13 +200,13 @@ export class VmOutUseCase {
         "susana.silva@pluricall.pt",
         "nuno.rainha@pluricall.pt",
       ],
-      subject: `VM OUT - sucesso`,
+      subject: `VM OUT - Sucesso no carregamento - ${new Date().toLocaleString("pt-PT")}`,
       html: `
-        <h2>Carregados</h2>
-        <p>${totalEnviados}</p>
-        <h2>Blacklist</h2>
-        <p>${totalBlacklist}</p>
-      `,
+      <h2>Carregados</h2>
+      <p>${totalEnviados}</p>
+      <h2>Blacklist</h2>
+      <p>${totalBlacklist}</p>
+    `,
     });
 
     await this.fileService.deleteFile(filePath);
