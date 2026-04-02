@@ -37,7 +37,7 @@ export class VmOutUseCase {
     const dataload = generateDataload();
 
     const folder = "\\\\hercules\\Supervisao\\Campanhas\\rerun_natura";
-    const fileName = "carregarx.csv";
+    const fileName = "carregar.csv";
     const filePath = `${folder}\\${fileName}`;
 
     const exists = await this.fileService.exists(filePath);
