@@ -121,8 +121,12 @@ export class VmOutUseCase {
     for (let i = 0; i < leadsWithMeta.length; i += CHUNK_SIZE) {
       const chunk = leadsWithMeta.slice(i, i + CHUNK_SIZE);
 
+      const filteredChunk = chunk.filter(
+        (lead) => !alreadyLoaded.has(lead.phone),
+      );
+
       await this.vmOutRepository.saveBulk(
-        chunk.map((lead) => ({
+        filteredChunk.map((lead) => ({
           executionId,
           genId: lead.genId,
           phone: lead.phone,
