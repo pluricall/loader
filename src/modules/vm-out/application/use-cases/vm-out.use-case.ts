@@ -116,10 +116,18 @@ export class VmOutUseCase {
       return { ...lead, genId, status, reason };
     });
 
+    const uniqueLeadsMap = new Map<string, (typeof leadsWithMeta)[0]>();
+    for (const lead of leadsWithMeta) {
+      if (!alreadyLoaded.has(lead.phone) && !uniqueLeadsMap.has(lead.phone)) {
+        uniqueLeadsMap.set(lead.phone, lead);
+      }
+    }
+    const leadsToSave = Array.from(uniqueLeadsMap.values());
+
     const CHUNK_SIZE = 200;
 
-    for (let i = 0; i < leadsWithMeta.length; i += CHUNK_SIZE) {
-      const chunk = leadsWithMeta.slice(i, i + CHUNK_SIZE);
+    for (let i = 0; i < leadsToSave.length; i += CHUNK_SIZE) {
+      const chunk = leadsToSave.slice(i, i + CHUNK_SIZE);
 
       const filteredChunk = chunk.filter(
         (lead) => !alreadyLoaded.has(lead.phone),
@@ -141,7 +149,7 @@ export class VmOutUseCase {
       );
     }
 
-    const pendingLeads = leadsWithMeta.filter((l) => l.status === "PENDING");
+    const pendingLeads = leadsToSave.filter((l) => l.status === "PENDING");
 
     const altitudeUpload = new AltitudeUploadContact(new AltitudeAuthService());
 
@@ -201,7 +209,7 @@ export class VmOutUseCase {
     }
 
     const totalEnviados = pendingLeads.length;
-    const totalBlacklist = leadsWithMeta.filter(
+    const totalBlacklist = leadsToSave.filter(
       (l) => l.reason === "BLACKLIST",
     ).length;
 
