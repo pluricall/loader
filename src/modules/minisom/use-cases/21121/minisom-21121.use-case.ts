@@ -69,7 +69,7 @@ export class Minisom21121UseCase {
       postedDate: bodyRequest.posted_date || "",
       mappingTemplate: "DEFAULT",
       autDados: bodyRequest.privacy || "",
-      age: bodyRequest.age || "",
+      age: bodyRequest.birth_date || "",
       difAuditiva: bodyRequest.dif_auditiva || "",
       distId: bodyRequest.partner_id || "",
       notes1: "",
