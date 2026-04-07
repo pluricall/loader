@@ -55,6 +55,16 @@ export class MinisomCorporateUploadContactsUseCase {
     const dataload = generateDataload();
     const plcId = generatePlcId();
     const origemAndSource = `${origem} ${adobeCampaignCode || ""}`.trim();
+    let fieldToLoadPhoneNumber: string = "HomePhone";
+
+    if (
+      String(phoneNumber).startsWith("91") ||
+      String(phoneNumber).startsWith("92") ||
+      String(phoneNumber).startsWith("93") ||
+      String(phoneNumber).startsWith("96")
+    ) {
+      fieldToLoadPhoneNumber = "MobilePhone";
+    }
 
     const payload = {
       campaignName: campaign,
@@ -62,7 +72,7 @@ export class MinisomCorporateUploadContactsUseCase {
         Status: "Started",
         ContactListName: { RequestType: "Set", Value: contactList },
         Attributes: [
-          this.buildAltitudeField("MobilePhone", phoneNumber),
+          this.buildAltitudeField(fieldToLoadPhoneNumber, phoneNumber),
           this.buildAltitudeField("id_cliente", String(genId)),
           this.buildAltitudeField("Email1", String(email)),
           this.buildAltitudeField("FirstName", String(name)),

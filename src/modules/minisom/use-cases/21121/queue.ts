@@ -55,6 +55,17 @@ export class Minisom21121UploadContactsUseCase {
     const plcId = generatePlcId();
     const origemAndSource = `${origem} ${utmSource || ""}`.trim();
 
+    let fieldToLoadPhoneNumber: string = "HomePhone";
+
+    if (
+      String(phoneNumber).startsWith("91") ||
+      String(phoneNumber).startsWith("92") ||
+      String(phoneNumber).startsWith("93") ||
+      String(phoneNumber).startsWith("96")
+    ) {
+      fieldToLoadPhoneNumber = "MobilePhone";
+    }
+
     const payload = {
       campaignName: campaign,
       contactCreateRequest: {
@@ -64,7 +75,7 @@ export class Minisom21121UploadContactsUseCase {
           Value: contactList,
         },
         Attributes: [
-          this.buildAltitudeField("HomePhone", phoneNumber),
+          this.buildAltitudeField(fieldToLoadPhoneNumber, phoneNumber),
           this.buildAltitudeField("id_cliente", String(leadId)),
           this.buildAltitudeField("Email1", String(email)),
           this.buildAltitudeField("FirstName", String(name)),
