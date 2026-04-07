@@ -37,18 +37,22 @@ async function importarLeads() {
           headers: {
             "Content-Type": "application/x-www-form-urlencoded",
           },
-        }
+        },
       );
 
       console.log(`✅ Lead ${i} carregada: ${lead.full_name}`);
+      console.log(`${res.data} ✅ Lead ${i} carregada: ${lead.full_name}`);
     } catch (error: any) {
       if (error.response) {
         console.log(
           `⚠️ Lead ${i} (${lead.full_name}) erro ${error.response.status}:`,
-          error.response.data
+          error.response.data,
         );
       } else {
-        console.log(`❌ Lead ${i} (${lead.full_name}) erro de rede:`, error.message);
+        console.log(
+          `❌ Lead ${i} (${lead.full_name}) erro de rede:`,
+          error.message,
+        );
       }
     }
   }

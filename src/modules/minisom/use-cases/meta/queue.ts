@@ -53,7 +53,7 @@ export class MinisomMetaUploadContactsUseCase {
           Value: contactList,
         },
         Attributes: [
-          this.buildAltitudeField("HomePhone", phoneNumber),
+          this.buildAltitudeField("MobilePhone", phoneNumber),
           this.buildAltitudeField("id_cliente", String(leadId)),
           this.buildAltitudeField("Email1", String(email)),
           this.buildAltitudeField("FirstName", String(name)),

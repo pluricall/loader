@@ -15,6 +15,8 @@ interface UploadContacts21121 {
   birthDate: any;
   utmSource: any;
   city: any;
+  privacy: any;
+  marketing: any;
 }
 
 export class Minisom21121UploadContactsUseCase {
@@ -47,6 +49,8 @@ export class Minisom21121UploadContactsUseCase {
     origem,
     birthDate,
     city,
+    marketing,
+    privacy,
   }: UploadContacts21121) {
     const dataload = generateDataload();
     const plcId = generatePlcId();
@@ -74,6 +78,8 @@ export class Minisom21121UploadContactsUseCase {
           this.buildAltitudeField("Birthday", String(birthDate)),
           this.buildAltitudeField("dataload", String(dataload)),
           this.buildAltitudeField("plc_id", String(plcId)),
+          this.buildAltitudeField("Manager", String(privacy)),
+          this.buildAltitudeField("Assistant", String(marketing)),
         ],
       },
     };
