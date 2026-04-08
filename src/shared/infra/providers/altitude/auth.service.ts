@@ -170,7 +170,9 @@ export class AltitudeAuthService {
   }
 
   invalidateToken(environment: AltitudeEnvironment): void {
-    this.tokens.delete(environment);
+    if (!this.loginPromises.has(environment)) {
+      this.tokens.delete(environment);
+    }
   }
 }
 
