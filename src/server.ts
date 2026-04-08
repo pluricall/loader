@@ -10,12 +10,10 @@ import { startAltitudeWorker } from "./shared/infra/queue/altitude/altitude-work
 import { MssqlPluricallRepository } from "./migrating/repositories/mssql/mssql-pluricall-repository";
 import { appRoutes } from "./router";
 import { RecordingsJob } from "./shared/jobs/recordings";
-import { startAltitudeVmOutWorker } from "./shared/infra/queue/vm-out/vm-out-worker";
 
 export const app = fastify({ requestTimeout: 0 });
 startWebhookServer();
 startAltitudeWorker();
-startAltitudeVmOutWorker();
 app.addContentTypeParser(
   ["application/xml", "text/xml"],
   { parseAs: "string" },

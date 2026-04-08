@@ -70,28 +70,18 @@ export class FileService implements IFileService {
   }
 
   async deleteFile(filePath: string): Promise<void> {
-    console.log("[deleteFile] Tentando apagar:", filePath);
-    console.log("[deleteFile] Ficheiro existe?", fs.existsSync(filePath));
-
     try {
       const backupFolder = path.join(path.dirname(filePath), "_backup");
-      console.log("[deleteFile] Backup folder:", backupFolder);
 
       if (!fs.existsSync(backupFolder)) {
         fs.mkdirSync(backupFolder, { recursive: true });
-        console.log("[deleteFile] Pasta _backup criada");
       }
-
       const backupPath = path.join(
         backupFolder,
         `${Date.now()}_${path.basename(filePath)}`,
       );
-
       fs.copyFileSync(filePath, backupPath);
-      console.log("[deleteFile] Cópia feita para:", backupPath);
-
       fs.unlinkSync(filePath);
-      console.log("[deleteFile] Ficheiro original apagado com sucesso");
     } catch (err) {
       console.error("[deleteFile] ERRO:", err);
       throw err;

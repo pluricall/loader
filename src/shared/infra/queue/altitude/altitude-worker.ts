@@ -6,22 +6,57 @@ import { MssqlMinisomRepository } from "../../../../modules/minisom/repositories
 import { MssqlServilusaRepository } from "../../../../modules/servilusa/repositories/mssql-servilusa.repository";
 import { AgilidadeMssqlRepository } from "../../../../modules/agilidade/infra/mssql/agilidade-mssql-repository";
 import { EndesaMssqlRepository } from "../../../../modules/endesa/infra/mssql/endesa-mssql-repository";
+import { AltitudeEnvironment } from "../../../utils/resolve-altitude-config";
 
 let worker: Worker | null = null;
+
+type RepositoryType =
+  | "minisomMeta"
+  | "minisom21121"
+  | "minisom21051"
+  | "minisomCorporate"
+  | "agilidade24041"
+  | "servilusa"
+  | "endesa22071";
+
+const agilidadeRepository = new AgilidadeMssqlRepository();
+const minisomRepository = new MssqlMinisomRepository();
+const servilusaRepository = new MssqlServilusaRepository();
+const endesaRepository = new EndesaMssqlRepository();
+
+function createRepositoryHandler(
+  genId: string,
+  status: "LOADED" | "ERROR",
+): Record<RepositoryType, () => Promise<void>> {
+  return {
+    minisomMeta: () => minisomRepository.updateStatus(genId, status),
+    minisom21121: () => minisomRepository.updateStatus(genId, status),
+    minisom21051: () => minisomRepository.updateStatus(genId, status),
+    minisomCorporate: () =>
+      minisomRepository.updateCorporateLeadStatus(genId, status),
+    agilidade24041: () => agilidadeRepository.updateStatus(genId, status),
+    servilusa: () => servilusaRepository.updateStatus(genId, status),
+    endesa22071: () => endesaRepository.updateStatus(genId, status),
+  };
+}
 
 export function startAltitudeWorker() {
   if (worker) return worker;
 
   const altitudeCreateContact = new AltitudeCreateContact(altitudeAuthService);
-  const agilidadeRepository = new AgilidadeMssqlRepository();
-  const minisomRepository = new MssqlMinisomRepository();
-  const servilusaRepository = new MssqlServilusaRepository();
-  const endesaRepository = new EndesaMssqlRepository();
 
   worker = new Worker(
     "altitude-create-contact",
     async (job) => {
-      const { payload, environment, genId, repository } = job.data;
+      const { payload, environment, genId, repository } = job.data as {
+        payload: any;
+        environment: AltitudeEnvironment;
+        genId: string;
+        repository: RepositoryType;
+      };
+
+      const successHandlers = createRepositoryHandler(genId, "LOADED");
+      const errorHandlers = createRepositoryHandler(genId, "ERROR");
 
       try {
         await altitudeCreateContact.execute({
@@ -29,59 +64,25 @@ export function startAltitudeWorker() {
           payload,
         });
 
-        if (repository === "minisomMeta") {
-          await minisomRepository.updateStatus(genId, "LOADED");
+        const handler = successHandlers[repository];
+
+        if (!handler) {
+          throw new Error(`Handler não encontrado para ${repository}`);
         }
 
-        if (repository === "minisom21121") {
-          await minisomRepository.updateStatus(genId, "LOADED");
-        }
-
-        if (repository === "minisom21051") {
-          await minisomRepository.updateStatus(genId, "LOADED");
-        }
-
-        if (repository === "minisomCorporate") {
-          await minisomRepository.updateCorporateLeadStatus(genId, "LOADED");
-        }
-
-        if (repository === "agilidade24041") {
-          await agilidadeRepository.updateStatus(genId, "LOADED");
-        }
-        if (repository === "servilusa") {
-          await servilusaRepository.updateStatus(genId, "LOADED");
-        }
-        if (repository === "endesa22071") {
-          await endesaRepository.updateStatus(genId, "LOADED");
-        }
+        await handler();
       } catch (err: any) {
-        console.error(`Erro no worker ao processar job ${genId}:`, err);
+        console.error(
+          `[${repository}] Erro no worker ao processar job ${genId}:`,
+          err,
+        );
 
-        if (repository === "minisomMeta") {
-          await minisomRepository.updateStatus(genId, "ERROR");
-        }
+        const errorHandler = errorHandlers[repository];
 
-        if (repository === "minisom21121") {
-          await minisomRepository.updateStatus(genId, "ERROR");
-        }
-        if (repository === "minisom21051") {
-          await minisomRepository.updateStatus(genId, "ERROR");
-        }
-
-        if (repository === "minisomCorporate") {
-          await minisomRepository.updateCorporateLeadStatus(genId, "ERROR");
-        }
-
-        if (repository === "agilidade24041") {
-          await agilidadeRepository.updateStatus(genId, "ERROR");
-        }
-
-        if (repository === "servilusa") {
-          await servilusaRepository.updateStatus(genId, "ERROR");
-        }
-
-        if (repository === "endesa22071") {
-          await endesaRepository.updateStatus(genId, "ERROR");
+        if (!errorHandler) {
+          console.error(`Handler de erro não encontrado para ${repository}`);
+        } else {
+          await errorHandler();
         }
 
         throw err;
@@ -94,11 +95,20 @@ export function startAltitudeWorker() {
   );
 
   worker.on("failed", (job, err) => {
-    console.error(`Job ${job?.id} falhou:`, err);
+    console.error({
+      repository: job?.data?.repository,
+      jobId: job?.id,
+      status: "error",
+      error: err instanceof Error ? err.message : String(err),
+    });
   });
 
   worker.on("completed", (job) => {
-    console.log(`Job ${job?.id} concluído`);
+    console.log({
+      repository: job?.data?.repository,
+      jobId: job?.id,
+      status: "completed",
+    });
   });
 
   return worker;

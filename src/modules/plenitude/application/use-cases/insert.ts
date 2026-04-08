@@ -19,8 +19,6 @@ export class PlenitudeInsert {
       const { token, idDistribuidor } =
         await this.plenitudeAuthService.getToken();
 
-      console.log(token);
-
       const payload = {
         accessToken: token,
         version: "3.0.0",
