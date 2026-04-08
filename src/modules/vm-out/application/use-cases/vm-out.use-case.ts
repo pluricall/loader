@@ -13,7 +13,7 @@ export class VmOutUseCase {
     private vmOutRepository: IVmOutRepository,
   ) {}
 
-  private readonly CONTACT_LIST = "Out";
+  private readonly CONTACT_LIST = "Default Contact List for Campaign VM_OUT";
   private readonly CAMPAIGN = "VM_OUT";
   private readonly BATCH_SIZE = 500;
 
