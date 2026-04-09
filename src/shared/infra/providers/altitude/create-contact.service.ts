@@ -24,7 +24,18 @@ export class AltitudeCreateContact {
     try {
       return await this.post(config.baseUrl, token, payload);
     } catch (error: any) {
-      if (error.response?.status === 401 && !this.retrying.has(environment)) {
+      const isDisposed =
+        error.response?.data?.message?.includes("entity was disposed") ||
+        error.response?.data?.error_description?.includes(
+          "entity was disposed",
+        ) ||
+        JSON.stringify(error.response?.data ?? "").includes(
+          "entity was disposed",
+        );
+
+      const is401 = error.response?.status === 401;
+
+      if ((is401 || isDisposed) && !this.retrying.has(environment)) {
         this.retrying.add(environment);
         try {
           this.altitudeAuthService.invalidateToken(environment);
