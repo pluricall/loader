@@ -20,7 +20,7 @@ export class MinisomTestUseCase {
 
   private readonly YEAR = new Date().getFullYear();
   private readonly CAMPAIGN = "MinisomExtNet";
-  private readonly CONTACTLIST = `Net${this.YEAR} Test`;
+  private readonly CONTACTLIST = `LeadsTest`;
   private readonly ORIGEM = "TEST";
 
   async execute({ bodyRequest, requestIp, requestUrl }: MinisomTestRequest) {
