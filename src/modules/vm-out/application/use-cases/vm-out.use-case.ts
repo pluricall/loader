@@ -1,11 +1,11 @@
 import { FileService } from "../../../../shared/infra/services/file.service";
 import { generateDataload } from "../../../../shared/utils/generate-dataload";
 import { generateGenId } from "../../../../shared/utils/generate-gen-id";
-import { sendEmail } from "../../../../shared/utils/send-email";
 import { IVmOutRepository } from "../../domain/repositories/vm-out.repository";
 import { generateNormalizedPhonePT } from "../../../../shared/utils/generate-normalized-phone";
 import { AltitudeAuthService } from "../../../../shared/infra/providers/altitude/auth.service";
 import { AltitudeUploadContact } from "../../../../shared/infra/providers/altitude/upload-contact.service";
+import { sendNotification } from "../../../../shared/notification/send-notification";
 
 export class VmOutUseCase {
   constructor(
@@ -30,6 +30,49 @@ export class VmOutUseCase {
     };
   }
 
+  private buildReportCSV(
+    rows: Record<string, any>[],
+    leadsWithMeta: Array<{ phone: string; status: string; reason: string }>,
+  ): Buffer {
+    const metaMap = new Map(leadsWithMeta.map((l) => [l.phone, l]));
+
+    const getEstado = (phone: string): string => {
+      const meta = metaMap.get(phone);
+      if (!meta) return "DESCONHECIDO";
+      if (meta.status === "FILTERED" && meta.reason === "BLACKLIST")
+        return "BLACKLIST";
+      if (meta.status === "FILTERED" && meta.reason === "ATTENDED")
+        return "JÁ CONTACTADO";
+      if (meta.status === "LOADED") return "CARREGADO";
+      if (meta.status === "ERROR") return "ERRO AO CARREGAR";
+      if (meta.status === "PENDING") return "PENDENTE";
+      return meta.status;
+    };
+
+    const headers = [...Object.keys(rows[0]), "Estado"];
+    const csvLines = [
+      headers.join(";"),
+      ...rows.map((row) => {
+        const phone = generateNormalizedPhonePT(Object.values(row)[0]);
+        const estado = getEstado(phone);
+        return [...Object.values(row), estado].join(";");
+      }),
+    ];
+
+    return Buffer.from(csvLines.join("\n"), "utf-8");
+  }
+
+  private emailRecipients = [
+    "ryan.martins@pluricall.pt",
+    "margarida.raposo@pluricall.pt",
+    "rita.carvalho@pluricall.pt",
+    "raul.neto@pluricall.pt",
+    "jorge.rodrigues@pluricall.pt",
+    "beatriz.contreras@pluricall.pt",
+    "susana.silva@pluricall.pt",
+    "nuno.rainha@pluricall.pt",
+  ];
+
   async execute() {
     const campaign = this.CAMPAIGN;
     const contactList = this.CONTACT_LIST;
@@ -42,37 +85,25 @@ export class VmOutUseCase {
 
     const exists = await this.fileService.exists(filePath);
     if (!exists) {
-      return await sendEmail({
-        to: [
-          "ryan.martins@pluricall.pt",
-          "margarida.raposo@pluricall.pt",
-          "rita.carvalho@pluricall.pt",
-          "raul.neto@pluricall.pt",
-          "jorge.rodrigues@pluricall.pt",
-          "beatriz.contreras@pluricall.pt",
-          "susana.silva@pluricall.pt",
-          "nuno.rainha@pluricall.pt",
-        ],
-        subject: `VM OUT - ficheiro não encontrado ${new Date().toLocaleString("pt-PT")}`,
-        html: `Processo executado sem ficheiro.`,
+      return await sendNotification({
+        channel: "email",
+        payload: {
+          to: this.emailRecipients,
+          subject: `VM OUT - ficheiro não encontrado ${new Date().toLocaleString("pt-PT")}`,
+          html: `Processo executado sem ficheiro.`,
+        },
       });
     }
 
     const rows = await this.fileService.parseCSV(filePath);
     if (!rows.length) {
-      return await sendEmail({
-        to: [
-          "ryan.martins@pluricall.pt",
-          "margarida.raposo@pluricall.pt",
-          "rita.carvalho@pluricall.pt",
-          "raul.neto@pluricall.pt",
-          "jorge.rodrigues@pluricall.pt",
-          "beatriz.contreras@pluricall.pt",
-          "susana.silva@pluricall.pt",
-          "nuno.rainha@pluricall.pt",
-        ],
-        subject: `VM OUT - ficheiro vazio ${new Date().toLocaleString("pt-PT")}`,
-        html: `Ficheiro sem dados.`,
+      return await sendNotification({
+        channel: "email",
+        payload: {
+          to: this.emailRecipients,
+          subject: `VM OUT - ficheiro vazio ${new Date().toLocaleString("pt-PT")}`,
+          html: `Ficheiro sem dados.`,
+        },
       });
     }
 
@@ -175,40 +206,42 @@ export class VmOutUseCase {
           undefined,
           JSON.stringify(response),
         );
+        batch.forEach((item) => (item.lead.status = "LOADED"));
       } catch (err: any) {
         await this.vmOutRepository.updateStatusBulk(
           genIds,
           "ERROR",
           err.message,
         );
+        batch.forEach((item) => (item.lead.status = "ERROR"));
         console.error("[VM_OUT] Batch error:", err);
       }
     }
+
     const totalEnviados = pendingLeads.length;
     const totalBlacklist = uniqueLeads.filter((l) =>
       blacklistSet.has(l.phone),
     ).length;
 
-    await sendEmail({
-      to: [
-        "ryan.martins@pluricall.pt",
-        "margarida.raposo@pluricall.pt",
-        "rita.carvalho@pluricall.pt",
-        "raul.neto@pluricall.pt",
-        "jorge.rodrigues@pluricall.pt",
-        "beatriz.contreras@pluricall.pt",
-        "susana.silva@pluricall.pt",
-        "nuno.rainha@pluricall.pt",
-      ],
-      subject: `VM OUT - Sucesso no carregamento - ${new Date().toLocaleString("pt-PT")}`,
-      html: `
-      <h2>Carregados</h2>
-      <p>${totalEnviados}</p>
-      <h2>Blacklist</h2>
-      <p>${totalBlacklist}</p>
-    `,
-    });
+    const reportBuffer = this.buildReportCSV(rows, leadsWithMeta);
+    const reportFileName = `VmOut_${new Date().toISOString().slice(0, 10)}.csv`;
 
-    await this.fileService.deleteFile(filePath);
+    await sendNotification({
+      channel: "email",
+      payload: {
+        to: this.emailRecipients,
+        subject: `VM OUT - Sucesso no carregamento - ${new Date().toLocaleString("pt-PT")}`,
+        html: `<h2>Carregados</h2>
+            <p>${totalEnviados}</p>
+            <h2>Blacklist</h2>
+            <p>${totalBlacklist}</p>`,
+        attachments: [
+          {
+            filename: reportFileName,
+            content: reportBuffer,
+          },
+        ],
+      },
+    });
   }
 }
