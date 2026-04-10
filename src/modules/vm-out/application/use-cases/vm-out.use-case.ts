@@ -181,7 +181,7 @@ export class VmOutUseCase {
             ContactStatus: { Value: "Started" },
             ContactListName: { RequestType: "Set", Value: contactList },
             Attributes: [
-              this.buildField("HomePhone", lead.phone),
+              this.buildField("MobilePhone", lead.phone),
               this.buildField("dataload", dataload),
             ],
           },
