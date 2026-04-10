@@ -1,11 +1,11 @@
-import { FileService } from "../../../../shared/infra/services/file.service";
-import { generateDataload } from "../../../../shared/utils/generate-dataload";
-import { generateGenId } from "../../../../shared/utils/generate-gen-id";
-import { IVmOutRepository } from "../../domain/repositories/vm-out.repository";
-import { generateNormalizedPhonePT } from "../../../../shared/utils/generate-normalized-phone";
-import { AltitudeAuthService } from "../../../../shared/infra/providers/altitude/auth.service";
-import { AltitudeUploadContact } from "../../../../shared/infra/providers/altitude/upload-contact.service";
-import { sendNotification } from "../../../../shared/notification/send-notification";
+import { FileService } from "../../../shared/infra/services/file.service";
+import { generateDataload } from "../../../shared/utils/generate-dataload";
+import { generateGenId } from "../../../shared/utils/generate-gen-id";
+import { generateNormalizedPhonePT } from "../../../shared/utils/generate-normalized-phone";
+import { AltitudeAuthService } from "../../../shared/infra/providers/altitude/auth.service";
+import { AltitudeUploadContact } from "../../../shared/infra/providers/altitude/upload-contact.service";
+import { sendNotification } from "../../../shared/notification/send-notification";
+import { IVmOutRepository } from "../infra/repositories/vm-out.repository";
 
 export class VmOutUseCase {
   constructor(
@@ -16,51 +16,6 @@ export class VmOutUseCase {
   private readonly CONTACT_LIST = "Default Contact List for Campaign VM_OUT";
   private readonly CAMPAIGN = "VM_OUT";
   private readonly BATCH_SIZE = 500;
-
-  private buildField(Name: string, Value: any) {
-    if (Name === "MobilePhone" || Name === "HomePhone") {
-      Value = String(Value ?? "").slice(-9);
-    }
-
-    return {
-      discriminator: "DatabaseFields",
-      Name,
-      Value: Value ?? "",
-      IsAnonymized: false,
-    };
-  }
-
-  private buildReportCSV(
-    rows: Record<string, any>[],
-    leadsWithMeta: Array<{ phone: string; status: string; reason: string }>,
-  ): Buffer {
-    const metaMap = new Map(leadsWithMeta.map((l) => [l.phone, l]));
-
-    const getEstado = (phone: string): string => {
-      const meta = metaMap.get(phone);
-      if (!meta) return "DESCONHECIDO";
-      if (meta.status === "FILTERED" && meta.reason === "BLACKLIST")
-        return "BLACKLIST";
-      if (meta.status === "FILTERED" && meta.reason === "ATTENDED")
-        return "JÁ CONTACTADO";
-      if (meta.status === "LOADED") return "CARREGADO";
-      if (meta.status === "ERROR") return "ERRO AO CARREGAR";
-      if (meta.status === "PENDING") return "PENDENTE";
-      return meta.status;
-    };
-
-    const headers = [...Object.keys(rows[0]), "Estado"];
-    const csvLines = [
-      headers.join(";"),
-      ...rows.map((row) => {
-        const phone = generateNormalizedPhonePT(Object.values(row)[0]);
-        const estado = getEstado(phone);
-        return [...Object.values(row), estado].join(";");
-      }),
-    ];
-
-    return Buffer.from(csvLines.join("\n"), "utf-8");
-  }
 
   private emailRecipients = [
     "ryan.martins@pluricall.pt",
@@ -127,7 +82,6 @@ export class VmOutUseCase {
         uniqueLeadsMap.set(lead.phone, lead);
       }
     }
-    const uniqueLeads = Array.from(uniqueLeadsMap.values());
 
     const leadsWithMeta = Array.from(
       new Map(
@@ -219,9 +173,6 @@ export class VmOutUseCase {
     }
 
     const totalEnviados = pendingLeads.length;
-    const totalBlacklist = uniqueLeads.filter((l) =>
-      blacklistSet.has(l.phone),
-    ).length;
 
     const reportBuffer = this.buildReportCSV(rows, leadsWithMeta);
     const reportFileName = `VmOut_${new Date().toISOString().slice(0, 10)}.csv`;
@@ -232,9 +183,7 @@ export class VmOutUseCase {
         to: this.emailRecipients,
         subject: `VM OUT - Sucesso no carregamento - ${new Date().toLocaleString("pt-PT")}`,
         html: `<h2>Carregados</h2>
-            <p>${totalEnviados}</p>
-            <h2>Blacklist</h2>
-            <p>${totalBlacklist}</p>`,
+            <p>Total: ${totalEnviados}</p>`,
         attachments: [
           {
             filename: reportFileName,
@@ -243,5 +192,50 @@ export class VmOutUseCase {
         ],
       },
     });
+  }
+
+  private buildField(Name: string, Value: any) {
+    if (Name === "MobilePhone" || Name === "HomePhone") {
+      Value = String(Value ?? "").slice(-9);
+    }
+
+    return {
+      discriminator: "DatabaseFields",
+      Name,
+      Value: Value ?? "",
+      IsAnonymized: false,
+    };
+  }
+
+  private buildReportCSV(
+    rows: Record<string, any>[],
+    leadsWithMeta: Array<{ phone: string; status: string; reason: string }>,
+  ): Buffer {
+    const metaMap = new Map(leadsWithMeta.map((l) => [l.phone, l]));
+
+    const getEstado = (phone: string): string => {
+      const meta = metaMap.get(phone);
+      if (!meta) return "DESCONHECIDO";
+      if (meta.status === "FILTERED" && meta.reason === "BLACKLIST")
+        return "BLACKLIST";
+      if (meta.status === "FILTERED" && meta.reason === "ATTENDED")
+        return "CONTACTADO";
+      if (meta.status === "LOADED") return "CARREGADO";
+      if (meta.status === "ERROR") return "ERRO AO CARREGAR";
+      if (meta.status === "PENDING") return "PENDENTE";
+      return meta.status;
+    };
+
+    const headers = [...Object.keys(rows[0]), "Estado"];
+    const csvLines = [
+      headers.join(";"),
+      ...rows.map((row) => {
+        const phone = generateNormalizedPhonePT(Object.values(row)[0]);
+        const estado = getEstado(phone);
+        return [...Object.values(row), estado].join(";");
+      }),
+    ];
+
+    return Buffer.from(csvLines.join("\n"), "utf-8");
   }
 }

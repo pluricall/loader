@@ -1,5 +1,5 @@
 import { FastifyRequest, FastifyReply } from "fastify";
-import { makeVmOutUseCase } from "../../application/use-cases/factories/vm-out-factory";
+import { makeVmOutUseCase } from "../../use-cases/factories/vm-out-factory";
 
 export async function vmOutController(
   req: FastifyRequest,

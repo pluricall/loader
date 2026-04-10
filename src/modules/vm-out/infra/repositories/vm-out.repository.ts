@@ -1,4 +1,4 @@
-export interface SaveVMOutData {
+export interface SaveVMOutLogs {
   executionId: string;
   genId: string;
   campanha: string;
@@ -14,7 +14,7 @@ export interface SaveVMOutData {
 export interface IVmOutRepository {
   getBlacklist(): Promise<string[]>;
   getAttendedToday(): Promise<string[]>;
-  saveBulk(data: SaveVMOutData[]): Promise<void>;
+  saveBulk(data: SaveVMOutLogs[]): Promise<void>;
   updateStatusBulk(
     genIds: string[],
     status: string,

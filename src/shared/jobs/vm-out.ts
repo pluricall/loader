@@ -1,5 +1,5 @@
 import cron from "node-cron";
-import { makeVmOutUseCase } from "../../modules/vm-out/application/use-cases/factories/vm-out-factory";
+import { makeVmOutUseCase } from "../../modules/vm-out/use-cases/factories/vm-out.factory";
 
 export function vmOutCron() {
   const vmOutUseCase = makeVmOutUseCase();

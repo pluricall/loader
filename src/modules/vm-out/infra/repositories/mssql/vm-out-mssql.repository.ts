@@ -1,8 +1,5 @@
-import { connectPluricallDb } from "../../../../shared/infra/db/pluricall-db";
-import {
-  IVmOutRepository,
-  SaveVMOutData,
-} from "../../domain/repositories/vm-out.repository";
+import { connectPluricallDb } from "../../../../../shared/infra/db/pluricall-db";
+import { IVmOutRepository, SaveVMOutLogs } from "../vm-out.repository";
 
 export class MssqlVmOutRepository implements IVmOutRepository {
   async getBlacklist(): Promise<string[]> {
@@ -28,13 +25,11 @@ export class MssqlVmOutRepository implements IVmOutRepository {
     return remoteResult.recordset.map((r: any) => r.telefone);
   }
 
-  async saveBulk(data: SaveVMOutData[]) {
+  async saveBulk(data: SaveVMOutLogs[]) {
     if (!data.length) return;
 
     const pool = await connectPluricallDb("cloud");
 
-    // Um INSERT por linha com MERGE para ignorar duplicados atomicamente.
-    // O batch único anterior rebentava inteiro se um único registo já existisse.
     for (const d of data) {
       const request = pool.request();
 

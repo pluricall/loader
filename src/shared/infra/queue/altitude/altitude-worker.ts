@@ -17,7 +17,8 @@ type RepositoryType =
   | "minisomCorporate"
   | "agilidade24041"
   | "servilusa"
-  | "endesa22071";
+  | "endesa22071"
+  | "minisomTest";
 
 const agilidadeRepository = new AgilidadeMssqlRepository();
 const minisomRepository = new MssqlMinisomRepository();
@@ -32,6 +33,7 @@ function createRepositoryHandler(
     minisomMeta: () => minisomRepository.updateStatus(genId, status),
     minisom21121: () => minisomRepository.updateStatus(genId, status),
     minisom21051: () => minisomRepository.updateStatus(genId, status),
+    minisomTest: () => minisomRepository.updateStatus(genId, status),
     minisomCorporate: () =>
       minisomRepository.updateCorporateLeadStatus(genId, status),
     agilidade24041: () => agilidadeRepository.updateStatus(genId, status),
