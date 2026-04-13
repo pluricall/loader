@@ -1,24 +1,18 @@
 import { IFileService } from "../../domain/interfaces/IFileService";
+import { Readable } from "stream";
 import fs from "fs";
 import path from "path";
 import csv from "csv-parser";
 import iconv from "iconv-lite";
 
 export class FileService implements IFileService {
-  private detectEncoding(filePath: string): "utf-8" | "utf-16le" {
-    const buffer = Buffer.alloc(2);
-    const fd = fs.openSync(filePath, "r");
-    fs.readSync(fd, buffer, 0, 2, 0);
-    fs.closeSync(fd);
-
+  private detectEncodingFromBuffer(buffer: Buffer): "utf-8" | "utf-16le" {
     if (buffer[0] === 0xff && buffer[1] === 0xfe) return "utf-16le";
     return "utf-8";
   }
 
-  private detectDelimiter(filePath: string, sampleLines = 5): string {
-    const content = fs.readFileSync(filePath, "utf-8");
+  private detectDelimiterFromContent(content: string, sampleLines = 5): string {
     const lines = content.split(/\r?\n/).slice(0, sampleLines);
-
     const delimiters = [",", ";", "\t"];
     let bestDelimiter = delimiters[0];
     let maxCount = 0;
@@ -42,8 +36,11 @@ export class FileService implements IFileService {
   }
 
   async parseCSV(path: string): Promise<any[]> {
-    const detectedEncoding = this.detectEncoding(path);
-    const detectedDelimiter = this.detectDelimiter(path);
+    const buffer = fs.readFileSync(path);
+    const detectedEncoding = this.detectEncodingFromBuffer(buffer);
+    const detectedDelimiter = this.detectDelimiterFromContent(
+      iconv.decode(buffer, detectedEncoding),
+    );
     return new Promise((resolve, reject) => {
       const results: any[] = [];
 
@@ -86,5 +83,20 @@ export class FileService implements IFileService {
       console.error("[deleteFile] ERRO:", err);
       throw err;
     }
+  }
+
+  async parseCSVFromBuffer(buffer: Buffer): Promise<any[]> {
+    const content = buffer.toString("utf-8");
+    const delimiter = this.detectDelimiterFromContent(content);
+
+    return new Promise((resolve, reject) => {
+      const results: any[] = [];
+
+      Readable.from([content])
+        .pipe(csv({ separator: delimiter }))
+        .on("data", (data: any) => results.push(data))
+        .on("end", () => resolve(results))
+        .on("error", reject);
+    });
   }
 }

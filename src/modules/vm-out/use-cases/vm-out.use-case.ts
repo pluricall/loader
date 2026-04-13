@@ -1,4 +1,3 @@
-import { FileService } from "../../../shared/infra/services/file.service";
 import { generateDataload } from "../../../shared/utils/generate-dataload";
 import { generateGenId } from "../../../shared/utils/generate-gen-id";
 import { generateNormalizedPhonePT } from "../../../shared/utils/generate-normalized-phone";
@@ -6,16 +5,22 @@ import { AltitudeAuthService } from "../../../shared/infra/providers/altitude/au
 import { AltitudeUploadContact } from "../../../shared/infra/providers/altitude/upload-contact.service";
 import { sendNotification } from "../../../shared/notification/send-notification";
 import { IVmOutRepository } from "../infra/repositories/vm-out.repository";
+import {
+  ArtelecomReportRow,
+  ArtelecomReportService,
+} from "../../../shared/infra/providers/artelecom/artelecom-report.service";
 
 export class VmOutUseCase {
   constructor(
-    private fileService: FileService,
     private vmOutRepository: IVmOutRepository,
+    private artelecomReportService: ArtelecomReportService,
   ) {}
 
   private readonly CONTACT_LIST = "Default Contact List for Campaign VM_OUT";
   private readonly CAMPAIGN = "VM_OUT";
   private readonly BATCH_SIZE = 500;
+  private readonly IVR_ID = 14;
+  private readonly STATISTIC_TYPE_ID = 3;
 
   private emailRecipients = [
     "ryan.martins@pluricall.pt",
@@ -34,23 +39,23 @@ export class VmOutUseCase {
     const executionDate = new Date();
     const dataload = generateDataload();
 
-    const folder = "\\\\hercules\\Supervisao\\Campanhas\\rerun_natura";
-    const fileName = "carregar.csv";
-    const filePath = `${folder}\\${fileName}`;
-
-    const exists = await this.fileService.exists(filePath);
-    if (!exists) {
+    let rows: ArtelecomReportRow[];
+    try {
+      rows = await this.artelecomReportService.downloadCSV(
+        this.IVR_ID,
+        this.STATISTIC_TYPE_ID,
+      );
+    } catch (err: any) {
       return await sendNotification({
         channel: "email",
         payload: {
           to: this.emailRecipients,
-          subject: `VM OUT - ficheiro não encontrado ${new Date().toLocaleString("pt-PT")}`,
-          html: `Processo executado sem ficheiro.`,
+          subject: `VM OUT - erro ao obter ficheiro ${new Date().toLocaleString("pt-PT")}`,
+          html: `Erro ao contactar a API Artelecom: ${err.message}`,
         },
       });
     }
 
-    const rows = await this.fileService.parseCSV(filePath);
     if (!rows.length) {
       return await sendNotification({
         channel: "email",
@@ -62,26 +67,17 @@ export class VmOutUseCase {
       });
     }
 
-    const leads = rows
-      .filter((r) => Object.values(r)[0])
-      .map((r) => ({
-        phone: generateNormalizedPhonePT(Object.values(r)[0]),
-        calls: Number(String(Object.values(r)[1] || 0).trim()),
-        lastCall: String(Object.values(r)[2] ?? ""),
-        executionDate,
-      }));
+    const leads = rows.map((r) => ({
+      phone: generateNormalizedPhonePT(String(r.numero)),
+      calls: r.chamadas,
+      lastCall: r.ultimaChamada,
+      executionDate,
+    }));
 
     const blacklist = await this.vmOutRepository.getBlacklist();
     const attendedToday = await this.vmOutRepository.getAttendedToday();
     const blacklistSet = new Set(blacklist);
     const alreadyLoaded = new Set(attendedToday);
-
-    const uniqueLeadsMap = new Map<string, (typeof leads)[0]>();
-    for (const lead of leads) {
-      if (!uniqueLeadsMap.has(lead.phone)) {
-        uniqueLeadsMap.set(lead.phone, lead);
-      }
-    }
 
     const leadsWithMeta = Array.from(
       new Map(
@@ -173,7 +169,6 @@ export class VmOutUseCase {
     }
 
     const totalEnviados = pendingLeads.length;
-
     const reportBuffer = this.buildReportCSV(rows, leadsWithMeta);
     const reportFileName = `VmOut_${new Date().toISOString().slice(0, 10)}.csv`;
 
@@ -182,8 +177,7 @@ export class VmOutUseCase {
       payload: {
         to: this.emailRecipients,
         subject: `VM OUT - Sucesso no carregamento - ${new Date().toLocaleString("pt-PT")}`,
-        html: `<h2>Carregados</h2>
-            <p>Total: ${totalEnviados}</p>`,
+        html: `<h2>Carregados</h2><p>Total: ${totalEnviados}</p>`,
         attachments: [
           {
             filename: reportFileName,
@@ -208,7 +202,7 @@ export class VmOutUseCase {
   }
 
   private buildReportCSV(
-    rows: Record<string, any>[],
+    rows: ArtelecomReportRow[],
     leadsWithMeta: Array<{ phone: string; status: string; reason: string }>,
   ): Buffer {
     const metaMap = new Map(leadsWithMeta.map((l) => [l.phone, l]));
@@ -226,13 +220,12 @@ export class VmOutUseCase {
       return meta.status;
     };
 
-    const headers = [...Object.keys(rows[0]), "Estado"];
     const csvLines = [
-      headers.join(";"),
+      "Número;Chamadas;Última Chamada;Estado",
       ...rows.map((row) => {
-        const phone = generateNormalizedPhonePT(Object.values(row)[0]);
+        const phone = generateNormalizedPhonePT(String(row.numero));
         const estado = getEstado(phone);
-        return [...Object.values(row), estado].join(";");
+        return `${row.numero};${row.chamadas};${row.ultimaChamada};${estado}`;
       }),
     ];
 

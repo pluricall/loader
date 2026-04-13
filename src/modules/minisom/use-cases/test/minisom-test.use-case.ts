@@ -18,7 +18,6 @@ export class MinisomTestUseCase {
     private minisomTestUploadContacts: MinisomTestUploadContactsUseCase,
   ) {}
 
-  private readonly YEAR = new Date().getFullYear();
   private readonly CAMPAIGN = "MinisomExtNet";
   private readonly CONTACTLIST = `LeadsTest`;
   private readonly ORIGEM = "TEST";

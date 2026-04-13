@@ -1,10 +1,10 @@
-import { FileService } from "../../../../shared/infra/services/file.service";
+import { ArtelecomReportService } from "../../../../shared/infra/providers/artelecom/artelecom-report.service";
 import { MssqlVmOutRepository } from "../../infra/repositories/mssql/vm-out-mssql.repository";
 import { VmOutUseCase } from "../vm-out.use-case";
 
 export function makeVmOutUseCase(): VmOutUseCase {
   const repository = new MssqlVmOutRepository();
-  const fileService = new FileService();
+  const artelecomReportService = new ArtelecomReportService();
 
-  return new VmOutUseCase(fileService, repository);
+  return new VmOutUseCase(repository, artelecomReportService);
 }
