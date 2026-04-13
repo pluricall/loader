@@ -172,6 +172,23 @@ export class VmOutUseCase {
     const reportBuffer = this.buildReportCSV(rows, leadsWithMeta);
     const reportFileName = `VmOut_${new Date().toISOString().slice(0, 10)}.csv`;
 
+    if (pendingLeads.length === 0) {
+      return await sendNotification({
+        channel: "email",
+        payload: {
+          to: this.emailRecipients,
+          subject: `VM OUT - ficheiro sem contatos ${new Date().toLocaleString("pt-PT")}`,
+          html: `Ficheiro sem contatos disponiveis para carregar.`,
+          attachments: [
+            {
+              filename: reportFileName,
+              content: reportBuffer,
+            },
+          ],
+        },
+      });
+    }
+
     await sendNotification({
       channel: "email",
       payload: {

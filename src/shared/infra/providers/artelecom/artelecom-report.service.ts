@@ -38,8 +38,6 @@ export class ArtelecomReportService {
 
     const buffer = await response.arrayBuffer();
     const raw = Buffer.from(buffer).toString("utf-8").trim();
-    console.log("Raw response from Artelecom API:", raw);
-    console.log("Normalized response from Artelecom API:", this.normalize(raw));
     return this.normalize(raw);
   }
 
