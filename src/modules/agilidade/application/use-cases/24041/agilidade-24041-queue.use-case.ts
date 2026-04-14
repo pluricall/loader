@@ -8,7 +8,7 @@ export class Agilidade24041UploadContactsUseCase {
       Value = Value.substring(0, 100);
     }
 
-    if (Name === "MobilePhone" || Name === "HomePhone") {
+    if (Name === "MobilePhone" || Name === "HomePhone" || Name === "telefone") {
       Value = String(Value ?? "").slice(-9);
     }
 
