@@ -12,23 +12,30 @@ export class MssqlVmOutRepository implements IVmOutRepository {
     return result.recordset.map((r: any) => r.telefone);
   }
 
-  async getAttendedToday(): Promise<string[]> {
+  async getOutboundLoadedToday(): Promise<string[]> {
     const poolOnprem = await connectPluricallDb("onprem");
 
-    const remoteResult = await poolOnprem.request().query(`
-      SELECT tel_chamador AS telefone, CAST(GETDATE() AS DATE) as date
+    const result = await poolOnprem.request().query(`
+      SELECT RIGHT(REPLACE(REPLACE(COALESCE(telefone2_, telefone1_), '+351', ''), ' ', ''), 9) AS telefone, CAST(GETDATE() AS DATE) as date
+      FROM ct_vm_out_cloud
+      WHERE CAST(dataload AS DATE) = CAST(GETDATE() AS DATE)
+    `);
+
+    return result.recordset.map((r: any) => r.telefone);
+  }
+
+  async getInboundAttendedToday(): Promise<string[]> {
+    const poolOnprem = await connectPluricallDb("onprem");
+
+    const result = await poolOnprem.request().query(`
+      SELECT telefone1_ as telefone, fimguiao
       FROM ct_vm_inb_cloud
       WHERE 
     CAST(dataload AS DATE) = CAST(GETDATE() AS DATE)
     AND resultado IS NOT NULL
-      UNION
-      SELECT RIGHT(REPLACE(REPLACE(COALESCE(telefone2_, telefone1_), '+351', ''), ' ', ''), 9) AS telefone, CAST(GETDATE() AS DATE) as date
-      FROM ct_vm_out_cloud
-      WHERE 
-    CAST(dataload AS DATE) = CAST(GETDATE() AS DATE)
     `);
 
-    return remoteResult.recordset.map((r: any) => r.telefone);
+    return result.recordset.map((r: any) => r.telefone);
   }
 
   async saveBulk(data: SaveVMOutLogs[]) {

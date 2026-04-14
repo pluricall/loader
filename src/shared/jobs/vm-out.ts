@@ -3,7 +3,7 @@ import { makeVmOutUseCase } from "../../modules/vm-out/use-cases/factories/vm-ou
 
 export function vmOutCron() {
   const vmOutUseCase = makeVmOutUseCase();
-  cron.schedule("*/10 * * * *", async () => {
+  cron.schedule("*/10 1-21 * * *", async () => {
     try {
       await vmOutUseCase.execute();
       console.log("Cron job VM OUT finalizado");

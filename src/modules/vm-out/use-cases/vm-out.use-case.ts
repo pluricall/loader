@@ -75,9 +75,13 @@ export class VmOutUseCase {
     }));
 
     const blacklist = await this.vmOutRepository.getBlacklist();
-    const attendedToday = await this.vmOutRepository.getAttendedToday();
+    const outboundLoadedToday =
+      await this.vmOutRepository.getOutboundLoadedToday();
+    const inboundAttendedToday =
+      await this.vmOutRepository.getInboundAttendedToday();
     const blacklistSet = new Set(blacklist);
-    const alreadyLoaded = new Set(attendedToday);
+    const alreadyLoadedOutbound = new Set(outboundLoadedToday);
+    const alreadyAttendedInbound = new Set(inboundAttendedToday);
 
     const leadsWithMeta = Array.from(
       new Map(
@@ -89,9 +93,12 @@ export class VmOutUseCase {
           if (blacklistSet.has(lead.phone)) {
             status = "FILTERED";
             reason = "BLACKLIST";
-          } else if (alreadyLoaded.has(lead.phone)) {
+          } else if (alreadyLoadedOutbound.has(lead.phone)) {
             status = "FILTERED";
-            reason = "ATTENDED";
+            reason = "OUTBOUND_LOADED";
+          } else if (alreadyAttendedInbound.has(lead.phone)) {
+            status = "FILTERED";
+            reason = "INBOUND_ATTENDED";
           }
 
           return [lead.phone, { ...lead, genId, status, reason }];
@@ -224,25 +231,38 @@ export class VmOutUseCase {
   ): Buffer {
     const metaMap = new Map(leadsWithMeta.map((l) => [l.phone, l]));
 
-    const getEstado = (phone: string): string => {
+    const getEstadoEMotivo = (
+      phone: string,
+    ): { estado: string; motivo: string } => {
       const meta = metaMap.get(phone);
-      if (!meta) return "DESCONHECIDO";
-      if (meta.status === "FILTERED" && meta.reason === "BLACKLIST")
-        return "BLACKLIST";
-      if (meta.status === "FILTERED" && meta.reason === "ATTENDED")
-        return "CONTACTADO";
-      if (meta.status === "LOADED") return "CARREGADO";
-      if (meta.status === "ERROR") return "ERRO AO CARREGAR";
-      if (meta.status === "PENDING") return "PENDENTE";
-      return meta.status;
+      if (!meta) return { estado: "DESCONHECIDO", motivo: "" };
+
+      if (meta.status === "FILTERED") {
+        const motivoMap: Record<string, string> = {
+          BLACKLIST: "Blacklist",
+          OUTBOUND_LOADED: "Já carregado no outbound hoje",
+          INBOUND_ATTENDED: "Já atendido no inbound hoje",
+        };
+        return {
+          estado: "FILTRADO",
+          motivo: motivoMap[meta.reason] ?? meta.reason,
+        };
+      }
+
+      if (meta.status === "LOADED") return { estado: "CARREGADO", motivo: "" };
+      if (meta.status === "ERROR")
+        return { estado: "ERRO AO CARREGAR", motivo: "" };
+      if (meta.status === "PENDING") return { estado: "PENDENTE", motivo: "" };
+
+      return { estado: meta.status, motivo: "" };
     };
 
     const csvLines = [
-      "Número;Chamadas;Última Chamada;Estado",
+      "Número;Chamadas;Última Chamada;Estado;Motivo Filtro",
       ...rows.map((row) => {
         const phone = generateNormalizedPhonePT(String(row.numero));
-        const estado = getEstado(phone);
-        return `${row.numero};${row.chamadas};${row.ultimaChamada};${estado}`;
+        const { estado, motivo } = getEstadoEMotivo(phone);
+        return `${row.numero};${row.chamadas};${row.ultimaChamada};${estado};${motivo}`;
       }),
     ];
 

@@ -13,7 +13,8 @@ export interface SaveVMOutLogs {
 
 export interface IVmOutRepository {
   getBlacklist(): Promise<string[]>;
-  getAttendedToday(): Promise<string[]>;
+  getOutboundLoadedToday(): Promise<string[]>;
+  getInboundAttendedToday(): Promise<string[]>;
   saveBulk(data: SaveVMOutLogs[]): Promise<void>;
   updateStatusBulk(
     genIds: string[],
