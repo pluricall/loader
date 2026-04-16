@@ -23,7 +23,7 @@ export async function startLinceServer() {
   startAltitudeWorker();
   const pluricallRepository = new MssqlPluricallRepository();
   lince.register(async () => {
-    // vmOutCron();
+    vmOutCron();
   });
 
   lince.addContentTypeParser(
