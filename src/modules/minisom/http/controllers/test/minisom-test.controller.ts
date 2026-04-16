@@ -1,5 +1,5 @@
 import { FastifyRequest, FastifyReply } from "fastify";
-import { GetRequestIpAndUrl } from "../../../../../shared/utils/get-request-and-url";
+import { GetRequestIpAndUrl } from "../../../../../shared/utils/network/get-request-and-url";
 import { AlreadyExistsError } from "../../../../../shared/errors/name-already-exists-error";
 import { UnauthorizedError } from "../../../../../shared/errors/unauthorized-error";
 import { FieldRequiredError } from "../../../../../shared/errors/field-required";

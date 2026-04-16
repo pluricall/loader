@@ -2,7 +2,7 @@ import "dotenv/config";
 import "isomorphic-fetch";
 import { Client } from "@microsoft/microsoft-graph-client";
 import { ClientSecretCredential } from "@azure/identity";
-import { env } from "../../../env";
+import { env } from "../../../../env";
 
 const tenantId = env.TENANT_ID!;
 const clientId = env.CLIENT_ID!;

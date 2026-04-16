@@ -1,6 +1,6 @@
 import { altitudeQueue } from "../../../../shared/infra/queue/altitude/altitude-queue";
-import { generateDataload } from "../../../../shared/utils/generate-dataload";
-import { generatePlcId } from "../../../../shared/utils/generate-plc-id";
+import { generateDataload } from "../../../../shared/utils/generators/generate-dataload";
+import { generatePlcId } from "../../../../shared/utils/generators/generate-plc-id";
 
 interface UploadContactsMeta {
   phoneNumber: string | number;

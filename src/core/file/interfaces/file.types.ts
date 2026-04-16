@@ -8,4 +8,6 @@ export interface IFileService {
   ): Promise<any[]>;
   moveFile(from: string, to: string): Promise<void>;
   deleteFile(filePath: string): Promise<void>;
+  readFile(path: string): Promise<Buffer>;
+  writeFile(path: string, buffer: Buffer): Promise<void>;
 }

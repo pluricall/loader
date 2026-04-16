@@ -3,7 +3,7 @@ export interface EmailAttachment {
   content: Buffer | string;
 }
 
-export interface SendEmailProps {
+export interface EmailProps {
   attachments?: EmailAttachment[];
   subject: string;
   html: string;

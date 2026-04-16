@@ -1,11 +1,19 @@
-import { IFileService } from "../../domain/interfaces/IFileService";
 import { Readable } from "stream";
 import fs from "fs";
 import path from "path";
 import csv from "csv-parser";
 import iconv from "iconv-lite";
+import { IFileService } from "./interfaces/file.types";
 
 export class FileService implements IFileService {
+  async readFile(path: string): Promise<Buffer> {
+    return fs.promises.readFile(path);
+  }
+
+  async writeFile(path: string, buffer: Buffer): Promise<void> {
+    await fs.promises.writeFile(path, buffer);
+  }
+
   private detectEncodingFromBuffer(buffer: Buffer): "utf-8" | "utf-16le" {
     if (buffer[0] === 0xff && buffer[1] === 0xfe) return "utf-16le";
     return "utf-8";

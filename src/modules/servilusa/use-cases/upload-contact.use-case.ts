@@ -1,5 +1,5 @@
 import { AltitudeCreateContact } from "../../../shared/infra/providers/altitude/create-contact.service";
-import { generateDataload } from "../../../shared/utils/generate-dataload";
+import { generateDataload } from "../../../shared/utils/generators/generate-dataload";
 import { ServilusaRepository } from "../repositories/servilusa.repository";
 
 export interface ServilusaEncuesta {

@@ -1,18 +1,19 @@
-import { generateDataload } from "../../../shared/utils/generate-dataload";
-import { generateGenId } from "../../../shared/utils/generate-gen-id";
-import { generateNormalizedPhonePT } from "../../../shared/utils/generate-normalized-phone";
 import { AltitudeAuthService } from "../../../shared/infra/providers/altitude/auth.service";
 import { AltitudeUploadContact } from "../../../shared/infra/providers/altitude/upload-contact.service";
-import { sendNotification } from "../../../shared/notification/send-notification";
 import { IVmOutRepository } from "../infra/repositories/vm-out.repository";
 import {
   ArtelecomReportRow,
   ArtelecomReportService,
 } from "../../../shared/infra/providers/artelecom/artelecom-report.service";
+import { NotificationService } from "../../../shared/infra/notification/notification.service";
+import { generateDataload } from "../../../shared/utils/generators/generate-dataload";
+import { generateNormalizedPhonePT } from "../../../shared/utils/generators/generate-normalized-phone";
+import { generateGenId } from "../../../shared/utils/generators/generate-gen-id";
 
 export class VmOutUseCase {
   constructor(
     private vmOutRepository: IVmOutRepository,
+    private notification: NotificationService,
     private artelecomReportService: ArtelecomReportService,
   ) {}
 
@@ -46,24 +47,18 @@ export class VmOutUseCase {
         this.STATISTIC_TYPE_ID,
       );
     } catch (err: any) {
-      return await sendNotification({
-        channel: "email",
-        payload: {
-          to: this.emailRecipients,
-          subject: `VM OUT - erro ao obter ficheiro ${new Date().toLocaleString("pt-PT")}`,
-          html: `Erro ao contactar a API Artelecom: ${err.message}`,
-        },
+      return await this.notification.send("email", {
+        to: this.emailRecipients,
+        subject: `VM OUT - erro ao obter ficheiro ${new Date().toLocaleString("pt-PT")}`,
+        html: `Erro ao contactar a API Artelecom: ${err.message}`,
       });
     }
 
     if (!rows.length) {
-      return await sendNotification({
-        channel: "email",
-        payload: {
-          to: this.emailRecipients,
-          subject: `VM OUT - ficheiro vazio ${new Date().toLocaleString("pt-PT")}`,
-          html: `Ficheiro sem dados.`,
-        },
+      return await this.notification.send("email", {
+        to: this.emailRecipients,
+        subject: `VM OUT - ficheiro vazio ${new Date().toLocaleString("pt-PT")}`,
+        html: `Ficheiro sem dados.`,
       });
     }
 
@@ -180,35 +175,29 @@ export class VmOutUseCase {
     const reportFileName = `VmOut_${new Date().toISOString().slice(0, 10)}.csv`;
 
     if (pendingLeads.length === 0) {
-      return await sendNotification({
-        channel: "email",
-        payload: {
-          to: this.emailRecipients,
-          subject: `VM OUT - ficheiro sem contatos ${new Date().toLocaleString("pt-PT")}`,
-          html: `Ficheiro sem contatos disponiveis para carregar.`,
-          attachments: [
-            {
-              filename: reportFileName,
-              content: reportBuffer,
-            },
-          ],
-        },
-      });
-    }
-
-    await sendNotification({
-      channel: "email",
-      payload: {
+      return await this.notification.send("email", {
         to: this.emailRecipients,
-        subject: `VM OUT - Sucesso no carregamento - ${new Date().toLocaleString("pt-PT")}`,
-        html: `<h2>Carregados</h2><p>Total: ${totalEnviados}</p>`,
+        subject: `VM OUT - ficheiro sem contatos ${new Date().toLocaleString("pt-PT")}`,
+        html: `Ficheiro sem contatos disponiveis para carregar.`,
         attachments: [
           {
             filename: reportFileName,
             content: reportBuffer,
           },
         ],
-      },
+      });
+    }
+
+    await this.notification.send("email", {
+      to: this.emailRecipients,
+      subject: `VM OUT - Sucesso no carregamento - ${new Date().toLocaleString("pt-PT")}`,
+      html: `<h2>Carregados</h2><p>Total: ${totalEnviados}</p>`,
+      attachments: [
+        {
+          filename: reportFileName,
+          content: reportBuffer,
+        },
+      ],
     });
   }
 

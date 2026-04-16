@@ -7,13 +7,26 @@ import formbody from "@fastify/formbody";
 import fastifyCors from "@fastify/cors";
 import { startAltitudeWorker } from "./shared/infra/queue/altitude/altitude-worker";
 import { MssqlPluricallRepository } from "./migrating/repositories/mssql/mssql-pluricall-repository";
-import { linceRoutes } from "./router-lince";
+import { linceRoutes } from "./lince-router";
 import { vmOutCron } from "./shared/jobs/vm-out";
 
-export async function startWebhookServer() {
-  const webhook = fastify({ requestTimeout: 0 });
+export async function startLinceServer() {
+  const lince = fastify({ requestTimeout: 0 });
+
+  lince.register(linceRoutes);
+  lince.register(fastifyCors, {
+    origin: "*",
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+    allowedHeaders: ["Content-Type"],
+  });
+
   startAltitudeWorker();
-  webhook.addContentTypeParser(
+  const pluricallRepository = new MssqlPluricallRepository();
+  lince.register(async () => {
+    // vmOutCron();
+  });
+
+  lince.addContentTypeParser(
     ["application/xml", "text/xml"],
     { parseAs: "string" },
     function (req, body, done) {
@@ -21,13 +34,7 @@ export async function startWebhookServer() {
     },
   );
 
-  const pluricallRepository = new MssqlPluricallRepository();
-
-  webhook.register(async () => {
-    vmOutCron();
-  });
-
-  webhook.addHook(
+  lince.addHook(
     "onResponse",
     async (request: FastifyRequest, reply: FastifyReply) => {
       try {
@@ -71,15 +78,9 @@ export async function startWebhookServer() {
     },
   );
 
-  webhook.register(formbody);
-  webhook.register(linceRoutes);
-  webhook.register(fastifyCors, {
-    origin: "*",
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
-    allowedHeaders: ["Content-Type"],
-  });
+  lince.register(formbody);
 
-  webhook.setErrorHandler((error, _request, reply: FastifyReply) => {
+  lince.setErrorHandler((error, _request, reply: FastifyReply) => {
     if (error instanceof AltitudeApiError) {
       return reply.status(error.statusCode).send({
         source: "altitude",
@@ -138,7 +139,7 @@ export async function startWebhookServer() {
     });
   });
 
-  webhook
+  lince
     .listen({
       host: "0.0.0.0",
       port: env.WEBHOOK_PORT,

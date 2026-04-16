@@ -1,4 +1,3 @@
-import client from "../../../../shared/infra/services/sharePointClient";
 import { Drive } from "../../domain/entities/drive";
 import { Folder } from "../../domain/entities/folder";
 import { Site } from "../../domain/entities/site";

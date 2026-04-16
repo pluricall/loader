@@ -1,5 +1,5 @@
 import { altitudeQueue } from "../../../shared/infra/queue/altitude/altitude-queue";
-import { generateDataload } from "../../../shared/utils/generate-dataload";
+import { generateDataload } from "../../../shared/utils/generators/generate-dataload";
 
 export interface ServilusaEncuesta {
   id: any;

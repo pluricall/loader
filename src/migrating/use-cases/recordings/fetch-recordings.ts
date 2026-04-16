@@ -47,8 +47,7 @@ export class FetchRecordingsUseCase {
     }
 
     const keys = recordingKeys.map((r) => r.recording_key);
-    const leopardRecords =
-      await this.leopardRepository.fetchRecordingFiles(keys);
+    const leopardRecords = await this.leopardRepository.findByRecKeys(keys);
 
     const pumaMap = new Map(recordingKeys.map((r) => [r.recording_key, r]));
 

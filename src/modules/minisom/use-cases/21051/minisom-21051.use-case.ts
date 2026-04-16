@@ -1,8 +1,8 @@
 import { FieldRequiredError } from "../../../../shared/errors/field-required";
 import { AlreadyExistsError } from "../../../../shared/errors/name-already-exists-error";
 import { UnauthorizedError } from "../../../../shared/errors/unauthorized-error";
-import { generateGenId } from "../../../../shared/utils/generate-gen-id";
-import { generateNormalizedPhonePT } from "../../../../shared/utils/generate-normalized-phone";
+import { generateGenId } from "../../../../shared/utils/generators/generate-gen-id";
+import { generateNormalizedPhonePT } from "../../../../shared/utils/generators/generate-normalized-phone";
 import { MinisomRepository } from "../../repositories/minisom.repository";
 import { Minisom21051DTO } from "../../schemas/minisom-21051.schema";
 import { Minisom21051UploadContactsUseCase } from "./queue";

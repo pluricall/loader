@@ -1,7 +1,7 @@
 import { AlreadyExistsError } from "../../../../shared/errors/name-already-exists-error";
 import { NotFoundError } from "../../../../shared/errors/not-found-error";
-import { generateGenId } from "../../../../shared/utils/generate-gen-id";
-import { generateNormalizedPhonePT } from "../../../../shared/utils/generate-normalized-phone";
+import { generateGenId } from "../../../../shared/utils/generators/generate-gen-id";
+import { generateNormalizedPhonePT } from "../../../../shared/utils/generators/generate-normalized-phone";
 import { MinisomRepository } from "../../repositories/minisom.repository";
 import { MinisomMetaDTO } from "../../schemas/minisom-meta.schema";
 import { MinisomMetaUploadContactsUseCase } from "./queue";

@@ -4,7 +4,7 @@ import { AltitudeAuthError } from "../../../errors/altitude-auth-error";
 import {
   AltitudeEnvironment,
   resolveAltitudeConfig,
-} from "../../../utils/resolve-altitude-config";
+} from "./utils/resolve-altitude-config";
 
 interface AltitudeAuthErrorResponse {
   error: string;

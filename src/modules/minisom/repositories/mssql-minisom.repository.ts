@@ -5,7 +5,7 @@ import {
   MinisomFormConfig,
   MinisomRepository,
 } from "./minisom.repository";
-import { connectPluricallDb } from "../../../shared/infra/db/pluricall-db";
+import { connectPluricallDb } from "../../../shared/infra/db/connect-pluricall";
 
 export class MssqlMinisomRepository implements MinisomRepository {
   private truncate(value: any, max: number): string {

@@ -26,7 +26,7 @@ import { iberdrolaPdf } from "./modules/iberdrola/http/controllers/iberdrola-web
 const basePath =
   process.env.NODE_ENV === "pre" ? "/preinsight360api" : "/Insight360api";
 
-export function appRoutes(app: FastifyInstance) {
+export function agentRoutes(app: FastifyInstance) {
   app.post(`${basePath}/iberdrola/sender`, iberdrolaSenderSms);
   app.post(`${basePath}/iberdrola/sms`, iberdrolaSms);
   app.post(`${basePath}/iberdrola/pdf`, iberdrolaPdf);

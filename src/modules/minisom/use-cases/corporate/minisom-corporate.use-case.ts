@@ -1,5 +1,5 @@
-import { generateGenId } from "../../../../shared/utils/generate-gen-id";
-import { generateNormalizedPhonePT } from "../../../../shared/utils/generate-normalized-phone";
+import { generateGenId } from "../../../../shared/utils/generators/generate-gen-id";
+import { generateNormalizedPhonePT } from "../../../../shared/utils/generators/generate-normalized-phone";
 import { MinisomRepository } from "../../repositories/minisom.repository";
 import { MinisomCorporateDTO } from "../../schemas/minisom-corporate.schema";
 import { MinisomCorporateUploadContactsUseCase } from "./queue";

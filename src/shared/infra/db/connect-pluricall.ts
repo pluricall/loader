@@ -1,8 +1,5 @@
 import sql from "mssql";
-import {
-  ClientEnvironment,
-  resolveDbConfig,
-} from "../../utils/resolve-db-config";
+import { ClientEnvironment, resolveDbConfig } from "./utils/resolve-db-config";
 
 const dbPools: Map<string, sql.ConnectionPool> = new Map();
 

@@ -4,7 +4,7 @@ import { AltitudeApiError } from "../../../errors/altitude-error";
 import {
   AltitudeEnvironment,
   resolveAltitudeConfig,
-} from "../../../utils/resolve-altitude-config";
+} from "./utils/resolve-altitude-config";
 import { AltitudeAuthService } from "./auth.service";
 
 interface CreateContactParams {

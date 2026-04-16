@@ -5,7 +5,7 @@ import { LeadIntegrationRepository } from "../../domain/repositories/lead-integr
 import { LeadIntegrationMapper } from "../mappers/lead-integration-mapper";
 import { LeadIntegrationRow } from "../types/lead-integration-row";
 import { AltitudeEnvironment } from "../../../../shared/utils/resolve-altitude-config";
-import { connectPluricallDb } from "../../../../shared/infra/db/pluricall-db";
+import { connectPluricallDb } from "../../../../shared/infra/db/connect-pluricall";
 
 export class MssqlLeadIntegrationRepository
   implements LeadIntegrationRepository
