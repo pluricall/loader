@@ -12,7 +12,7 @@ import { vmOutCron } from "./shared/jobs/vm-out";
 
 export async function startLinceServer() {
   const lince = fastify({ requestTimeout: 0 });
-
+  lince.register(formbody);
   lince.register(linceRoutes);
   lince.register(fastifyCors, {
     origin: "*",
@@ -77,8 +77,6 @@ export async function startLinceServer() {
       }
     },
   );
-
-  lince.register(formbody);
 
   lince.setErrorHandler((error, _request, reply: FastifyReply) => {
     if (error instanceof AltitudeApiError) {
