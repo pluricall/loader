@@ -5,6 +5,7 @@ import { LeadIntegration } from "../../domain/entities/lead-integration";
 import { LeadLogsRepository } from "../../domain/repositories/lead-logs-repository";
 import { LeadMappingRepository } from "../../domain/repositories/lead-mapping-repository";
 import { AltitudeEnvironment } from "../../../../shared/infra/providers/altitude/utils/resolve-altitude-config";
+import { generatePlcId } from "../../../../shared/utils/generators/generate-plc-id";
 
 export interface LeadLoadResult {
   lead: any;
@@ -53,6 +54,7 @@ export class LoadLeadsUseCase {
     leads: any[],
   ): Promise<LeadLoadResult[]> {
     const dataload = new Date().toISOString().split("T")[0];
+    const plc_id = generatePlcId();
 
     const mapping = await this.leadMappingRepository.findByLeadConfigId(
       client.id,
@@ -121,6 +123,12 @@ export class LoadLeadsUseCase {
         discriminator: "Attribute",
         Name: "dataload",
         Value: dataload,
+        IsAnonymized: false,
+      });
+      attributes.push({
+        discriminator: "Attribute",
+        Name: "plc_id",
+        Value: plc_id,
         IsAnonymized: false,
       });
 
@@ -200,6 +208,13 @@ export class LoadLeadsUseCase {
           discriminator: "Attribute",
           Name: "dataload",
           Value: dataload,
+          IsAnonymized: false,
+        });
+
+        attributes.push({
+          discriminator: "Attribute",
+          Name: "plc_id",
+          Value: plc_id,
           IsAnonymized: false,
         });
 
