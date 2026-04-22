@@ -119,18 +119,25 @@ export class LoadLeadsUseCase {
         IsAnonymized: false,
       }));
 
+      const hasPlcId = mapping.some(
+        (m) => m.altitude_field === "plc_id" && normalizedLead[m.source_field],
+      );
+
       attributes.push({
         discriminator: "Attribute",
         Name: "dataload",
         Value: dataload,
         IsAnonymized: false,
       });
-      attributes.push({
-        discriminator: "Attribute",
-        Name: "plc_id",
-        Value: plc_id,
-        IsAnonymized: false,
-      });
+
+      if (!hasPlcId) {
+        attributes.push({
+          discriminator: "Attribute",
+          Name: "plc_id",
+          Value: plc_id,
+          IsAnonymized: false,
+        });
+      }
 
       const payload = {
         campaignName: client.campaign_name,
@@ -211,12 +218,16 @@ export class LoadLeadsUseCase {
           IsAnonymized: false,
         });
 
-        attributes.push({
-          discriminator: "Attribute",
-          Name: "plc_id",
-          Value: plc_id,
-          IsAnonymized: false,
-        });
+        const hasPlcId = attributes.some((attr) => attr.Name === "plc_id");
+
+        if (!hasPlcId) {
+          attributes.push({
+            discriminator: "Attribute",
+            Name: "plc_id",
+            Value: plc_id,
+            IsAnonymized: false,
+          });
+        }
 
         return {
           originalLead: lead,
