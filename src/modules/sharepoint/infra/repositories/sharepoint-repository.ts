@@ -18,41 +18,19 @@ export class SharepointRepository implements ISharepointRepository {
     return res.value.map((d: any) => ({ id: d.id, name: d.name }));
   }
 
-  async getFolders(
-    driveId: string,
-    folderPath = "",
-    visited = new Set<string>(),
-  ): Promise<Folder[]> {
+  async getFolders(driveId: string, folderPath = ""): Promise<Folder[]> {
     const apiPath = folderPath
       ? `/drives/${driveId}/root:/${folderPath}:/children`
       : `/drives/${driveId}/root/children`;
 
     const res = await client.api(apiPath).get();
-
-    const folders = res.value.filter((item: any) => item.folder);
-
-    let result: Folder[] = [];
-
-    for (const folder of folders) {
-      const currentPath = folderPath
-        ? `${folderPath}/${folder.name}`
-        : folder.name;
-
-      if (visited.has(currentPath)) continue;
-      visited.add(currentPath);
-
-      result.push({
+    return res.value
+      .filter((item: any) => item.folder)
+      .map((folder: any) => ({
         name: folder.name,
-        path: currentPath,
+        path: folderPath ? `${folderPath}/${folder.name}` : folder.name,
         hasChildren: folder.folder.childCount > 0,
-      });
-
-      const children = await this.getFolders(driveId, currentPath, visited);
-
-      result = result.concat(children);
-    }
-
-    return result;
+      }));
   }
 
   async downloadFile(driveId: string, filePath: string): Promise<Buffer> {

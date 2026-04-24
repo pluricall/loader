@@ -24,11 +24,12 @@ export class MssqlReportsRepository implements ReportsRepository {
       `);
   }
 
-  async findAll(): Promise<Report[]> {
+  async findAllActive(): Promise<Report[]> {
     const pool = await connectPluricallDb("onprem");
 
     const result = await pool.request().query(`
       SELECT * FROM relatorios
+      WHERE status = 'ACTIVO'
       ORDER BY created_at DESC
     `);
 

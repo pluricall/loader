@@ -1,12 +1,12 @@
 import { FastifyReply, FastifyRequest } from "fastify";
-import { makeFindAllReportsUseCase } from "../../use-cases/factories/make-find-all";
+import { makeFindAllActiveReportsUseCase } from "../../use-cases/factories/make-find-all";
 
-export async function findAllReportsController(
+export async function findAllActiveReportsController(
   request: FastifyRequest,
   reply: FastifyReply,
 ) {
   try {
-    const useCase = makeFindAllReportsUseCase();
+    const useCase = makeFindAllActiveReportsUseCase();
 
     const reports = await useCase.execute();
 

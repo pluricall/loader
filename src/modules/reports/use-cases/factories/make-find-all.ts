@@ -1,8 +1,8 @@
 import { MssqlReportsRepository } from "../../repositories/mssql/relatorios.repository";
-import { FindAllReportsUseCase } from "../find-all";
+import { FindAllActiveReportsUseCase } from "../find-all";
 
-export function makeFindAllReportsUseCase() {
+export function makeFindAllActiveReportsUseCase() {
   const repository = new MssqlReportsRepository();
 
-  return new FindAllReportsUseCase(repository);
+  return new FindAllActiveReportsUseCase(repository);
 }

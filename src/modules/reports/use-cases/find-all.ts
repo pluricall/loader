@@ -1,10 +1,10 @@
 import { ReportsRepository } from "../repositories/relatorios.repository";
 
-export class FindAllReportsUseCase {
+export class FindAllActiveReportsUseCase {
   constructor(private reportsRepository: ReportsRepository) {}
 
   async execute() {
-    const reports = await this.reportsRepository.findAll();
+    const reports = await this.reportsRepository.findAllActive();
 
     return reports;
   }

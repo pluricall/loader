@@ -28,7 +28,7 @@ export interface Report {
 
 export interface ReportsRepository {
   create: (data: CreateReportParams) => Promise<void>;
-  findAll: () => Promise<Report[]>;
+  findAllActive: () => Promise<Report[]>;
   findByName: (clientName: string) => Promise<Report | null>;
   deactivateClient: (clientName: string) => Promise<void>;
   updateStatus: (data: UpdateReportStatusParams) => Promise<void>;
