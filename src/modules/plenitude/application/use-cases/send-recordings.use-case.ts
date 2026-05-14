@@ -160,7 +160,7 @@ export class PlenitudeRecordingsUseCase {
     const datePath = `${year}/${month}/${day}`;
 
     if (row.resultado === "1") {
-      return `/pluricall/Grabaciones/Ventas/${datePath}`;
+      return `/pluricall/Grabaciones/Venta/${datePath}`;
     }
 
     if (row.resultado === "3") {
