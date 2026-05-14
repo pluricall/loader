@@ -8,6 +8,7 @@ import { sendRecordingsToSharepoint } from "../../../modules/sharepoint/utils/se
 
 export interface DownloadRecordingsRequest {
   ctName: string;
+  environment: "cloud" | "onprem";
   day: string;
   percentDifferentsResult: number;
   folderPath: string;
@@ -100,7 +101,7 @@ export class UploadRecordingsUseCase {
         const timestamp = String(record.time_stamp).replace(/[-: ]/g, "");
         const caminho = `${timestamp.slice(0, 4)}\\${timestamp.slice(4, 6)}\\${timestamp.slice(6, 8)}\\${timestamp.slice(8, 10)}\\${timestamp.slice(10, 12)}\\`;
         const ficheiro = `${timestamp.slice(12, 14)}${timestamp.slice(14, 17)}${record.rec_key}${record.rec_time}.wav`;
-        const origem = `\\\\tiger\\D$\\RepositorioAVR\\Storage\\${caminho}${ficheiro}`;
+        const origem = `\\\\tiger\\D$\\${data.environment === "cloud" ? "RepositorioAVRCloud" : "RepositorioAVR"}\\Storage\\${caminho}${ficheiro}`;
         const sharepointLocation = `${folderPath}/${fileName}`;
 
         recordingsWithFolderInfo.push({

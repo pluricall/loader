@@ -9,16 +9,7 @@ export class SendReportUseCase {
     private notification: NotificationService,
   ) {}
 
-  private emailRecipients = [
-    "ryan.martins@pluricall.pt",
-    "raul.neto@pluricall.pt",
-    "jorge.rodrigues@pluricall.pt",
-    "beatriz.contreras@pluricall.pt",
-    "cecilia.nunes@pluricall.pt",
-    "pedro.almeida@pluricall.pt",
-    "susana.silva@pluricall.pt",
-    "ruben.lanca@pluricall.pt",
-  ];
+  private emailRecipients = ["gestao@pluricall.pt", "it.servicos@pluricall.pt"];
 
   async execute({
     clientName,

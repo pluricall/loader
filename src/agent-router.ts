@@ -22,6 +22,8 @@ import { createTyp } from "./migrating/http/controllers/typs/create";
 import { iberdrolaSenderSms } from "./modules/iberdrola/http/controllers/iberdrola-sender-sms.controller";
 import { iberdrolaSms } from "./modules/iberdrola/http/controllers/iberdrola-webhook-sms.controller";
 import { iberdrolaPdf } from "./modules/iberdrola/http/controllers/iberdrola-webhook-pdf.controller";
+import { minisomMeta } from "./modules/minisom/http/controllers/meta/minisom-meta.controller";
+import { leadRoutes } from "./modules/leads/http/routes";
 
 const basePath =
   process.env.NODE_ENV === "pre" ? "/preinsight360api" : "/Insight360api";
@@ -30,6 +32,8 @@ export function agentRoutes(app: FastifyInstance) {
   app.post(`${basePath}/iberdrola/sender`, iberdrolaSenderSms);
   app.post(`${basePath}/iberdrola/sms`, iberdrolaSms);
   app.post(`${basePath}/iberdrola/pdf`, iberdrolaPdf);
+  app.post(`${basePath}/ws/minisom/meta`, minisomMeta);
+  app.register(leadRoutes);
 
   app.post("/clients", createClient);
   app.get("/clients", searchClients);

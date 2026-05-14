@@ -1,17 +1,116 @@
 import { IAgilidadeRepository } from "../../../domain/repositories/agilidade-repository";
 import { ILogger } from "../../../../../core/logger/interfaces/logger.types";
-import { SendContractsPayload } from "../../../http/schemas/agilidade-contracts.schema";
-import { AgilidadeSendContractsService } from "../../../../../shared/infra/providers/agilidade/send-contracts";
+import {
+  SendContractsPayload,
+  sendContractsSchema,
+} from "../../../http/schemas/agilidade-contracts.schema";
+import {
+  AgilidadeSendContractsService,
+  SendContractsResponse,
+} from "../../../../../shared/infra/providers/agilidade/send-contracts";
+import { AgilidadeContractsPayloadBuilder } from "./send-contracts-payload-builder";
+import { AgilidadeContractsLogBuilder } from "./send-contracts-log.builder";
+
+interface ExecuteBatchDTO {
+  date: string;
+}
+
+interface ExecuteDTO {
+  payload: SendContractsPayload;
+  easycode: string;
+}
+
+interface BatchResult {
+  total: number;
+  success: number;
+  failed: number;
+  errors: Array<{ easycode: string; reason: string }>;
+}
 
 export class AgilidadeContractsUseCase {
   constructor(
     private agilidadeRepository: IAgilidadeRepository,
     private agilidadeApiService: AgilidadeSendContractsService,
+    private payloadBuilder: AgilidadeContractsPayloadBuilder,
+    private logBuilder: AgilidadeContractsLogBuilder,
     private logger: ILogger,
   ) {}
 
-  async execute(payload: SendContractsPayload): Promise<void> {
-    this.validatePayload(payload);
+  async executeBatch({ date }: ExecuteBatchDTO): Promise<BatchResult> {
+    const leads = await this.agilidadeRepository.getLeadsParaEnviar(date);
+
+    const results: BatchResult = {
+      total: leads.length,
+      success: 0,
+      failed: 0,
+      errors: [],
+    };
+
+    for (const ct of leads) {
+      try {
+        const venda = ct.resultado === "1";
+        let payload: SendContractsPayload;
+
+        if (!venda) {
+          payload = this.payloadBuilder.buildNaoConvertida(ct);
+          const { lead_id } = await this.execute({
+            easycode: ct.easycode,
+            payload,
+          });
+
+          if (!payload.Id) {
+            await this.agilidadeRepository.updateLeadId(ct.easycode, lead_id);
+          }
+          results.success++;
+          continue;
+        }
+
+        const principal = await this.agilidadeRepository.getAdesaoPrincipal(
+          ct.easycode,
+        );
+        const secundarios =
+          await this.agilidadeRepository.getAdesoesSecundarias(ct.easycode);
+
+        if (!principal) {
+          this.logger.warn({ easycode: ct.easycode }, "Sem titular");
+          results.failed++;
+          results.errors.push({ easycode: ct.easycode, reason: "Sem titular" });
+          continue;
+        }
+
+        payload = this.payloadBuilder.buildConvertida(
+          ct,
+          principal,
+          secundarios,
+        );
+        const { lead_id } = await this.execute({
+          easycode: ct.easycode,
+          payload,
+        });
+
+        if (!payload.Id) {
+          await this.agilidadeRepository.updateLeadId(ct.easycode, lead_id);
+        }
+        results.success++;
+      } catch (err) {
+        const message = err instanceof Error ? err.message : "Unknown error";
+        this.logger.error(
+          { easycode: ct.easycode, error: message },
+          "Erro ao processar contrato",
+        );
+        results.failed++;
+        results.errors.push({ easycode: ct.easycode, reason: message });
+      }
+    }
+
+    return results;
+  }
+
+  async execute({
+    easycode,
+    payload,
+  }: ExecuteDTO): Promise<SendContractsResponse> {
+    sendContractsSchema.parse(payload);
 
     this.logger.info(
       {
@@ -19,84 +118,63 @@ export class AgilidadeContractsUseCase {
         status: payload.Status,
         marca: payload.Marca,
         colaborador: payload.NomeColaborador,
+        easycode,
       },
       "Iniciando envio de assinatura",
     );
 
     try {
-      await this.logSuccess(payload);
+      const response = await this.agilidadeApiService.sendSubscription(payload);
 
-      await this.logSuccess(payload);
-    } catch (err) {
-      if (err instanceof Error) {
-        await this.logError(payload, err);
-        throw err;
-      }
-    }
-  }
-
-  private validatePayload(payload: SendContractsPayload): void {
-    if (payload.Status === "Sem Interesse" && !payload.MotivoNaoInteresse) {
-      throw new Error(
-        'MotivoNaoInteresse é obrigatório quando Status = "Sem Interesse"',
+      await this.logSuccess(payload, easycode, response).catch((err) =>
+        this.logger.error(
+          { easycode, error: err.message },
+          "Falha ao guardar log de sucesso",
+        ),
       );
-    }
 
-    if (!payload.Beneficiarios || payload.Beneficiarios.length === 0) {
-      throw new Error("Pelo menos 1 beneficiário é obrigatório");
+      this.logger.info(
+        { id: payload.Id, easycode, status: payload.Status },
+        "Contrato enviado com sucesso",
+      );
+      return response;
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error("Unknown error");
+
+      await this.logError(payload, easycode, error).catch((logErr) =>
+        this.logger.error(
+          { easycode, error: logErr.message },
+          "Falha ao guardar log de erro",
+        ),
+      );
+
+      throw error;
     }
   }
 
-  private buildLogBase(payload: SendContractsPayload) {
-    return {
-      lead_id: payload.Id,
-      colaborador: payload.NomeColaborador,
-      marca: payload.Marca,
-      status: payload.Status,
-      telefone: payload.Telefone,
-      email: payload.Email,
-      data_assinatura: payload.DataAssinatura,
-      periodicidade: payload.Periodicidade,
-      valor_ativacao: payload.ValorAtivacao,
-      mensalidade: payload.Mensalidade,
-      num_beneficiarios: payload.Beneficiarios.length,
-    };
-  }
-
-  private async logSuccess(payload: SendContractsPayload): Promise<void> {
-    this.logger.info(
-      { id: payload.Id, status: payload.Status, marca: payload.Marca },
-      "Contrato enviado com sucesso",
-    );
-
+  private async logSuccess(
+    payload: SendContractsPayload,
+    easycode: string,
+    response: SendContractsResponse,
+  ): Promise<void> {
     await this.agilidadeRepository.saveSendContractsLog({
-      ...this.buildLogBase(payload),
+      ...this.logBuilder.build(payload, easycode),
       send_status: "SUCCESS",
       body: JSON.stringify(payload),
+      api_response: response.raw,
     });
   }
 
   private async logError(
     payload: SendContractsPayload,
+    easycode: string,
     err: Error & { response?: { status: number } },
   ): Promise<void> {
-    const isApiError = !!err.response;
-
-    this.logger.error(
-      {
-        id: payload.Id,
-        error_type: isApiError ? "API" : "SYSTEM",
-        http_status: err.response?.status,
-        message: err.message,
-      },
-      "Falha ao enviar contrato",
-    );
-
     await this.agilidadeRepository.saveSendContractsLog({
-      ...this.buildLogBase(payload),
+      ...this.logBuilder.build(payload, easycode),
       send_status: "ERROR",
-      error_type: isApiError ? "API" : "SYSTEM",
-      error_message: err.message,
+      error_type: err.response ? "API" : "SYSTEM",
+      api_response: err.message,
       ...(err.response && { http_status: err.response.status }),
       body: JSON.stringify(payload),
     });

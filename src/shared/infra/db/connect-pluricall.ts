@@ -5,11 +5,12 @@ const dbPools: Map<string, sql.ConnectionPool> = new Map();
 
 export async function connectPluricallDb(
   environment: ClientEnvironment,
+  db?: string,
 ): Promise<sql.ConnectionPool> {
-  const config = resolveDbConfig(environment);
+  const config = resolveDbConfig(environment, db);
+  const poolKey = `${config.server}:${config.database}`;
 
-  const existing = dbPools.get(config.database);
-
+  const existing = dbPools.get(poolKey);
   if (existing && existing.connected) {
     return existing;
   }
@@ -19,7 +20,7 @@ export async function connectPluricallDb(
     password: config.password,
     server: config.server,
     port: Number(config.port),
-    database: config.database,
+    database: db || config.database,
     options: {
       encrypt: false,
       trustServerCertificate: true,

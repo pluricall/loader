@@ -7,11 +7,12 @@ export async function agilidadeRecordingsController(
 ) {
   try {
     const useCase = makeAgilidadeRecordingsUseCase();
-    useCase.execute({
+    await useCase.execute({
       endDate: "2026-04-15",
       initialDate: "2026-04-15",
+      limit: 10,
     });
-    return reply.status(200);
+    return reply.status(200).send({ message: "Processamento concluído" });
   } catch (error: any) {
     console.error("Error in agilidadeRecordingsController:", error);
     throw error;

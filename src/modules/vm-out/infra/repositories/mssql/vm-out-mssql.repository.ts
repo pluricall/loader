@@ -31,8 +31,8 @@ export class MssqlVmOutRepository implements IVmOutRepository {
       SELECT telefone1_ as telefone, fimguiao
       FROM ct_vm_inb_cloud
       WHERE 
-    CAST(dataload AS DATE) = CAST(GETDATE() AS DATE)
-    AND resultado IS NOT NULL
+      CAST(dataload AS DATE) = CAST(GETDATE() AS DATE)
+      AND resultado IS NOT NULL
     `);
 
     return result.recordset.map((r: any) => r.telefone);

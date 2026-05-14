@@ -1,6 +1,6 @@
 import { env } from "../../../../env";
 
-export type ClientEnvironment = "cloud" | "onprem" | "pre";
+export type ClientEnvironment = "cloud" | "onprem" | "pre" | "panther";
 
 export interface DbResolvedConfig {
   user: string;
@@ -12,6 +12,7 @@ export interface DbResolvedConfig {
 
 export function resolveDbConfig(
   environment: ClientEnvironment,
+  db?: string,
 ): DbResolvedConfig {
   if (env.NODE_ENV === "pre") {
     return {
@@ -19,7 +20,7 @@ export function resolveDbConfig(
       password: env.PLURICALL_PRE_DB_PASSWORD,
       server: env.PLURICALL_PRE_DB_SERVER,
       port: env.PLURICALL_PRE_DB_PORT,
-      database: env.PLURICALL_PRE_DB_DATABASE,
+      database: db || env.PLURICALL_PRE_DB_DATABASE,
     };
   }
   // 🌩 Cloud
@@ -29,7 +30,7 @@ export function resolveDbConfig(
       password: env.PLURICALL_CLOUD_DB_PASSWORD,
       server: env.PLURICALL_CLOUD_DB_SERVER,
       port: env.PLURICALL_CLOUD_DB_PORT,
-      database: env.PLURICALL_CLOUD_DB_DATABASE,
+      database: db || env.PLURICALL_CLOUD_DB_DATABASE,
     };
   }
 
@@ -39,7 +40,17 @@ export function resolveDbConfig(
       password: env.PLURICALL_PRE_DB_PASSWORD,
       server: env.PLURICALL_PRE_DB_SERVER,
       port: env.PLURICALL_PRE_DB_PORT,
-      database: env.PLURICALL_PRE_DB_DATABASE,
+      database: db || env.PLURICALL_PRE_DB_DATABASE,
+    };
+  }
+
+  if (environment === "panther") {
+    return {
+      user: env.PLURICALL_PANTHER_DB_USER,
+      password: env.PLURICALL_PANTHER_DB_PASSWORD,
+      server: env.PLURICALL_PANTHER_DB_SERVER,
+      port: env.PLURICALL_PANTHER_DB_PORT,
+      database: db || env.PLURICALL_PANTHER_DB_DATABASE,
     };
   }
 
@@ -49,6 +60,6 @@ export function resolveDbConfig(
     password: env.PLURICALL_ONPREM_DB_PASSWORD,
     server: env.PLURICALL_ONPREM_DB_SERVER,
     port: env.PLURICALL_ONPREM_DB_PORT,
-    database: env.PLURICALL_ONPREM_DB_DATABASE,
+    database: db || env.PLURICALL_ONPREM_DB_DATABASE,
   };
 }

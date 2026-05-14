@@ -13,7 +13,7 @@ export function minisomRoutes(app: FastifyInstance) {
   app.post(`/ws/minisom/21121/`, minisom21121);
   app.post(`/ws/minisom/21011/`, minisomCorporate);
   app.post(`/ws/minisom/meta`, minisomMeta);
-  app.post(`/ws/minisom/test`, minisomTest);
+  app.post(`/ws/minisom/21121DEV/`, minisomTest);
   app.get("/ws/minisom/results-by-type", minisomResultsByType);
   app.get("/ws/minisom/loaded-contacts", minisomLoadedContacts);
   app.get("/ws/minisom/dashboard", minisomDashboard);

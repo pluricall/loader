@@ -23,8 +23,16 @@ export class AgilidadeRecordingsUseCase {
   private static readonly STORAGE_BASE_PATH =
     "\\\\tiger\\D$\\RepositorioAVR\\Storage";
 
-  async execute(options: { initialDate: string; endDate: string }) {
-    const recordings = await this.getRecordings(options);
+  async execute(options: {
+    initialDate: string;
+    endDate: string;
+    limit?: number;
+  }) {
+    let recordings = await this.getRecordings(options);
+
+    if (options.limit) {
+      recordings = recordings.slice(0, options.limit);
+    }
 
     this.logger.info(
       { total: recordings.length, ...options },
@@ -79,9 +87,18 @@ export class AgilidadeRecordingsUseCase {
     const sourcePath = this.buildOriginPath(leopard);
 
     try {
-      const buffer = await this.getRecordingBuffer(sourcePath);
-      const outputPath = await this.saveFile(row, buffer);
-      await this.logSuccess(row, sourcePath, outputPath);
+      const buffer = await this.fileService.readFile(sourcePath);
+      const date = new Date(row.call_start);
+      const payload = this.mapToPayload(row, buffer, date);
+      const fileName = this.buildFileName(row);
+
+      const result = await this.agilidadeApiService.sendRecordings({
+        ...payload,
+        Gravacao: payload.Gravacao as Buffer,
+        fileName,
+      });
+
+      await this.logSuccess(row, sourcePath, fileName, result.raw);
     } catch (err) {
       if (err instanceof Error) {
         await this.logError(row, sourcePath, err);
@@ -92,10 +109,11 @@ export class AgilidadeRecordingsUseCase {
   private async logSuccess(
     row: RecordingRow,
     origem: string,
-    outputPath: string,
+    file_name: string,
+    api_response: string,
   ) {
     this.logger.info(
-      { recording_key: row.recording_key, outputPath },
+      { recording_key: row.recording_key, file_name },
       "Gravação processada com sucesso",
     );
 
@@ -104,9 +122,10 @@ export class AgilidadeRecordingsUseCase {
       easycode: row.easycode,
       telefone: row.telefone ?? "",
       bd_id: row.bd_id,
-      file_name: outputPath,
+      file_name,
       origem_path: origem,
       status: "SUCCESS",
+      api_response,
     });
   }
 
@@ -136,7 +155,7 @@ export class AgilidadeRecordingsUseCase {
       origem_path: origem,
       status: "ERROR",
       error_type: isApiError ? "API" : "SYSTEM",
-      error_message: err.message,
+      api_response: err.message,
       http_status: err.response?.status,
     });
   }
@@ -156,25 +175,31 @@ export class AgilidadeRecordingsUseCase {
       origem_path: "",
       status: "ERROR",
       error_type: "SYSTEM",
-      error_message: "Leopard data not found",
+      api_response: "Leopard data not found",
     });
   }
 
-  // --- helpers ---
-
-  private formatTimestamp(timestamp: string): string {
-    return timestamp.replace(/[-: ]/g, "");
+  private mapStatus(resultado: string) {
+    const map: Record<string, string> = {
+      "1": "Convertida",
+      "2": "Agendada",
+      "3": "Sem Interesse",
+      Y: "Não quer ser mais contactado em Telemarketing",
+      Q: "Não pretende ser mais contactado",
+      Z: "Cliente pede eliminação dos dados",
+      C: "Não quer plano - quer ir a clínica",
+      I: "Envio de informações",
+      E: "Número errado",
+      F: "Fax",
+      V: "Voice Mail",
+    };
+    return map[resultado] ?? "Não Atendida";
   }
 
-  private async getRecordingBuffer(path: string): Promise<Buffer> {
-    return this.fileService.readFile(path);
-  }
-
-  /** @todo usar quando o endpoint da Agilidade API estiver disponível */
   private mapToPayload(row: RecordingRow, buffer: Buffer, date: Date) {
     return {
       Id: row.bd_id ?? "",
-      TipoChamada: "",
+      TipoChamada: this.mapStatus(String(row.resultado)),
       DataHora: date.toISOString(),
       Telefone: row.telefone ?? "",
       AtendidaPor: (row.logincontacto ?? "").trim(),
@@ -190,7 +215,7 @@ export class AgilidadeRecordingsUseCase {
   }
 
   private buildOriginPath(file: RecordingData): string {
-    const ts = this.formatTimestamp(String(file.time_stamp));
+    const ts = String(file.time_stamp).replace(/[-: ]/g, "");
 
     const year = ts.slice(0, 4);
     const month = ts.slice(4, 6);
@@ -206,33 +231,11 @@ export class AgilidadeRecordingsUseCase {
     return `${AgilidadeRecordingsUseCase.STORAGE_BASE_PATH}\\${folder}${file_name}`;
   }
 
-  private sanitize(value: string): string {
-    return value.replace(/[^a-zA-Z0-9]/g, "");
-  }
-
   private buildFileName(row: RecordingRow): string {
-    const telefone = this.sanitize(row.telefone ?? "semTelefone");
+    const telefone = row.telefone.replace(/[^a-zA-Z0-9]/g, "") ?? "semTelefone";
     const date = new Date(row.call_start);
     const formattedDate = date.toISOString().replace(/[:.]/g, "-");
 
     return `${formattedDate}_${telefone}_${row.easycode}_${row.bd_id}.wav`;
-  }
-
-  private buildFolderPath(row: RecordingRow): string {
-    const date = new Date(row.moment);
-    const formattedDate = date.toISOString().slice(0, 10);
-
-    return `./downloads/${formattedDate}`;
-  }
-
-  private async saveFile(row: RecordingRow, buffer: Buffer): Promise<string> {
-    const fileName = this.buildFileName(row);
-    const folder = this.buildFolderPath(row);
-    const outputPath = `${folder}/${fileName}`;
-
-    await this.fileService.createFolder(folder);
-    await this.fileService.writeFile(outputPath, buffer);
-
-    return outputPath;
   }
 }

@@ -10,6 +10,6 @@ export async function agilidadeRoutes(app: FastifyInstance) {
     { preHandler: parseAgildadeBody },
     agilidade24041Controller,
   );
-  app.post(`/ws/agilidade/recordings/`, agilidadeRecordingsController);
-  app.post(`/ws/agilidade/contracts/`, agilidadeContractsController);
+  app.get(`/ws/agilidade/send-recordings`, agilidadeRecordingsController);
+  app.get(`/ws/agilidade/contracts`, agilidadeContractsController);
 }

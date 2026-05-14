@@ -32,6 +32,7 @@ export interface ClientRecordingsParams {
   resultsNotInFivePercent: string | null;
   password?: string;
   email: string;
+  environment: "cloud" | "onprem";
 }
 
 export interface GetClientRecordings {

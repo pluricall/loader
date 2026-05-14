@@ -1,20 +1,20 @@
 import { FastifyRequest, FastifyReply } from "fastify";
 import { makeSendContractsUseCase } from "../../../application/use-cases/factories/agilidade-contracts.factory";
-import { sendContractsSchema } from "../../schemas/agilidade-contracts.schema";
+import { sendContractSchema } from "../../schemas/agilidade-contracts.schema";
 
 export async function agilidadeContractsController(
   request: FastifyRequest,
   reply: FastifyReply,
 ) {
-  const body = sendContractsSchema.parse(request.body);
+  const { date } = sendContractSchema.parse(request.query);
 
-  try {
-    const useCase = makeSendContractsUseCase();
-    await useCase.execute(body);
+  const useCase = makeSendContractsUseCase();
+  const result = await useCase.executeBatch({ date });
 
-    return reply.status(200).send({ status: "SUCCESS" });
-  } catch (error: any) {
-    console.error("Error in sendContractsController:", error);
-    throw error;
-  }
+  const hasErrors = result.failed > 0;
+
+  return reply.status(hasErrors ? 207 : 200).send({
+    status: hasErrors ? (result.success > 0 ? "PARTIAL" : "ERROR") : "SUCCESS",
+    ...result,
+  });
 }

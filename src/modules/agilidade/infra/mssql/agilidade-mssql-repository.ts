@@ -1,4 +1,3 @@
-// src/repositories/agilidade-repository.ts
 import { connectPluricallDb } from "../../../../shared/infra/db/connect-pluricall";
 import {
   ContractsLogData,
@@ -254,7 +253,7 @@ END;
       .input("origem_path", data.origem_path)
       .input("status", data.status)
       .input("error_type", data.error_type ?? null)
-      .input("error_message", data.error_message ?? null)
+      .input("api_response", data.api_response ?? null)
       .input("http_status", data.http_status ?? null).query(`
       INSERT INTO agilidade_recordings_repository (
         recording_key,
@@ -265,7 +264,7 @@ END;
         origem_path,
         status,
         error_type,
-        error_message,
+        api_response,
         http_status
       )
       VALUES (
@@ -277,7 +276,7 @@ END;
         @origem_path,
         @status,
         @error_type,
-        @error_message,
+        @api_response,
         @http_status
       )
     `);
@@ -288,6 +287,7 @@ END;
 
     await conn
       .request()
+      .input("easycode", data.easycode)
       .input("lead_id", data.lead_id)
       .input("colaborador", data.colaborador)
       .input("marca", data.marca)
@@ -301,11 +301,12 @@ END;
       .input("num_beneficiarios", data.num_beneficiarios)
       .input("send_status", data.send_status)
       .input("error_type", data.error_type ?? null)
-      .input("error_message", data.error_message ?? null)
+      .input("api_response", data.api_response ?? null)
       .input("http_status", data.http_status ?? null)
       .input("body", data.body ?? null)
       .input("created_at", new Date()).query(`
       INSERT INTO agilidade_contracts_repository (
+        easycode,
         lead_id,
         colaborador,
         marca,
@@ -319,12 +320,13 @@ END;
         num_beneficiarios,
         send_status,
         error_type,
-        error_message,
+        api_response,
         http_status,
         body,
         created_at
       )
       VALUES (
+        @easycode,
         @lead_id,
         @colaborador,
         @marca,
@@ -338,11 +340,66 @@ END;
         @num_beneficiarios,
         @send_status,
         @error_type,
-        @error_message,
+        @api_response,
         @http_status,
         @body,
         @created_at
       )
+    `);
+  }
+
+  async getLeadsParaEnviar(date: string) {
+    const conn = await connectPluricallDb("onprem");
+    const result = await conn.request().input("date", date).query(`
+    SELECT *
+    FROM ct_agilidade_leads ct
+    WHERE ct.datacontacto >= CONVERT(DATETIME, @date + ' 00:00:00', 120)
+      AND ct.datacontacto <  CONVERT(DATETIME, @date + ' 23:59:59', 120)
+      AND ct.resultado NOT IN ('M', '2')
+      AND NOT EXISTS (
+        SELECT 1
+        FROM agilidade_contracts_repository log
+        WHERE log.easycode = ct.easycode
+          AND log.send_status = 'SUCCESS'
+      )
+  `);
+    return result.recordset;
+  }
+
+  async getAdesaoPrincipal(easycode: string) {
+    const conn = await connectPluricallDb("onprem");
+
+    const result = await conn.request().input("easycode", easycode).query(`
+      SELECT TOP 1 *
+      FROM agilidade_adesoes
+      WHERE easycode = @easycode
+        AND tipo_adesao = 'Principal'
+    `);
+
+    return result.recordset[0] || null;
+  }
+
+  async getAdesoesSecundarias(easycode: string) {
+    const conn = await connectPluricallDb("onprem");
+
+    const result = await conn.request().input("easycode", easycode).query(`
+      SELECT *
+      FROM agilidade_adesoes
+      WHERE easycode = @easycode
+        AND tipo_adesao = 'Secundaria'
+    `);
+
+    return result.recordset;
+  }
+
+  async updateLeadId(easycode: string, lead_id: string) {
+    const conn = await connectPluricallDb("onprem");
+
+    await conn.request().input("easycode", easycode).input("lead_id", lead_id)
+      .query(`
+      UPDATE ct_agilidade_leads
+      SET bd_id = @lead_id
+      WHERE easycode = @easycode
     `);
   }
 }
