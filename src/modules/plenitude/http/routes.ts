@@ -4,5 +4,5 @@ import { sendRecordingsController } from "./controllers/recordings";
 
 export function plenitudeRoutes(app: FastifyInstance) {
   app.post(`/plenitude/return-data`, plenitudeInsert);
-  app.get("/plenitude/recordings/send", sendRecordingsController);
+  app.post("/plenitude/recordings/send", sendRecordingsController);
 }
