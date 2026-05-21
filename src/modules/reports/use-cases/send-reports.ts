@@ -30,7 +30,10 @@ export class SendReportUseCase {
       throw new Error("Invalid SharePoint config");
     }
 
-    const filePath = `${config.folder_path}/${fileName}`.replace("//", "/");
+    const dateFolder = new Date().toISOString().slice(0, 10);
+    const basePath = `${config.folder_path}/${dateFolder}`.replace("//", "/");
+
+    const filePath = `${basePath}/${fileName}`.replace("//", "/");
 
     try {
       await this.sharepointRepository.uploadFile({

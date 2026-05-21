@@ -20,7 +20,6 @@ export async function createClientRecordings(
     isHistorical: z.boolean().default(false),
     resultsNotInFivePercent: z.string(),
     email: z.string().email(),
-    environment: z.enum(["cloud", "onprem"]),
     password: z.string().min(3),
   });
 

@@ -186,7 +186,6 @@ export class MssqlPluricallRepository implements PluricallRepository {
       await transaction
         .request()
         .input("clientId", clientId)
-        .input("environment", data.environment)
         .input("clientName", data.clientName)
         .input("ct_", data.ctName)
         .input("percentDifferentsResult", data.percentDifferentsResult)
@@ -199,8 +198,8 @@ export class MssqlPluricallRepository implements PluricallRepository {
         .input("isHistorical", data.isHistorical ? 1 : 0)
         .input("resultsNotInFivePercent", data.resultsNotInFivePercent).query(`
         INSERT INTO insight_clients
-        (client_id, environment, client_name, ct_, percent_differents_result, start_time, site_id, drive_id, folder_path, status, is_bd, is_historical, results_not_in_five_percent)
-        VALUES (@clientId, environment, @clientName, @ct_, @percentDifferentsResult, @startTime, @siteId, @driveId, @folderPath, @status, @isBd, @isHistorical, @resultsNotInFivePercent)
+        (client_id, client_name, ct_, percent_differents_result, start_time, site_id, drive_id, folder_path, status, is_bd, is_historical, results_not_in_five_percent)
+        VALUES (@clientId, @clientName, @ct_, @percentDifferentsResult, @startTime, @siteId, @driveId, @folderPath, @status, @isBd, @isHistorical, @resultsNotInFivePercent)
       `);
 
       await transaction.commit();

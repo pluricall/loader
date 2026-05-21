@@ -9,6 +9,7 @@ import { startAltitudeWorker } from "./shared/infra/queue/altitude/altitude-work
 import { MssqlPluricallRepository } from "./migrating/repositories/mssql/mssql-pluricall-repository";
 import { linceRoutes } from "./lince-router";
 import { vmOutCron } from "./shared/jobs/vm-out";
+import { plenitudeRecordingsJob } from "./shared/jobs/plenitude-records";
 
 export async function startLinceServer() {
   const lince = fastify({
@@ -25,9 +26,8 @@ export async function startLinceServer() {
 
   startAltitudeWorker();
   const pluricallRepository = new MssqlPluricallRepository();
-  lince.register(async () => {
-    vmOutCron();
-  });
+  vmOutCron();
+  plenitudeRecordingsJob();
 
   lince.addContentTypeParser(
     ["application/xml", "text/xml"],
