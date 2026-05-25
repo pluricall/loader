@@ -31,7 +31,10 @@ export class SendReportUseCase {
     }
 
     const dateFolder = new Date().toISOString().slice(0, 10);
-    const basePath = `${config.folder_path}/${dateFolder}`.replace("//", "/");
+
+    const basePath = config.folders_by_date
+      ? `${config.folder_path}/${dateFolder}`
+      : config.folder_path;
 
     const filePath = `${basePath}/${fileName}`.replace("//", "/");
 

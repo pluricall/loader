@@ -16,12 +16,13 @@ export class MssqlReportsRepository implements ReportsRepository {
       .input("siteId", data.siteId)
       .input("driveId", data.driveId)
       .input("folderPath", data.folderPath ?? "")
+      .input("foldersByDate", data.foldersByDate ? 1 : 0)
       .input("status", data.status).query(`
-        INSERT INTO relatorios
-          (client_name, site_id, drive_id, folder_path, status)
-        VALUES
-          (@clientName, @siteId, @driveId, @folderPath, @status)
-      `);
+    INSERT INTO relatorios
+      (client_name, site_id, drive_id, folder_path, folders_by_date, status)
+    VALUES
+      (@clientName, @siteId, @driveId, @folderPath, @foldersByDate, @status)
+  `);
   }
 
   async findAllActive(): Promise<Report[]> {

@@ -3,6 +3,7 @@ export interface CreateReportParams {
   siteId: string;
   driveId: string;
   folderPath: string;
+  foldersByDate: boolean;
   status: "ACTIVO" | "INACTIVO";
 }
 
@@ -22,6 +23,7 @@ export interface Report {
   last_send: Date | null;
   last_status: "SUCCESS" | "ERROR" | "PENDING" | null;
   error: string | null;
+  folders_by_date: boolean;
   created_at: Date;
   updated_at: Date;
 }

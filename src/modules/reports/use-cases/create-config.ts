@@ -22,6 +22,7 @@ export class CreateReportConfigUseCase {
       driveId: data.driveId,
       folderPath: data.folderPath,
       status: data.status,
+      foldersByDate: data.foldersByDate,
     });
   }
 }

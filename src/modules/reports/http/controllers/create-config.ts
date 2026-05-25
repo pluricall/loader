@@ -8,6 +8,7 @@ const schema = z.object({
   siteId: z.string().min(1),
   driveId: z.string().min(1),
   folderPath: z.string().min(1),
+  foldersByDate: z.boolean(),
   status: z.enum(["ACTIVO", "INACTIVO"]),
 });
 
