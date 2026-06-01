@@ -51,12 +51,21 @@ export class SendReportUseCase {
         error: "",
       });
 
+      const isMinisomEmail = config.client_name
+        .toLowerCase()
+        .includes("minisom");
       return await this.notification.send("email", {
-        to: this.emailRecipients,
+        to: isMinisomEmail
+          ? "minisom@pluricall.pt, elisabete.correia@pluricall.pt, " +
+            this.emailRecipients.join(", ")
+          : this.emailRecipients,
         subject: `Relatório enviado - ${clientName} ${new Date().toLocaleString("pt-PT")}`,
         html: `Relatório <strong>${fileName}</strong> enviado com sucesso para o SharePoint do cliente <strong>${clientName}</strong> na pasta <strong>${config.folder_path}</strong>.`,
       });
     } catch (error: any) {
+      const isMinisomEmail = config.client_name
+        .toLowerCase()
+        .includes("minisom");
       await this.reportsRepository.updateStatus({
         id: config.id,
         lastStatus: "ERROR",
@@ -64,7 +73,10 @@ export class SendReportUseCase {
       });
 
       await this.notification.send("email", {
-        to: this.emailRecipients,
+        to: isMinisomEmail
+          ? "minisom@pluricall.pt, elisabete.correia@pluricall.pt, " +
+            this.emailRecipients.join(", ")
+          : this.emailRecipients,
         subject: `Erro ao enviar relatório - ${clientName} ${new Date().toLocaleString("pt-PT")}`,
         html: `Relatório <strong>${fileName}</strong> falhou ao ser enviado para o SharePoint do cliente <strong>${clientName}</strong> na pasta <strong>${config.folder_path}</strong>.
         Erro: ${error.message}

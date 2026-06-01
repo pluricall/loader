@@ -29,10 +29,7 @@ export class AgilidadeRecordingsUseCase {
     limit?: number;
   }) {
     let recordings = await this.getRecordings(options);
-
-    if (options.limit) {
-      recordings = recordings.slice(0, options.limit);
-    }
+    if (options.limit) recordings = recordings.slice(0, options.limit);
 
     this.logger.info(
       { total: recordings.length, ...options },
@@ -40,11 +37,16 @@ export class AgilidadeRecordingsUseCase {
     );
 
     const leopardMap = await this.getLeopardMap(recordings);
+    const grouped = this.groupByBdIdAndInteraction(recordings);
 
     const limit = pLimit(5);
-    await Promise.all(
-      recordings.map((r) => limit(() => this.processRecording(r, leopardMap))),
+    const tasks = [...grouped.entries()].flatMap(([_, interactions]) =>
+      [...interactions.entries()].map(([_, rows]) =>
+        limit(() => this.processInteraction(rows, leopardMap)),
+      ),
     );
+
+    await Promise.all(tasks);
 
     this.logger.info(
       { total: recordings.length, ...options },
@@ -62,7 +64,7 @@ export class AgilidadeRecordingsUseCase {
     return this.agilidadeRepository.getRecordingsByDay({
       initialDate,
       endDate,
-      includeHistorical: false,
+      includeHistorical: true,
     });
   }
 
@@ -74,34 +76,85 @@ export class AgilidadeRecordingsUseCase {
     return new Map(leopardFiles.map((f) => [f.rec_key, f]));
   }
 
-  private async processRecording(
-    row: RecordingRow,
-    leopardMap: Map<string, RecordingData>,
-  ) {
-    const leopard = leopardMap.get(row.recording_key);
+  private groupByBdIdAndInteraction(
+    rows: RecordingRow[],
+  ): Map<string, Map<string, RecordingRow[]>> {
+    const grouped = new Map<string, Map<string, RecordingRow[]>>();
 
-    if (!leopard) {
-      return this.logLeopardError(row);
+    for (const row of rows) {
+      if (!grouped.has(row.bd_id)) grouped.set(row.bd_id, new Map());
+      const interactions = grouped.get(row.bd_id)!;
+
+      const key = String(row.easycode);
+      if (!interactions.has(key)) interactions.set(key, []);
+      interactions.get(key)!.push(row);
     }
 
-    const sourcePath = this.buildOriginPath(leopard);
+    return grouped;
+  }
+
+  private async processInteraction(
+    rows: RecordingRow[],
+    leopardMap: Map<string, RecordingData>,
+  ) {
+    const representative = rows[0];
+    const date = new Date(representative.start_time);
+
+    const gravacoes: {
+      buffer: Buffer;
+      fileName: string;
+      sourcePath: string;
+    }[] = [];
+
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i];
+      const leopard = leopardMap.get(row.recording_key);
+
+      if (!leopard) {
+        await this.logLeopardError(row);
+        continue;
+      }
+
+      const sourcePath = this.buildOriginPath(leopard);
+
+      try {
+        const buffer = await this.fileService.readFile(sourcePath);
+        gravacoes.push({
+          buffer,
+          sourcePath,
+          fileName: this.buildFileName(representative, i + 1),
+        });
+      } catch (err) {
+        if (err instanceof Error) await this.logError(row, sourcePath, err);
+      }
+    }
+
+    if (gravacoes.length === 0) return;
 
     try {
-      const buffer = await this.fileService.readFile(sourcePath);
-      const date = new Date(row.call_start);
-      const payload = this.mapToPayload(row, buffer, date);
-      const fileName = this.buildFileName(row);
-
       const result = await this.agilidadeApiService.sendRecordings({
-        ...payload,
-        Gravacao: payload.Gravacao as Buffer,
-        fileName,
+        Id: representative.bd_id ?? "",
+        TipoChamada: this.mapStatus(String(representative.resultado)),
+        DataHora: date.toISOString(),
+        Telefone: representative.telefone ?? "",
+        AtendidaPor: representative.logincontacto.trim() ?? "",
+        Duracao: this.formatDuration(Number(representative.duracao)),
+        Gravacoes: gravacoes,
       });
 
-      await this.logSuccess(row, sourcePath, fileName, result.raw);
+      for (const gravacao of gravacoes) {
+        await this.logSuccess(
+          representative,
+          gravacao.sourcePath,
+          gravacao.fileName,
+          result.raw,
+        );
+      }
     } catch (err) {
       if (err instanceof Error) {
-        await this.logError(row, sourcePath, err);
+        for (const gravacao of gravacoes) {
+          await this.logError(representative, gravacao.sourcePath, err);
+        }
       }
     }
   }
@@ -196,18 +249,6 @@ export class AgilidadeRecordingsUseCase {
     return map[resultado] ?? "Não Atendida";
   }
 
-  private mapToPayload(row: RecordingRow, buffer: Buffer, date: Date) {
-    return {
-      Id: row.bd_id ?? "",
-      TipoChamada: this.mapStatus(String(row.resultado)),
-      DataHora: date.toISOString(),
-      Telefone: row.telefone ?? "",
-      AtendidaPor: (row.logincontacto ?? "").trim(),
-      Duracao: this.formatDuration(Number(row.duracao)),
-      Gravacao: buffer,
-    };
-  }
-
   private formatDuration(seconds: number): string {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -231,11 +272,10 @@ export class AgilidadeRecordingsUseCase {
     return `${AgilidadeRecordingsUseCase.STORAGE_BASE_PATH}\\${folder}${file_name}`;
   }
 
-  private buildFileName(row: RecordingRow): string {
-    const telefone = row.telefone.replace(/[^a-zA-Z0-9]/g, "") ?? "semTelefone";
-    const date = new Date(row.call_start);
+  private buildFileName(row: RecordingRow, index: number): string {
+    const telefone = row.telefone.replace(/[^a-zA-Z0-9]/g, "") || "semTelefone";
+    const date = new Date(row.start_time);
     const formattedDate = date.toISOString().replace(/[:.]/g, "-");
-
-    return `${formattedDate}_${telefone}_${row.easycode}_${row.bd_id}.wav`;
+    return `${formattedDate}_${telefone}_${row.easycode}_${row.bd_id}_parte${index}.wav`;
   }
 }

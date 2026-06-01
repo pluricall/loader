@@ -23,15 +23,14 @@ export interface RecordingSendLog {
 }
 
 export interface RecordingRow {
-  easycode: number;
   telefone: string;
-  logincontacto: string;
+  easycode: number;
+  resultado: string;
   duracao: number;
   bd_id: string;
+  logincontacto: string;
   recording_key: string;
-  moment: Date;
-  call_start: Date;
-  resultado: string;
+  start_time: Date;
   is_historical: number;
 }
 

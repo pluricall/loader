@@ -26,7 +26,7 @@ export async function startLinceServer() {
 
   startAltitudeWorker();
   const pluricallRepository = new MssqlPluricallRepository();
-  vmOutCron();
+  // vmOutCron();
   plenitudeRecordingsJob();
 
   lince.addContentTypeParser(

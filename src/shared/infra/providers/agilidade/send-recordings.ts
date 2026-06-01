@@ -7,8 +7,7 @@ interface AgilidadeSendRecordingsParams {
   Telefone: string;
   AtendidaPor: string;
   Duracao: string;
-  Gravacao: Buffer;
-  fileName?: string;
+  Gravacoes: { buffer: Buffer; fileName: string }[];
 }
 
 export interface SendRecordingsResponse {
@@ -41,8 +40,10 @@ export class AgilidadeSendRecordingsService {
     formData.append("AtendidaPor", params.AtendidaPor);
     formData.append("Duracao", params.Duracao);
 
-    const blob = new Blob([params.Gravacao], { type: "audio/wav" });
-    formData.append("Gravacao", blob, params.fileName ?? "gravacao.wav");
+    for (const gravacao of params.Gravacoes) {
+      const blob = new Blob([gravacao.buffer], { type: "audio/wav" });
+      formData.append("Gravacao", blob, gravacao.fileName);
+    }
 
     const response = await fetch(`${this.BASE_URL}/pluricall/call_recording`, {
       method: "POST",

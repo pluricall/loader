@@ -120,120 +120,54 @@ export class AgilidadeMssqlRepository implements IAgilidadeRepository {
   async getRecordingsByDay(data: SendRecordingsToClientApiRequest) {
     const conn = await connectPluricallDb("onprem");
     const result = await conn.request().query(`
-        BEGIN
-    SET NOCOUNT ON; 
-
-    DECLARE @dataini  DATETIME = '${data.initialDate} 00:00:00';
-    DECLARE @datafim  DATETIME = '${data.endDate} 23:59:59';
-    DECLARE @include_historical BIT = ${data.includeHistorical ? 1 : 0};
-
-    IF OBJECT_ID('tempdb..#BASE') IS NOT NULL DROP TABLE #BASE;
-    IF OBJECT_ID('tempdb..#EASYCODES') IS NOT NULL DROP TABLE #EASYCODES;
-
-    CREATE TABLE #EASYCODES (
-        easycode INT PRIMARY KEY,
-        primeira_venda DATETIME
-    );
-
-    INSERT INTO #EASYCODES (easycode, primeira_venda)
+    DECLARE @dataini DATETIME = '${data.initialDate} 00:00:00';
+    DECLARE @datafim DATETIME = '${data.endDate} 23:59:59';
+      WITH SUCCESS_TODAY AS (
+    SELECT DISTINCT ct.easycode
+    FROM ct_agilidade_leads ct
+    INNER JOIN itr_recording ir
+        ON ir.contact = ct.easycode
+    WHERE ir.start_time BETWEEN @dataini AND @datafim
+      AND ct.resultado = '1'
+)
 SELECT
-    easycode,
-    MIN(datacontacto)
-FROM ct_agilidade_leads WITH (NOLOCK)
-WHERE resultado = '1'
-  AND datacontacto >= @dataini
-  AND datacontacto <  @datafim
-GROUP BY easycode;
-
-    SELECT
-        CT.easycode,
-        CT.telefone_,
-        CT.telemovel_,
-        CT.logincontacto,
-        CT.duracao,
-        CT.bd_id,
-        CT.resultado,
-        CT.datacontacto,
-        itr_record.recording_key,
-        itr_record.start_time AS recording_moment,
-        0 AS is_historical
-    INTO #BASE
-    FROM itr_recording itr_record WITH (NOLOCK)
-    INNER JOIN ct_agilidade_leads CT WITH (NOLOCK)
-        ON itr_record.contact = CT.easycode
-    WHERE itr_record.start_time >= @dataini
-      AND itr_record.start_time <  @datafim;
-
-    IF @include_historical = 1
-    BEGIN
-        INSERT INTO #BASE (
-            easycode,
-            telefone_,
-            telemovel_,
-            logincontacto,
-            duracao,
-            bd_id,
-            resultado,
-            datacontacto,
-            recording_key,
-            recording_moment,
-            is_historical
-        )
-        SELECT
-            CT.easycode,
-            CT.telefone_,
-            CT.telemovel_,
-            CT.logincontacto,
-            CT.duracao,
-            CT.bd_id,
-            CT.resultado,
-            CT.datacontacto,
-            itr_record.recording_key,
-            itr_record.start_time,
-            1
-        FROM itr_recording itr_record WITH (NOLOCK)
-        INNER JOIN ct_agilidade_leads CT WITH (NOLOCK)
-            ON itr_record.contact = CT.easycode
-		 INNER JOIN #EASYCODES E
-            ON E.easycode = CT.easycode
-        WHERE itr_record.start_time IS NOT NULL
-          AND (
-                E.primeira_venda IS NULL
-                OR itr_record.start_time < E.primeira_venda
-          );
-    END
-
-    SELECT
-        ACT.easycode,
-        COALESCE(NULLIF(ACT.telefone_, ''), ACT.telemovel_) AS telefone,
-        ACT.logincontacto,
-        ACT.duracao,
-        ACT.bd_id,
-        ACT.recording_key,
-        ACT.recording_moment AS moment,
-
-        thg.itr_key           AS global_recording_key,
-        th.itr_global         AS global_interaction,
-        th.code               AS interaction_id,
-
-        th.start_time         AS call_start,
-        th.termination_state,
-
-        ACT.resultado,
-        ACT.is_historical,
-
-        th.contact_profile,
-        th.media_type,
-        th.origin,
-        thg.disconnection_type
-
-    FROM #BASE ACT
-INNER JOIN itr_thread th WITH (NOLOCK)
-    ON th.contact = ACT.easycode
-INNER JOIN itr_global thg WITH (NOLOCK)
-    ON thg.code = th.itr_global
-WHERE th.start_time IS NOT NULL
-END;
+    COALESCE(
+        NULLIF(REPLACE(REPLACE(ct.telemovel_, ' ', ''), '-', ''), ''),
+        NULLIF(REPLACE(REPLACE(ct.telefone_, ' ', ''), '-', ''), '')
+    ) AS telefone,
+    ct.easycode,
+    ct.resultado,
+    ct.duracao,
+    ct.bd_id,
+    ct.logincontacto,
+    ir.recording_key,
+    ir.start_time,
+    0 AS is_historical
+FROM ct_agilidade_leads ct
+INNER JOIN itr_recording ir
+    ON ir.contact = ct.easycode
+WHERE ir.start_time BETWEEN @dataini AND @datafim
+UNION ALL
+SELECT
+    COALESCE(
+        NULLIF(REPLACE(REPLACE(ct.telemovel_, ' ', ''), '-', ''), ''),
+        NULLIF(REPLACE(REPLACE(ct.telefone_, ' ', ''), '-', ''), '')
+    ) AS telefone,
+    ct.easycode,
+    ct.resultado,
+    ct.duracao,
+    ct.bd_id,
+    ct.logincontacto,
+    ir.recording_key,
+    ir.start_time,
+    1 AS is_historical
+FROM ct_agilidade_leads ct
+INNER JOIN itr_recording ir
+    ON ir.contact = ct.easycode
+INNER JOIN SUCCESS_TODAY s
+    ON s.easycode = ct.easycode
+WHERE ir.start_time < @dataini
+ORDER BY easycode, start_time;
       `);
 
     const rows: RecordingRow[] = result.recordset;

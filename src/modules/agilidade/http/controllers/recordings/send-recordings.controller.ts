@@ -8,9 +8,8 @@ export async function agilidadeRecordingsController(
   try {
     const useCase = makeAgilidadeRecordingsUseCase();
     await useCase.execute({
-      endDate: "2026-04-15",
-      initialDate: "2026-04-15",
-      limit: 10,
+      endDate: "2026-05-28",
+      initialDate: "2026-05-28",
     });
     return reply.status(200).send({ message: "Processamento concluído" });
   } catch (error: any) {
