@@ -84,22 +84,26 @@ export class Minisom21121UseCase {
       leadStatus: "RECEIVED",
     });
 
-    this.minisom21121UploadContacts.execute({
-      phoneNumber: normalizedPhoneNumber,
-      name: fullName,
-      genId,
-      email: bodyRequest.email || "",
-      bd: bodyRequest.bd,
-      birthDate: bodyRequest.birth_date || "",
-      city: bodyRequest.city || "",
-      leadId: bodyRequest.lead_id || "",
-      utmSource: bodyRequest.utm_source || "",
-      campaign: this.CAMPAIGN,
-      contactList: this.CONTACTLIST,
-      origem: this.ORIGEM,
-      privacy: bodyRequest.privacy || "",
-      marketing: bodyRequest.marketing || "",
-    });
+    this.minisom21121UploadContacts
+      .execute({
+        phoneNumber: normalizedPhoneNumber,
+        name: fullName,
+        genId,
+        email: bodyRequest.email || "",
+        bd: bodyRequest.bd,
+        birthDate: bodyRequest.birth_date || "",
+        city: bodyRequest.city || "",
+        leadId: bodyRequest.lead_id || "",
+        utmSource: bodyRequest.utm_source || "",
+        campaign: this.CAMPAIGN,
+        contactList: this.CONTACTLIST,
+        origem: this.ORIGEM,
+        privacy: bodyRequest.privacy || "",
+        marketing: bodyRequest.marketing || "",
+      })
+      .catch((err) => {
+        console.error(`[minisom21121] Falha ao enfileirar lead ${genId}:`, err);
+      });
 
     return { status: "OK", statusMsg: "Lead loaded with success.", genId };
   }

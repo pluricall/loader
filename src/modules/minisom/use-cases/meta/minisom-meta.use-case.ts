@@ -78,16 +78,20 @@ export class MinisomMetaUseCase {
       leadStatus: "RECEIVED",
     });
 
-    this.minisomMetaUploadContacts.execute({
-      bd: bd.bd,
-      genId,
-      email: bodyRequest.email,
-      leadId: bodyRequest.lead_id,
-      name: bodyRequest.full_name,
-      phoneNumber: normalizedPhoneNumber,
-      contactList: this.CONTACTLIST,
-      campaign: this.CAMPAIGN,
-    });
+    this.minisomMetaUploadContacts
+      .execute({
+        bd: bd.bd,
+        genId,
+        email: bodyRequest.email,
+        leadId: bodyRequest.lead_id,
+        name: bodyRequest.full_name,
+        phoneNumber: normalizedPhoneNumber,
+        contactList: this.CONTACTLIST,
+        campaign: this.CAMPAIGN,
+      })
+      .catch((err) => {
+        console.error(`[minisomMeta] Falha ao enfileirar lead ${genId}:`, err);
+      });
 
     return { status: "OK", statusMsg: "Lead loaded with success.", genId };
   }

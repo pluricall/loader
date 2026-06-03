@@ -6,7 +6,7 @@ import { MssqlMinisomRepository } from "../../../../modules/minisom/repositories
 import { MssqlServilusaRepository } from "../../../../modules/servilusa/repositories/mssql-servilusa.repository";
 import { AgilidadeMssqlRepository } from "../../../../modules/agilidade/infra/mssql/agilidade-mssql-repository";
 import { EndesaMssqlRepository } from "../../../../modules/endesa/infra/mssql/endesa-mssql-repository";
-import { AltitudeEnvironment } from "../../../utils/resolve-altitude-config";
+import { AltitudeEnvironment } from "../../providers/altitude/utils/resolve-altitude-config";
 
 let worker: Worker | null = null;
 
@@ -61,16 +61,11 @@ export function startAltitudeWorker() {
       const errorHandlers = createRepositoryHandler(genId, "ERROR");
 
       try {
-        await altitudeCreateContact.execute({
-          environment,
-          payload,
-        });
+        await altitudeCreateContact.execute({ environment, payload });
 
         const handler = successHandlers[repository];
-
-        if (!handler) {
+        if (!handler)
           throw new Error(`Handler não encontrado para ${repository}`);
-        }
 
         await handler();
       } catch (err: any) {
@@ -79,12 +74,16 @@ export function startAltitudeWorker() {
           err,
         );
 
-        const errorHandler = errorHandlers[repository];
+        // Só marca ERROR na última tentativa
+        const isLastAttempt = job.attemptsMade >= (job.opts.attempts ?? 1) - 1;
 
-        if (!errorHandler) {
-          console.error(`Handler de erro não encontrado para ${repository}`);
-        } else {
-          await errorHandler();
+        if (isLastAttempt) {
+          const errorHandler = errorHandlers[repository];
+          if (!errorHandler) {
+            console.error(`Handler de erro não encontrado para ${repository}`);
+          } else {
+            await errorHandler();
+          }
         }
 
         throw err;
@@ -93,6 +92,17 @@ export function startAltitudeWorker() {
     {
       connection: redisConnection,
       concurrency: 1,
+      settings: {
+        backoffStrategy: (attemptsMade: number) => {
+          const delays: Record<number, number> = {
+            1: 10_000, // 10s
+            2: 30_000, // 30s
+            3: 60_000, // 1min
+            4: 7_200_000, // 2h
+          };
+          return delays[attemptsMade] ?? 7_200_000;
+        },
+      },
     },
   );
 
