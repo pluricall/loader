@@ -11,7 +11,7 @@ export class LoggerService implements ILogger {
       : pino.transport({
           target: "pino-roll",
           options: {
-            file: "./logs/app-%d{yyyy-MM-dd}.log",
+            file: "./logs/app.log",
             frequency: "daily",
             limit: { count: 30 },
             mkdir: true,
