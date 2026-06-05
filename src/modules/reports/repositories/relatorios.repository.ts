@@ -4,6 +4,8 @@ export interface CreateReportParams {
   driveId: string;
   folderPath: string;
   foldersByDate: boolean;
+  machine: string;
+  schedule: string;
   status: "ACTIVO" | "INACTIVO";
 }
 
@@ -11,6 +13,7 @@ export interface UpdateReportStatusParams {
   id: number;
   lastStatus: "SUCCESS" | "ERROR" | "PENDING";
   error?: string;
+  fileSize?: number;
 }
 
 export interface Report {
@@ -24,6 +27,11 @@ export interface Report {
   last_status: "SUCCESS" | "ERROR" | "PENDING" | null;
   error: string | null;
   folders_by_date: boolean;
+  file_size: number | null;
+  calls_today: number;
+  last_count_date: Date | null;
+  machine: string | null;
+  schedule: string | null;
   created_at: Date;
   updated_at: Date;
 }

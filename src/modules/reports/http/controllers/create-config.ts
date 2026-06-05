@@ -6,8 +6,10 @@ import { makeCreateReportConfigUseCase } from "../../use-cases/factories/make-cr
 const schema = z.object({
   clientName: z.string().min(3),
   siteId: z.string().min(1),
+  machine: z.string().min(1),
   driveId: z.string().min(1),
   folderPath: z.string().min(1),
+  schedule: z.string().regex(/^\d{2}:\d{2}$/),
   foldersByDate: z.boolean(),
   status: z.enum(["ACTIVO", "INACTIVO"]),
 });
