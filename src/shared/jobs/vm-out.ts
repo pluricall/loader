@@ -9,11 +9,7 @@ export function vmOutCron() {
     const hour = now.getHours();
     const minute = now.getMinutes();
 
-    // ❌ BLOQUEIA de 23:50 até 00:59
-    if (
-      (hour === 23 && minute >= 50) ||
-      hour === 0 // tudo de 00:00 até 00:59
-    ) {
+    if ((hour === 23 && minute >= 50) || hour === 0) {
       return;
     }
 
