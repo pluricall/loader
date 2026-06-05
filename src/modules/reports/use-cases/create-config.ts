@@ -23,6 +23,8 @@ export class CreateReportConfigUseCase {
       folderPath: data.folderPath,
       status: data.status,
       foldersByDate: data.foldersByDate,
+      machine: data.machine,
+      schedule: data.schedule,
     });
   }
 }

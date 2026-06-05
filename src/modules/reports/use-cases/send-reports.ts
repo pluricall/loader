@@ -49,6 +49,7 @@ export class SendReportUseCase {
         id: config.id,
         lastStatus: "SUCCESS",
         error: "",
+        fileSize: fileBuffer.length,
       });
 
       const isMinisomEmail = config.client_name
