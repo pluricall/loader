@@ -42,7 +42,7 @@ export class MinisomMetaUploadContactsUseCase {
     contactList,
     leadId,
   }: UploadContactsMeta) {
-    const priority = MinisomGetPriorityService.calculate();
+    // const priority = MinisomGetPriorityService.calculate();
     const dataload = generateDataload();
     const plcId = generatePlcId();
 
@@ -73,7 +73,6 @@ export class MinisomMetaUploadContactsUseCase {
           this.buildAltitudeField("bd", String(bd)),
           this.buildAltitudeField("dataload", String(dataload)),
           this.buildAltitudeField("plc_id", String(plcId)),
-          this.buildAltitudeField("Priority", String(priority)),
         ],
       },
     };
