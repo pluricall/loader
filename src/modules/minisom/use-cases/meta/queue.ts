@@ -1,6 +1,7 @@
 import { altitudeQueue } from "../../../../shared/infra/queue/altitude/altitude-queue";
 import { generateDataload } from "../../../../shared/utils/generators/generate-dataload";
 import { generatePlcId } from "../../../../shared/utils/generators/generate-plc-id";
+import { MinisomGetPriorityService } from "../../services/get-priority";
 
 interface UploadContactsMeta {
   phoneNumber: string | number;
@@ -41,6 +42,7 @@ export class MinisomMetaUploadContactsUseCase {
     contactList,
     leadId,
   }: UploadContactsMeta) {
+    const priority = MinisomGetPriorityService.calculate();
     const dataload = generateDataload();
     const plcId = generatePlcId();
 
@@ -71,6 +73,7 @@ export class MinisomMetaUploadContactsUseCase {
           this.buildAltitudeField("bd", String(bd)),
           this.buildAltitudeField("dataload", String(dataload)),
           this.buildAltitudeField("plc_id", String(plcId)),
+          this.buildAltitudeField("Priority", String(priority)),
         ],
       },
     };
