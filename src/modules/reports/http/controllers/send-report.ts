@@ -13,25 +13,20 @@ export async function sendReportController(
   reply: FastifyReply,
 ) {
   const data = schema.parse(request.body);
+  const useCase = makeSendReportUseCase();
+  const fileBuffer = Buffer.from(data.fileBase64, "base64");
 
-  try {
-    const useCase = makeSendReportUseCase();
-    const fileBuffer = Buffer.from(data.fileBase64, "base64");
+  reply.status(200).send({ message: "Report recebido, a processar..." });
 
-    await useCase.execute({
-      clientName: data.clientName,
-      fileName: data.fileName,
-      fileBuffer,
-    });
-
-    return reply.status(200).send({
-      message: "Report enviado com sucesso",
-    });
-  } catch (error) {
-    console.error("SEND REPORT ERROR:", error);
-
-    return reply.status(500).send({
-      message: "Erro ao enviar relatório",
-    });
-  }
+  setImmediate(async () => {
+    try {
+      await useCase.execute({
+        clientName: data.clientName,
+        fileName: data.fileName,
+        fileBuffer,
+      });
+    } catch (error) {
+      console.error("SEND REPORT ERROR:", error);
+    }
+  });
 }
