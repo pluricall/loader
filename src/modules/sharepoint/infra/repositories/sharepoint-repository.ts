@@ -50,8 +50,42 @@ export class SharepointRepository implements ISharepointRepository {
     filePath: string;
     fileBuffer: Buffer;
   }): Promise<void> {
-    await client
-      .api(`/drives/${driveId}/root:/${filePath}:/content`)
-      .put(fileBuffer);
+    const fileSize = fileBuffer.length;
+    const chunkSize = 5 * 1024 * 1024; // 5 MB — deve ser múltiplo de 320 KB
+
+    const session = await client
+      .api(`/drives/${driveId}/root:/${filePath}:/createUploadSession`)
+      .post({
+        item: {
+          "@microsoft.graph.conflictBehavior": "replace",
+        },
+      });
+
+    const uploadUrl: string = session.uploadUrl;
+    let offset = 0;
+
+    while (offset < fileSize) {
+      const end = Math.min(offset + chunkSize, fileSize);
+      const chunk = fileBuffer.slice(offset, end);
+
+      const response = await fetch(uploadUrl, {
+        method: "PUT",
+        headers: {
+          "Content-Length": `${chunk.length}`,
+          "Content-Range": `bytes ${offset}-${end - 1}/${fileSize}`,
+          "Content-Type": "application/octet-stream",
+        },
+        body: chunk,
+      });
+
+      if (!response.ok && response.status !== 202) {
+        const errorBody = await response.text();
+        throw new Error(
+          `Chunk upload failed at offset ${offset}: ${response.status} ${errorBody}`,
+        );
+      }
+
+      offset = end;
+    }
   }
 }
