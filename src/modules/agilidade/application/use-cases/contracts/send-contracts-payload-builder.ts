@@ -4,12 +4,13 @@ import {
   AllContacts,
 } from "../../../domain/repositories/agilidade-repository";
 import {
+  MotivoNaoInteresse,
   NaoConvertidaPayload,
   SendContractsPayload,
 } from "../../../http/schemas/agilidade-contracts.schema";
 
 export class AgilidadeContractsPayloadBuilder {
-  buildConvertida(
+  buildPayloadConvertida(
     ct: AllContacts,
     principal: AdesaoPrincipal,
     secundarios: AdesaoSecundaria[],
@@ -32,7 +33,7 @@ export class AgilidadeContractsPayloadBuilder {
       Periodicidade: this.mapPeriodicidade(ct.forma_pagamento),
       Banco: ct.banco ?? "",
       Bic: ct.balcao ?? "",
-      Iban: `PT50${ct.banco}${ct.balcao}${ct.conta}${ct.checksum}`,
+      Iban: this.buildIban(ct),
       NumeroConta: ct.conta ?? "",
       DataInicio: this.formatDebito(ct),
       ConcordaCobranca: ct.q1 === "Sim",
@@ -60,30 +61,40 @@ export class AgilidadeContractsPayloadBuilder {
         Cidade: ad.localidade ?? undefined,
         Produto: ad.produto ?? "",
       })),
-      Referencias: ct.obs
-        ? [{ PrimeiroNome: ct.obs, Apelido: "", Telefone: "" }]
-        : undefined,
+      Referencias: [{ PrimeiroNome: ct.nome ?? "", Apelido: "", Telefone: "" }],
     };
   }
 
-  buildNaoConvertida(ct: any): NaoConvertidaPayload {
-    let MotivoNaoInteresse: string | undefined;
-    if (ct.resultado === "3") {
-      MotivoNaoInteresse = ct.mot_nao_int;
-    } else if (ct.resultado === "E") {
-      MotivoNaoInteresse = "Nº Errado";
-    } else if (ct.resultado === "M") {
-      MotivoNaoInteresse = "Excesso de Tentativas";
-    } else if (ct.resultado === "Y") {
-      MotivoNaoInteresse = "Não quer ser mais contactado";
-    } else if (ct.resultado === "Z") {
-      MotivoNaoInteresse = "Não quer ser mais contactado";
-    } else if (ct.resultado === "Q") {
-      MotivoNaoInteresse = "Não tem interesse";
-    } else if (ct.resultado === "C") {
-      MotivoNaoInteresse = "Pensava que era Clinica";
-    } else {
-      MotivoNaoInteresse = "Não tem interesse";
+  buildPayloadNaoConvertida(
+    ct: any,
+    status: NaoConvertidaPayload["Status"],
+  ): NaoConvertidaPayload {
+    let motivo: MotivoNaoInteresse;
+    let rgpd = false;
+
+    switch (ct.resultado) {
+      case "3":
+        motivo = ct.mot_nao_int;
+        break;
+      case "E":
+        motivo = "Nº Errado";
+        break;
+      case "M":
+        motivo = "Excesso de Tentativas";
+        break;
+      case "Y":
+        motivo = "Não quer ser mais contactado";
+        break;
+      case "Z":
+        motivo = "Não quer ser mais contactado";
+        rgpd = true;
+        break;
+      case "Q":
+        motivo = "Não tem interesse";
+        break;
+      case "C":
+        motivo = "Pensava que era Clinica";
+        break;
     }
 
     return {
@@ -91,31 +102,35 @@ export class AgilidadeContractsPayloadBuilder {
       PrimeiroNome: ct.nome ?? "",
       Apelido: "",
       Email: ct.enderecoemail ?? "",
-      Telefone: String(ct.tel_marcado),
+      Telefone: ct.tel_marcado ? String(ct.tel_marcado) : "",
       Marca: "",
-      Status: this.mapStatus(ct.resultado) as NaoConvertidaPayload["Status"],
-      MotivoNaoInteresse,
-      RGPD: ct.resultado === "Z",
-      NomeColaborador: ct.logincontacto,
+      Status: status,
+      MotivoNaoInteresse: motivo,
+      RGPD: rgpd,
+      NomeColaborador: ct.logincontacto ?? "Sistema",
     };
   }
 
-  private mapStatus(resultado: string): SendContractsPayload["Status"] {
-    const map: Record<string, SendContractsPayload["Status"]> = {
-      "1": "Convertida",
-      "3": "Sem Interesse",
-      E: "Sem Interesse",
-      M: "Sem Interesse",
-      Y: "Sem Interesse",
-      Q: "Sem Interesse",
-      Z: "Sem Interesse",
-      "2": "Agendada",
-      I: "Agendada",
-      C: "Sem Interesse",
-      F: "Não Atendida",
-      V: "Não Atendida",
-    };
-    return map[resultado] ?? "Não Atendida";
+  mapStatus(resultado: string): NaoConvertidaPayload["Status"] {
+    switch (resultado) {
+      case "2":
+      case "I":
+        return "Agendada";
+
+      case "3":
+      case "E":
+      case "M":
+      case "Q":
+      case "C":
+        return "Sem Interesse";
+
+      case "Y":
+      case "Z":
+        return "Exausta";
+
+      default:
+        return "Não Atendida";
+    }
   }
 
   private mapSexo(sexo: string | null): "Feminino" | "Masculino" | undefined {
@@ -125,8 +140,7 @@ export class AgilidadeContractsPayloadBuilder {
   }
 
   private mapPeriodicidade(value: string | null): "Mensal" | "Anual" {
-    if (value?.toUpperCase() === "ANUAL") return "Anual";
-    return "Mensal";
+    return value?.toUpperCase() === "ANUAL" ? "Anual" : "Mensal";
   }
 
   private mapMarca(
@@ -134,6 +148,10 @@ export class AgilidadeContractsPayloadBuilder {
   ): "" | "Agilcare" | "Sorriso+" | "SorrisoPrime" {
     const allowed = ["Agilcare", "Sorriso+", "SorrisoPrime"];
     return allowed.includes(marca ?? "") ? (marca as any) : "";
+  }
+
+  private buildIban(ct: any): string {
+    return `PT50${ct.banco}${ct.balcao}${ct.conta}${ct.checksum}`;
   }
 
   private formatDateToApi(date: string | Date | null | undefined): string {

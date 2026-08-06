@@ -49,6 +49,7 @@ export class Agilidade24041UploadContactsUseCase {
           this.buildField("bd_form_id", lead.formId),
           this.buildField("plc_id", lead.genId),
           this.buildField("dataload", dataload),
+          this.buildField("bd_campaign_name", lead.leadSource),
         ],
       },
     };

@@ -25,11 +25,11 @@ export class MssqlVmOutRepository implements IVmOutRepository {
   }
 
   async getInboundAttendedToday(): Promise<string[]> {
-    const poolOnprem = await connectPluricallDb("onprem");
+    const poolOnprem = await connectPluricallDb("cloud");
 
     const result = await poolOnprem.request().query(`
       SELECT telefone1_ as telefone, fimguiao
-      FROM ct_vm_inb_cloud
+      FROM ct_vm_inb
       WHERE 
       CAST(dataload AS DATE) = CAST(GETDATE() AS DATE)
       AND resultado IS NOT NULL

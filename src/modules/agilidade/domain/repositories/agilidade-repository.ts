@@ -68,6 +68,7 @@ export interface AllContacts {
   tel_marcado: string;
   logincontacto: string;
   datacontacto: string;
+  inicioguiao?: string | Date;
   forma_pagamento: string;
   banco: string;
   balcao: string;
@@ -106,6 +107,14 @@ export interface AdesaoSecundaria {
   produto: string | null;
 }
 
+// Linha crua da itr_thread (só os campos que o fluxo de tentativas usa)
+export interface CallAttempt {
+  itr_global: number;
+  contact: string; // = easycode
+  start_time: Date;
+  termination_state: number;
+}
+
 export interface IAgilidadeRepository {
   save(
     lead: AgilidadeLead,
@@ -122,4 +131,23 @@ export interface IAgilidadeRepository {
   getAdesaoPrincipal(easycode: string): Promise<AdesaoPrincipal>;
   getAdesoesSecundarias(easycode: string): Promise<AdesaoSecundaria[]>;
   updateLeadId: (easycode: string, lead_id: string) => Promise<void>;
+
+  // --- Fluxo de tentativas (thread) sobre ct_agilidade_leads_fake ---
+  // interface
+  getAttemptsParaEnviar(
+    windowStart: string,
+    windowEnd: string,
+  ): Promise<CallAttempt[]>;
+  getResultadoParaAttempt(
+    easycode: string,
+    attemptStartTime: Date,
+    toleranceSeconds?: number,
+  ): Promise<AllContacts | null>;
+  getCtFakeByEasycode(easycode: string): Promise<AllContacts | null>;
+  getLastSentStatus(easycode: string): Promise<string | null>;
+  logSkippedAttempt(
+    itr_global: number,
+    easycode: string,
+    status: string,
+  ): Promise<void>;
 }

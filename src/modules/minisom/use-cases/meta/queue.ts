@@ -82,7 +82,7 @@ export class MinisomMetaUploadContactsUseCase {
     };
 
     await altitudeQueue.add("create-contact", {
-      environment: "onprem",
+      environment: "cloud",
       payload,
       genId,
       repository: "minisomMeta",

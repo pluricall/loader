@@ -1,5 +1,7 @@
 import { connectPluricallDb } from "../../../../shared/infra/db/connect-pluricall";
 import {
+  AllContacts,
+  CallAttempt,
   ContractsLogData,
   IAgilidadeRepository,
   RecordingRow,
@@ -289,7 +291,6 @@ ORDER BY easycode, start_time;
     FROM ct_agilidade_leads ct
     WHERE ct.datacontacto >= CONVERT(DATETIME, @date + ' 00:00:00', 120)
       AND ct.datacontacto <  CONVERT(DATETIME, @date + ' 23:59:59', 120)
-      AND ct.resultado NOT IN ('M', '2')
       AND NOT EXISTS (
         SELECT 1
         FROM agilidade_contracts_repository log
@@ -335,5 +336,94 @@ ORDER BY easycode, start_time;
       SET bd_id = @lead_id
       WHERE easycode = @easycode
     `);
+  }
+
+  // ==========================================================
+  // Fluxo de tentativas (thread) — roda sobre ct_agilidade_leads_fake
+  // Usado só no ambiente de teste (Sandbox), não altera nada
+  // do fluxo de produção acima.
+  // ==========================================================
+
+  async getAttemptsParaEnviar(
+    windowStart: string,
+    windowEnd: string,
+  ): Promise<CallAttempt[]> {
+    const conn = await connectPluricallDb("onprem");
+    const result = await conn
+      .request()
+      .input("windowStart", windowStart)
+      .input("windowEnd", windowEnd).query(`
+      SELECT t.itr_global, t.contact, t.start_time, t.termination_state
+      FROM itr_thread t
+      INNER JOIN ct_agilidade_leads_fake ctf ON ctf.easycode = t.contact
+      WHERE t.start_time >= @windowStart
+        AND t.start_time <  @windowEnd
+      ORDER BY t.contact, t.start_time ASC
+    `);
+    return result.recordset;
+  }
+
+  async getResultadoParaAttempt(
+    easycode: string,
+    attemptStartTime: Date,
+    toleranceSeconds = 60,
+  ): Promise<AllContacts | null> {
+    const conn = await connectPluricallDb("onprem");
+    const result = await conn
+      .request()
+      .input("easycode", easycode)
+      .input("attemptStartTime", attemptStartTime)
+      .input("toleranceSeconds", toleranceSeconds).query(`
+        SELECT TOP 1 *
+        FROM ct_agilidade_leads_fake ctf
+        WHERE ctf.easycode = @easycode
+          AND ABS(DATEDIFF(SECOND, ctf.inicioguiao, @attemptStartTime)) <= @toleranceSeconds
+        ORDER BY ABS(DATEDIFF(MILLISECOND, ctf.inicioguiao, @attemptStartTime)) ASC
+      `);
+    return result.recordset[0] ?? null;
+  }
+
+  async getCtFakeByEasycode(easycode: string): Promise<AllContacts | null> {
+    const conn = await connectPluricallDb("onprem");
+    const result = await conn.request().input("easycode", easycode).query(`
+      SELECT TOP 1 *
+      FROM ct_agilidade_leads_fake
+      WHERE easycode = @easycode
+    `);
+    return result.recordset[0] ?? null;
+  }
+
+  async getLastSentStatus(easycode: string): Promise<string | null> {
+    const conn = await connectPluricallDb("onprem");
+    const result = await conn.request().input("easycode", easycode).query(`
+      SELECT TOP 1 status
+      FROM agilidade_contracts_repository
+      WHERE easycode = @easycode
+        AND send_status = 'SUCCESS'
+      ORDER BY created_at DESC
+    `);
+    return result.recordset[0]?.status ?? null;
+  }
+
+  async logSkippedAttempt(
+    itr_global: number,
+    easycode: string,
+    status: string,
+  ): Promise<void> {
+    const conn = await connectPluricallDb("onprem");
+    await conn
+      .request()
+      .input("itr_global", itr_global)
+      .input("easycode", easycode)
+      .input("status", status).query(`
+        INSERT INTO agilidade_contracts_repository (
+          easycode, lead_id, colaborador, marca, status, telefone, email,
+          num_beneficiarios, send_status, api_response, body, created_at
+        )
+        VALUES (
+          @easycode, '', '', '', @status, '', '',
+          0, 'SUCCESS', 'SKIPPED: itr_global=' + CAST(@itr_global AS VARCHAR), NULL, GETDATE()
+        )
+      `);
   }
 }

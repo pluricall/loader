@@ -17,6 +17,7 @@ export const agilidade24041Schema = z
     adset_name: z.string().optional(),
     form_id: z.string().optional(),
     marca: z.string().optional(),
+    lead_source: z.string().optional(),
   })
   .transform((data) => ({
     nome: data.nome,
@@ -34,6 +35,7 @@ export const agilidade24041Schema = z
     adsetName: data.adset_name,
     formId: data.form_id,
     marca: data.marca,
+    leadSource: data.lead_source,
   }));
 
 export type Agilidade24041Schema = z.infer<typeof agilidade24041Schema>;

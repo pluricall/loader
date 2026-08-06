@@ -104,7 +104,7 @@ export class MinisomTestUploadContactsUseCase {
     );
 
     await altitudeQueue.add("create-contact", {
-      environment: "onprem",
+      environment: "cloud",
       payload,
       genId,
       repository: "minisomTest",

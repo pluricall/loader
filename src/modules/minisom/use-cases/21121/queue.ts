@@ -99,7 +99,7 @@ export class Minisom21121UploadContactsUseCase {
       },
     };
     await altitudeQueue.add("create-contact", {
-      environment: "onprem",
+      environment: "cloud",
       payload,
       genId,
       repository: "minisom21121",

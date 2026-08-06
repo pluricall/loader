@@ -14,7 +14,7 @@ import { plenitudeRecordingsJob } from "./shared/jobs/plenitude-records";
 export async function startLinceServer() {
   const lince = fastify({
     requestTimeout: 0,
-    bodyLimit: 200 * 1024 * 1024,
+    bodyLimit: 500 * 1024 * 1024,
   });
   lince.register(formbody);
   lince.register(linceRoutes);

@@ -37,6 +37,7 @@ export class Endesa22071UploadContactsUseCase {
         Attributes: [
           this.buildField("FirstName", lead.nome),
           this.buildField("MobilePhone", lead.phoneNumber),
+          this.buildField("bd_telefone_original", lead.phoneNumber),
           this.buildField("apelido", lead.apelido),
           this.buildField("cp1_inst", String(lead.cp4).substring(0, 4)),
           this.buildField("cp2_inst", String(lead.cp3).substring(0, 3)),
@@ -50,7 +51,7 @@ export class Endesa22071UploadContactsUseCase {
     };
 
     await altitudeQueue.add("create-contact", {
-      environment: "onprem",
+      environment: "cloud",
       payload,
       genId: lead.genId,
       repository: "endesa22071",

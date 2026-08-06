@@ -86,6 +86,11 @@ export const sendContractSchema = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Formato inválido: yyyy-mm-dd"),
 });
 
+export const sendAttemptsSchema = z.object({
+  windowStart: z.string().min(1, "windowStart é obrigatório"),
+  windowEnd: z.string().min(1, "windowEnd é obrigatório"),
+});
+
 export type NaoConvertidaPayload = z.infer<typeof NaoConvertidaSchema>;
 export type MotivoNaoInteresse = NaoConvertidaPayload["MotivoNaoInteresse"];
 export type SendContractsPayload = z.infer<typeof sendContractsSchema>;

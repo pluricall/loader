@@ -5,6 +5,7 @@ export function vmOutCron() {
   const vmOutUseCase = makeVmOutUseCase();
 
   cron.schedule("*/10 * * * *", async () => {
+    const id = crypto.randomUUID().slice(0, 8);
     const now = new Date();
     const hour = now.getHours();
     const minute = now.getMinutes();
@@ -12,8 +13,7 @@ export function vmOutCron() {
     if ((hour === 23 && minute >= 50) || hour === 0) {
       return;
     }
-
     await vmOutUseCase.execute();
-    console.log("Cron VM OUT executado");
+    console.log(`[${id}] FIM - vm out`);
   });
 }

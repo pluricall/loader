@@ -85,7 +85,10 @@ export class VmOutUseCase {
           let status = "PENDING";
           let reason = "";
 
-          if (blacklistSet.has(lead.phone)) {
+          if (lead.phone.length > 9) {
+            status = "INVALID";
+            reason = "NUMERO_INVALIDO";
+          } else if (blacklistSet.has(lead.phone)) {
             status = "FILTERED";
             reason = "BLACKLIST";
           } else if (alreadyLoadedOutbound.has(lead.phone)) {
@@ -226,6 +229,13 @@ export class VmOutUseCase {
       const meta = metaMap.get(phone);
       if (!meta) return { estado: "DESCONHECIDO", motivo: "" };
 
+      if (meta.status === "INVALID") {
+        return {
+          estado: "NUMERO INVALIDO",
+          motivo: "Número com mais de 9 dígitos",
+        };
+      }
+
       if (meta.status === "FILTERED") {
         const motivoMap: Record<string, string> = {
           BLACKLIST: "Blacklist",
@@ -247,7 +257,7 @@ export class VmOutUseCase {
     };
 
     const csvLines = [
-      "Número;Chamadas;Última Chamada;Estado;Motivo Filtro",
+      "Numero;Chamadas;Ultima Chamada;Estado;Motivo Filtro",
       ...rows.map((row) => {
         const phone = generateNormalizedPhonePT(String(row.numero));
         const { estado, motivo } = getEstadoEMotivo(phone);
