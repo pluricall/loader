@@ -20,6 +20,7 @@ export function extractAllFields(jsonString: string): Record<string, any> {
     "dist_id",
     "posted_date",
     "city",
+    "lead_source",
   ];
 
   const result: Record<string, any> = {};
