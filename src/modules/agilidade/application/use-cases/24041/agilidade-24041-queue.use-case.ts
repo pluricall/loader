@@ -24,7 +24,7 @@ export class Agilidade24041UploadContactsUseCase {
     const dataload = generateDataload();
 
     const payload = {
-      campaignName: "agilidade_leads",
+      campaignName: "AgilidadeLeads",
       contactCreateRequest: {
         Status: "Started",
         ContactListName: {
@@ -55,7 +55,7 @@ export class Agilidade24041UploadContactsUseCase {
     };
 
     await altitudeQueue.add("create-contact", {
-      environment: "onprem",
+      environment: "cloud",
       payload,
       genId: lead.genId,
       repository: "agilidade24041",
