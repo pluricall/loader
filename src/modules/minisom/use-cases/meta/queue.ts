@@ -1,7 +1,7 @@
 import { altitudeQueue } from "../../../../shared/infra/queue/altitude/altitude-queue";
 import { generateDataload } from "../../../../shared/utils/generators/generate-dataload";
 import { generatePlcId } from "../../../../shared/utils/generators/generate-plc-id";
-import { MinisomGetPriorityService } from "../../services/get-priority";
+// import { MinisomGetPriorityService } from "../../services/get-priority";
 
 interface UploadContactsMeta {
   phoneNumber: string | number;
@@ -43,7 +43,7 @@ export class MinisomMetaUploadContactsUseCase {
     leadId,
   }: UploadContactsMeta) {
     const dataload = generateDataload();
-    const priority = MinisomGetPriorityService.calculate();
+    // const priority = MinisomGetPriorityService.calculate();
     const plcId = generatePlcId();
 
     let fieldToLoadPhoneNumber: string = "HomePhone";
@@ -65,10 +65,10 @@ export class MinisomMetaUploadContactsUseCase {
           RequestType: "Set",
           Value: contactList,
         },
-        Priority: {
+        /* Priority: {
           RequestType: "Set",
           Value: priority,
-        },
+        }, */
         Attributes: [
           this.buildAltitudeField(fieldToLoadPhoneNumber, phoneNumber),
           this.buildAltitudeField("id_cliente", String(leadId)),
